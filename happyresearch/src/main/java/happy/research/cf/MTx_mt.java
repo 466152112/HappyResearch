@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.research.utils.MoleTrust;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class MTx_mt extends DefaultCF_mt
 	protected void probeMTTnScores() throws Exception
 	{
 		int horizon = params.TRUST_PROPERGATION_LENGTH;
-		logger.debug("Building MT{} Data to: {} ...", horizon, trustDirPath);
+		Logs.debug("Building MT{} Data to: {} ...", horizon, trustDirPath);
 
 		for (String user : testUserRatingsMap.keySet())
 		{
@@ -43,7 +44,7 @@ public class MTx_mt extends DefaultCF_mt
 			Map<String, Double> trustScores = MoleTrust.runAlgorithm(userTNsMap, user, horizon);
 			if (trustScores.size() > 0) FileIO.writeMap(userFile.getPath(), trustScores);
 		}
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 }

@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.research.utils.TidalTrust;
 
 import java.io.File;
@@ -37,12 +38,12 @@ public class TTx_mt extends DefaultCF_mt
 					break;
 				default:
 					String trustSet = Dataset.DIRECTORY + Dataset.TRUST_SET;
-					logger.debug("Loading trust data ...");
+					Logs.debug("Loading trust data ...");
 					Map[] data = DatasetUtils.loadTrustSet2(trustSet);
 					userTrusteesMap = data[0];
 					userTrustorsMap = data[1];
 					userTrustRatingsMap = data[2];
-					logger.debug("Done!");
+					Logs.debug("Done!");
 					break;
 			}
 
@@ -69,7 +70,7 @@ public class TTx_mt extends DefaultCF_mt
 	{
 		int horizon = params.TRUST_PROPERGATION_LENGTH;
 		FileIO.makeDirectory(trustDirPath);
-		logger.debug("Building TT{} Data to: {}", horizon, trustDirPath);
+		Logs.debug("Building TT{} Data to: {}", horizon, trustDirPath);
 
 		for (String user : testUserRatingsMap.keySet())
 		{
@@ -80,7 +81,7 @@ public class TTx_mt extends DefaultCF_mt
 					userTrustRatingsMap, user, horizon);
 			if (trustScores != null && trustScores.size() > 0) FileIO.writeMap(file.getPath(), trustScores);
 		}
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 }

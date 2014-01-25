@@ -24,12 +24,9 @@ import java.util.Set;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.slf4j.Logger;
 
 public class DatasetUtils
 {
-	private final static Logger	logger	= Logs.getLogger();
-
 	@SuppressWarnings("unchecked")
 	public static <E> List<E>[] splitCollection(List<E> data, int num)
 	{
@@ -300,7 +297,7 @@ public class DatasetUtils
 				len = sample - i * len;
 			} else end = start + step;
 
-			logger.debug("len, min, max = {}, {}, {}", new Object[] { len, start, end });
+			Logs.debug("len, min, max = {}, {}, {}", new Object[] { len, start, end });
 
 			int[] idsArray = Randoms.nextNoRepeatIntArray(len, start, end);
 
@@ -1149,7 +1146,7 @@ public class DatasetUtils
 		int count = 0;
 		for (int k = 0; k < kfold; k++)
 		{
-			logger.debug("Current step k = " + (k + 1));
+			Logs.debug("Current step k = " + (k + 1));
 			int[] indexArray = null;
 			if (k < kfold - 1)
 			{
@@ -1191,7 +1188,7 @@ public class DatasetUtils
 			bw.flush();
 			bw.close();
 			br.close();
-			logger.debug("[Temporary] Write to " + tempDir + "k" + (k + 1));
+			Logs.debug("[Temporary] Write to " + tempDir + "k" + (k + 1));
 		}
 
 		/* combine into 5 folds */
@@ -1212,8 +1209,8 @@ public class DatasetUtils
 				if (i == j) FileIO.copyFile(source, test);
 				else FileIO.writeString(base, FileIO.readAsString(source), true);
 			}
-			logger.debug("[Finish] Write to " + test);
-			logger.debug("[Finish] Write to " + base);
+			Logs.debug("[Finish] Write to {}", test);
+			Logs.debug("[Finish] Write to {}", base);
 		}
 
 		/* cope trust to k-fold directory */

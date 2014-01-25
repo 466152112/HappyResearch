@@ -1,5 +1,6 @@
 package happy.research.cf;
 
+import happy.coding.io.Logs;
 import happy.coding.io.Strings;
 import happy.coding.math.Sims;
 
@@ -298,7 +299,7 @@ public class TCF_t extends Thread_t
 		predictByTCF(nnRatings, testRating);
 
 		String result = Strings.toString(nnRatings);
-		logger.debug(result);
+		Logs.debug(result);
 
 	}
 

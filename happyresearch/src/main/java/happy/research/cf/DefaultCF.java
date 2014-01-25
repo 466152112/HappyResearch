@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.coding.math.Randoms;
 import happy.coding.math.Sims;
 import happy.coding.math.Stats;
@@ -64,7 +65,7 @@ public abstract class DefaultCF extends AbstractCF {
 		testRatings = null;
 		preProcessing();
 
-		logger.debug("Preparing test-rating data ...");
+		Logs.debug("Preparing test-rating data ...");
 
 		testRatings = new ArrayList<>();
 
@@ -125,7 +126,7 @@ public abstract class DefaultCF extends AbstractCF {
 			}
 		}
 
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 	/**
@@ -147,7 +148,7 @@ public abstract class DefaultCF extends AbstractCF {
 				ratingSet = Dataset.DIRECTORY + params.TRAIN_SET;
 				break;
 			}
-			logger.debug("Loading rating data {}", ratingSet);
+			Logs.debug("Loading rating data {}", ratingSet);
 
 			Map[] data = Dataset.loadTrainSet(ratingSet);
 			userRatingsMap = data[0];
@@ -182,14 +183,14 @@ public abstract class DefaultCF extends AbstractCF {
 			case EXTENDED_EPINIONS:
 				if (!params.auto_trust_sets) {
 					String distrustSet = Dataset.DIRECTORY + Dataset.DISTRUST_SET;
-					logger.debug("Loading distrust data {}", distrustSet);
+					Logs.debug("Loading distrust data {}", distrustSet);
 					userDNsMap = DatasetUtils.loadTrustSet(distrustSet);
 					// no break to continue load trust
 				}
 			case EPINIONS:
 			case FILMTRUST:
 			case FLIXSTER:
-				logger.debug("Loading trust data {}", trustSet);
+				Logs.debug("Loading trust data {}", trustSet);
 				userTNsMap = DatasetUtils.loadTrustSet(trustSet);
 				userTrustorsMap = DatasetUtils.loadTrusteeSet(trustSet);
 				break;

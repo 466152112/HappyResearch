@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.research.cf.ConfigParams.DatasetMode;
 import happy.research.cf.ConfigParams.ValidateMethod;
 
@@ -62,7 +63,7 @@ public abstract class DefaultCF_mt extends DefaultCF {
 			super.prepTestRatings();
 		else if (testRatings == null) {
 			String testSet = Dataset.DIRECTORY + params.TEST_SET;
-			logger.debug("Loading test set {}", testSet);
+			Logs.debug("Loading test set {}", testSet);
 			testRatings = new ArrayList<>();
 
 			Map<String, Map<String, Rating>> userMap = null;

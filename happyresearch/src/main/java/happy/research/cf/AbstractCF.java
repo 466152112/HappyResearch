@@ -23,8 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-
 /**
  * @author guoguibing
  */
@@ -36,7 +34,6 @@ public abstract class AbstractCF
 	protected static int								numRunMethod		= 0;
 	protected static ConfigParams						params;
 
-	protected final static Logger						logger				= Logs.getLogger();
 	protected static List<String>						printSettings		= new ArrayList<>();
 	protected static List<String>						methodSettings		= new ArrayList<>();
 
@@ -104,7 +101,7 @@ public abstract class AbstractCF
 
 	private void formatTestRatings()
 	{
-		logger.debug("Format test ratings ...");
+		Logs.debug("Format test ratings ...");
 
 		/* format test ratings */
 		testUserRatingsMap = new HashMap<>();
@@ -131,9 +128,9 @@ public abstract class AbstractCF
 			testItemRatingsMap.put(item, urs);
 		}
 
-		logger.debug("# test users = {}, items = {}, ratings = {}", new Object[] { testUserRatingsMap.size(),
+		Logs.debug("# test users = {}, items = {}, ratings = {}", new Object[] { testUserRatingsMap.size(),
 				testItemRatingsMap.size(), testRatings.size() });
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 	private void batchExecute() throws Exception
@@ -475,8 +472,8 @@ public abstract class AbstractCF
 		if (printSettings.size() > 0)
 		{
 			for (String setting : printSettings)
-				logger.info(setting);
-			logger.info(null);
+				Logs.info(setting);
+			Logs.info(null);
 			printSettings.clear();
 		}
 
@@ -497,13 +494,13 @@ public abstract class AbstractCF
 			format = "MAE = " + f6 + ", RC[" + d4 + "/" + d4 + "] = " + f2 + "%%, RMSE = " + f6;
 			String mae = String.format(format, new Object[] { ms.getMAE(), ms.getCoveredRatings(),
 					ms.getTotalRatings(), ms.getRC() * 100, ms.getRMSE() });
-			logger.debug(mae);
+			Logs.debug(mae);
 
 			format = "MAUE = " + f6 + ", UC[" + d4 + "/" + d4 + "] = " + f2 + "%%";
 			String maue = String.format(format, new Object[] { ms.getMAUE(), ms.getCoveredUsers(), ms.getTotalUsers(),
 					ms.getUC() * 100 });
-			logger.debug(maue);
-			logger.debug(null);
+			Logs.debug(maue);
+			Logs.debug(null);
 
 			results += "," + ms.getRMSE() + "," + ms.getMAE() + "," + ms.getRC();
 			if (Debug.OFF)
@@ -529,8 +526,8 @@ public abstract class AbstractCF
 						format,
 						new Object[] { cutoff, ms.getPrecision(cutoff), ms.getRecall(cutoff), ms.getF1(cutoff),
 								ms.getMAP(cutoff), ms.getMRR(cutoff), ms.getNDCG(cutoff) });
-				logger.info(print);
-				logger.debug(null);
+				Logs.info(print);
+				Logs.debug(null);
 
 				results += "\n";
 				for (int n : Performance.cutoffs)
@@ -548,8 +545,8 @@ public abstract class AbstractCF
 						sort_by_prediction);
 
 				double F1 = Stats.hMean(ms.getUD(), ms.getSD());
-				logger.debug("UD = {}, SD = {}, F1 = {}", new Object[] { ms.getUD(), ms.getSD(), F1 });
-				logger.debug(null);
+				Logs.debug("UD = {}, SD = {}, F1 = {}", new Object[] { ms.getUD(), ms.getSD(), F1 });
+				Logs.debug(null);
 
 				results += "," + topN + "," + ms.getUD() + "," + ms.getSD() + "," + F1;
 			}
@@ -557,7 +554,7 @@ public abstract class AbstractCF
 
 		if (params.VALIDATE_METHOD == ValidateMethod.cross_validation) results += "," + params.TEST_SET;
 
-		logger.info(results);
+		Logs.info(results);
 	}
 
 	public static void collectResults() throws Exception

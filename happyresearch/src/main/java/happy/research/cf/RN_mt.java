@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 
+import happy.coding.io.Logs;
 import happy.coding.math.Sims;
 
 import java.io.BufferedReader;
@@ -33,7 +34,7 @@ public class RN_mt extends DefaultCF_mt
 		{
 			try
 			{
-				logger.debug("Pre-Processing: Reconstruct Trust Network ...");
+				Logs.debug("Pre-Processing: Reconstruct Trust Network ...");
 				sampleDataset(path);
 			} catch (Exception e)
 			{
@@ -43,7 +44,7 @@ public class RN_mt extends DefaultCF_mt
 		{
 			try
 			{
-				logger.debug("Pre-Processing: Loading Reconstructed Trust Network ...");
+				Logs.debug("Pre-Processing: Loading Reconstructed Trust Network ...");
 				loadTestSet(path);
 			} catch (Exception e)
 			{
@@ -51,7 +52,7 @@ public class RN_mt extends DefaultCF_mt
 			}
 		}
 
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 	private void loadTestSet(String file) throws Exception

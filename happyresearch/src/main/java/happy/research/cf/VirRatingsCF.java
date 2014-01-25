@@ -2,6 +2,7 @@ package happy.research.cf;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.FileIO.Converter;
+import happy.coding.io.Logs;
 import happy.coding.math.Stats;
 import happy.coding.system.Systems;
 import happy.research.cf.ConfigParams.PredictMethod;
@@ -62,20 +63,20 @@ public class VirRatingsCF extends DefaultCF_mt
 		{
 			String confidenceSet = Dataset.DIRECTORY + "Confidences" + Systems.FILE_SEPARATOR
 					+ (isVR ? "confidences-all-vr.txt" : "confidences-all-ws.txt");
-			logger.debug("Loading confidence data {}", confidenceSet);
+			Logs.debug("Loading confidence data {}", confidenceSet);
 
 			Map[] data = Dataset.loadTrainSet(confidenceSet);
 			userConfidencesMap = data[0];
 			itemConfidencesMap = data[1];
 
-			logger.debug("Done!");
+			Logs.debug("Done!");
 		}
 	}
 
 	@Override
 	protected void prepTestRatings()
 	{
-		logger.debug("Preparing test-rating data ...");
+		Logs.debug("Preparing test-rating data ...");
 		if (testRatings == null)
 		{
 			// only physical ratings needs to be tested.
@@ -104,7 +105,7 @@ public class VirRatingsCF extends DefaultCF_mt
 			}
 
 		}
-		logger.debug("Done!");
+		Logs.debug("Done!");
 	}
 
 	@Override
@@ -279,34 +280,34 @@ public class VirRatingsCF extends DefaultCF_mt
 	protected void printPerformance(Performance pf)
 	{
 		// super.printPerformance(pf);
-		logger.info("------------------ {} ------------------", pf.getMethod(), params.DATASET_MODE);
+		Logs.info("------------------ {} ------------------", pf.getMethod(), params.DATASET_MODE);
 
 		if (printSettings.size() > 0)
 		{
 			for (String setting : printSettings)
-				logger.info(setting);
-			logger.info(null);
+				Logs.info(setting);
+			Logs.info(null);
 
 			printSettings.clear();
 		}
 
 		Measures ms = pf.prediction(testUserRatingsMap);
-		logger.info("MAE = {}, MACE = {}", (float) ms.getMAE(), (float) ms.getMACE());
+		Logs.info("MAE = {}, MACE = {}", (float) ms.getMAE(), (float) ms.getMACE());
 
-		logger.info(null);
-		logger.info("" + (float) ms.getMAE());
-		logger.info("" + (float) ms.getMACE());
-		logger.info("" + (float) ms.getRC() * 100 + "%");
-		logger.info(null);
+		Logs.info(null);
+		Logs.info("" + (float) ms.getMAE());
+		Logs.info("" + (float) ms.getMACE());
+		Logs.info("" + (float) ms.getRC() * 100 + "%");
+		Logs.info(null);
 
 		if (virEnabled)
 		{
 			Measures ms2 = pf2.prediction(testUserRatingsMap);
-			logger.info("Predictable MAE = {}, MACE = {}", (float) ms.getMAE(), (float) ms.getMACE());
+			Logs.info("Predictable MAE = {}, MACE = {}", (float) ms.getMAE(), (float) ms.getMACE());
 
-			logger.info(null);
-			logger.info("" + (float) ms2.getMAE());
-			logger.info("" + (float) ms2.getMACE());
+			Logs.info(null);
+			Logs.info("" + (float) ms2.getMAE());
+			Logs.info("" + (float) ms2.getMACE());
 		}
 	}
 
@@ -339,7 +340,7 @@ public class VirRatingsCF extends DefaultCF_mt
 		double median = Stats.median(prices);
 		double mode = Stats.mode(prices);
 
-		logger.debug("Mean = {}, Median = {}, Mode = {}", new Object[] { mean, median, mode });
+		Logs.debug("Mean = {}, Median = {}, Mode = {}", new Object[] { mean, median, mode });
 	}
 
 }

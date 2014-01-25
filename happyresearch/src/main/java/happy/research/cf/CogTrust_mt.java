@@ -1,5 +1,6 @@
 package happy.research.cf;
 
+import happy.coding.io.Logs;
 import happy.coding.math.Sims;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class CogTrust_mt extends DefaultTrust_mt
 		for (String trustor : testUserRatingsMap.keySet())
 		{
 			count++;
-			if (count % 100 == 0) logger.debug("Training progresss: {}/{}", count, testUserRatingsMap.size());
+			if (count % 100 == 0) Logs.debug("Training progresss: {}/{}", count, testUserRatingsMap.size());
 			Map<String, Rating> asRatings = userRatingsMap.get(trustor);
 			if (asRatings == null) continue;
 			for (String trustee : userRatingsMap.keySet())

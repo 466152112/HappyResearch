@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class DT_Impute_t1 extends DT_Impute_mt implements Runnable
 	public void run()
 	{
 		Thread.currentThread().setName("[Build Middle Data] [Thread " + id + "]");
-		logger.debug("Start running {} ...", Thread.currentThread().getName());
+		Logs.debug("Start running {} ...", Thread.currentThread().getName());
 
 		Set<String> items = itemRatingsMap.keySet();
 		for (String user : threadUsers)
@@ -86,7 +87,7 @@ public class DT_Impute_t1 extends DT_Impute_mt implements Runnable
 			}
 
 		}
-		logger.debug("Finish running {}", Thread.currentThread().getName());
+		Logs.debug("Finish running {}", Thread.currentThread().getName());
 
 	}
 

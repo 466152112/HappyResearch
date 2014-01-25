@@ -1,6 +1,7 @@
 package happy.research.cf;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.coding.system.Dates;
 import happy.coding.system.Debug;
 import happy.research.cf.ConfigParams.PredictMethod;
@@ -677,7 +678,7 @@ public abstract class Thread_t extends DefaultCF_mt implements Runnable {
 		if (progress % step == 0) {
 			sw.stop();
 			long remaining = (long) ((size - progress + 0.0) / step * sw.elapsed(TimeUnit.MILLISECONDS));
-			logger.debug("{} progress: {}/{}, remaining {}", new Object[] { Thread.currentThread().getName(), progress,
+			Logs.debug("{} progress: {}/{}, remaining {}", new Object[] { Thread.currentThread().getName(), progress,
 					size, Dates.parse(remaining) });
 			sw.start();
 		}
@@ -685,7 +686,7 @@ public abstract class Thread_t extends DefaultCF_mt implements Runnable {
 
 	protected void startThread() {
 		Thread.currentThread().setName("[" + methodId + "][" + params.DATASET_MODE + "]" + "[Thread " + id + "]");
-		logger.debug("Start running {} ...", Thread.currentThread().getName());
+		Logs.debug("Start running {} ...", Thread.currentThread().getName());
 
 		progress = 0;
 		numRating = threadRatings.size();
@@ -698,7 +699,7 @@ public abstract class Thread_t extends DefaultCF_mt implements Runnable {
 	}
 
 	protected void endThread() {
-		logger.debug("Finish running {}", Thread.currentThread().getName());
+		Logs.debug("Finish running {}", Thread.currentThread().getName());
 	}
 
 	@Override
