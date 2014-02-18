@@ -20,13 +20,18 @@ public class RecUtils {
 	public static Map<String, List<Double>> buildParams(Configer cf) {
 		Map<String, List<Double>> params = new HashMap<>();
 
-		// diversity alpha
-		String divKey = "val.diverse.alpha";
-		List<Double> as = cf.getRange(divKey);
-		if (as.size() > 1)
-			params.put(divKey, as);
+		// regularization
+		addMKey(cf, params, "val.reg.user");
+		addMKey(cf, params, "val.reg.item");
+		addMKey(cf, params, "val.reg.social");
 
 		return params;
+	}
+
+	private static void addMKey(Configer cf, Map<String, List<Double>> params, String key) {
+		List<Double> values = cf.getRange(key);
+		if (values.size() > 1)
+			params.put(key, values);
 	}
 
 	/**

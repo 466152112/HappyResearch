@@ -26,6 +26,10 @@ public class TrustSVD extends SocialRecommender {
 
 		model = cf.getString("TrustSVD.model");
 		algoName = "TrustSVD (" + model + ")";
+		
+		regU = RecUtils.getMKey(params, "val.reg.user");
+		regI = RecUtils.getMKey(params, "val.reg.item");
+		regS = RecUtils.getMKey(params, "val.reg.social");
 	}
 
 	@Override
