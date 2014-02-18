@@ -29,7 +29,7 @@ public class TrustSVD extends SocialRecommender {
 		
 		regU = RecUtils.getMKey(params, "val.reg.user");
 		regI = RecUtils.getMKey(params, "val.reg.item");
-		regS = RecUtils.getMKey(params, "val.reg.social");
+		regS = RecUtils.getMKey(params, "val.reg.social"); 
 	}
 
 	@Override

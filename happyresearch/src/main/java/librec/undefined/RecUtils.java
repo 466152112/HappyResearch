@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import librec.intf.Recommender;
-import librec.main.LibRec;
 
 /**
  * Recommender Utility Class for Configing Recommenders
@@ -56,7 +55,7 @@ public class RecUtils {
 			LibRec.isMultRun = true;
 		} else {
 			alpha = Recommender.cf.getDouble(key);
-			LibRec.isMultRun = false;
+			// LibRec.isMultRun = false;
 		}
 
 		return alpha;
