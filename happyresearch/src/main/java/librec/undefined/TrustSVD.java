@@ -32,8 +32,9 @@ public class TrustSVD extends SocialRecommender {
 
 		wlr = cf.isOn("TrustSVD.wlr");
 
-		double reg = RecUtils.getMKey(params, "val.reg");
-		if (LibRec.isMultRun) {
+		if (params.containsKey("val.reg")) {
+			double reg = RecUtils.getMKey(params, "val.reg");
+
 			regU = reg;
 			regI = reg;
 			regS = reg;
