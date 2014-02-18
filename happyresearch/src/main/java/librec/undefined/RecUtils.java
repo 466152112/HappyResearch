@@ -21,6 +21,7 @@ public class RecUtils {
 		Map<String, List<Double>> params = new HashMap<>();
 
 		// regularization
+		addMKey(cf, params, "val.diverse.alpha");
 		addMKey(cf, params, "val.reg.user");
 		addMKey(cf, params, "val.reg.item");
 		addMKey(cf, params, "val.reg.social");
@@ -46,7 +47,12 @@ public class RecUtils {
 	public static double getMKey(Map<String, List<Double>> params, String key) {
 		double alpha = 0;
 		if (params != null && params.containsKey(key)) {
-			alpha = params.get(key).get(LibRec.paramIdx);
+
+			List<Double> vals = params.get(key);
+			int maxIdx = vals.size() - 1;
+			int idx = LibRec.paramIdx > maxIdx ? maxIdx : LibRec.paramIdx;
+
+			alpha = vals.get(idx);
 			LibRec.isMultRun = true;
 		} else {
 			alpha = Recommender.cf.getDouble(key);
@@ -55,5 +61,5 @@ public class RecUtils {
 
 		return alpha;
 	}
-	
+
 }
