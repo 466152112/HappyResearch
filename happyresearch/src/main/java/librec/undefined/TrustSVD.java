@@ -628,4 +628,8 @@ public class TrustSVD extends SocialRecommender {
 		return pred;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + "," + wlr;
+	}
 }
