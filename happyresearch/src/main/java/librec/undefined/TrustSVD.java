@@ -14,7 +14,7 @@ import librec.intf.SocialRecommender;
  * Our ongoing testing algorithm
  * 
  * @author guoguibing
- *  
+ * 
  */
 public class TrustSVD extends SocialRecommender {
 
@@ -26,10 +26,13 @@ public class TrustSVD extends SocialRecommender {
 
 		model = cf.getString("TrustSVD.model");
 		algoName = "TrustSVD (" + model + ")";
-		
-		regU = RecUtils.getMKey(params, "val.reg.user");
-		regI = RecUtils.getMKey(params, "val.reg.item");
-		regS = RecUtils.getMKey(params, "val.reg.social"); 
+
+		double reg = RecUtils.getMKey(params, "val.reg");
+		if (LibRec.isMultRun) {
+			regU = reg;
+			regI = reg;
+			regS = reg;
+		}
 	}
 
 	@Override

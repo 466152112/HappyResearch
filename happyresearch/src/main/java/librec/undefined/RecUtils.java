@@ -20,10 +20,7 @@ public class RecUtils {
 		Map<String, List<Double>> params = new HashMap<>();
 
 		// regularization
-		addMKey(cf, params, "val.diverse.alpha");
-		addMKey(cf, params, "val.reg.user");
-		addMKey(cf, params, "val.reg.item");
-		addMKey(cf, params, "val.reg.social");
+		addMKey(cf, params, "val.reg");
 
 		return params;
 	}
