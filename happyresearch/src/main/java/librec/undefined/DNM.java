@@ -6,7 +6,6 @@ import java.util.List;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.main.RecUtils;
 
 public class DNM extends BaseNM {
 

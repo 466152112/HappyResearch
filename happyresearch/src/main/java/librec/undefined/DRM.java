@@ -9,7 +9,6 @@ import librec.core.CLiMF;
 import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.main.RecUtils;
 
 public class DRM extends CLiMF {
 

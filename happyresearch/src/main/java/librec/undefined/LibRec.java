@@ -35,7 +35,6 @@ import librec.ext.NMF;
 import librec.ext.SlopeOne;
 import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
-import librec.main.RecUtils;
 
 /**
  * Main Class of the LibRec Library

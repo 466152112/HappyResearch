@@ -7,7 +7,6 @@ import librec.data.DenseMatrix;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.main.RecUtils;
 
 public class DMF extends BaseMF {
 
