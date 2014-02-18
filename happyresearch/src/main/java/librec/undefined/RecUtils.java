@@ -21,6 +21,7 @@ public class RecUtils {
 
 		// regularization
 		addMKey(cf, params, "val.reg");
+		addMKey(cf, params, "val.reg.social");
 
 		return params;
 	}
