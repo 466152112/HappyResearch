@@ -168,7 +168,7 @@ public class TrustSVD extends SocialRecommender {
 
 					for (int v : tu) {
 						double tvf = Tr.get(v, f);
-						double ewv = Tr.get(u, f) - wv[f];
+						double ewv = Tr.get(u, f) - wv[f] / w_tu;
 
 						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
 						double delta_t = euj * qjf / w_tu + regS * ewv * socialMatrix.get(u, v) - regS * wlr_tv * tvf;
