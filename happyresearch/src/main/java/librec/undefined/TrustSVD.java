@@ -161,14 +161,20 @@ public class TrustSVD extends SocialRecommender {
 						loss += regI * wlr_yj * yif * yif;
 					}
 
+					double[] wv = new double[numFactors];
+					for (int d = 0; d < numFactors; d++)
+						for (int v : tu)
+							wv[d] += socialMatrix.get(u, v) * Tr.get(v, d);
+
 					for (int v : tu) {
 						double tvf = Tr.get(v, f);
+						double ewv = Tr.get(u, f) - wv[f];
 
 						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
-						double delta_t = euj * qjf / w_tu - regS * wlr_tv * tvf;
+						double delta_t = euj * qjf / w_tu + regS * ewv * socialMatrix.get(u, v) - regS * wlr_tv * tvf;
 						Tr.add(v, f, lRate * delta_t);
 
-						loss += regS * wlr_tv * tvf * tvf;
+						loss += regS * ewv * ewv + regS * wlr_tv * tvf * tvf;
 					}
 				}
 
@@ -640,4 +646,5 @@ public class TrustSVD extends SocialRecommender {
 	public String toString() {
 		return super.toString() + "," + wlr;
 	}
+
 }
