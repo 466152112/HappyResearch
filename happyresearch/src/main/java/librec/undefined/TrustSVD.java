@@ -131,18 +131,16 @@ public class TrustSVD extends SocialRecommender {
 				}
 
 				double[] sum_ts = new double[numFactors];
+				double[] sum_us = new double[numFactors];
 				for (int f = 0; f < numFactors; f++) {
 					double sum = 0;
-					for (int v : tu)
+					for (int v : tu) {
 						sum += Tr.get(v, f);
+						sum_us[f] += P.get(v, f) * socialMatrix.get(u, v) / w_tu;
+					}
 
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
-				
-//				double[] wv = new double[numFactors];
-//				for (int d = 0; d < numFactors; d++)
-//					for (int v : tu)
-//						wv[d] += socialMatrix.get(u, v) * Tr.get(v, d);
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
@@ -150,6 +148,32 @@ public class TrustSVD extends SocialRecommender {
 
 					double delta_u = euj * qjf - regU * reg_u * puf;
 					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) - regI * reg_j * qjf;
+
+					// TODO: regularize pu
+					double eut = puf - sum_us[f];
+					SparseVector uvec = socialMatrix.column(u);
+					double w_uv = Math.sqrt(uvec.getCount());
+					double sum_all = 0;
+					for (int v : uvec.getIndex()) {
+						double tvu = socialMatrix.get(v, u);
+
+						double sum = 0;
+						SparseVector vvec = socialMatrix.row(v);
+						double w_vv = Math.sqrt(vvec.getCount());
+						for (int w : vvec.getIndex()) {
+							double tvw = socialMatrix.get(v, w);
+							sum += tvw * P.get(w, f);
+						}
+						double evw = w_vv > 0 ? P.get(v, f) - sum / w_vv : 0;
+						sum_all += tvu * evw;
+					}
+					if (w_uv > 0)
+						sum_all /= w_uv;
+
+					delta_u += regS * (eut - sum_all);
+
+					loss += regU * eut * eut;
+					// end of regularize pu
 
 					P.add(u, f, lRate * delta_u);
 					Q.add(j, f, lRate * delta_j);
@@ -166,15 +190,15 @@ public class TrustSVD extends SocialRecommender {
 						loss += regI * wlr_yj * yif * yif;
 					}
 
+					// update wvf
 					for (int v : tu) {
 						double tvf = Tr.get(v, f);
-						double ewv = Tr.get(u, f) - sum_ts[f];
 
 						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
-						double delta_t = euj * qjf / w_tu + regS * ewv * socialMatrix.get(u, v) - regS * wlr_tv * tvf;
+						double delta_t = euj * qjf / w_tu - regS * wlr_tv * tvf;
 						Tr.add(v, f, lRate * delta_t);
 
-						loss += regS * ewv * ewv + regS * wlr_tv * tvf * tvf;
+						loss += regS * wlr_tv * tvf * tvf;
 					}
 				}
 
