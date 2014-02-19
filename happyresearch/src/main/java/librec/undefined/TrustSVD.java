@@ -138,6 +138,11 @@ public class TrustSVD extends SocialRecommender {
 
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
+				
+//				double[] wv = new double[numFactors];
+//				for (int d = 0; d < numFactors; d++)
+//					for (int v : tu)
+//						wv[d] += socialMatrix.get(u, v) * Tr.get(v, d);
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
@@ -161,14 +166,9 @@ public class TrustSVD extends SocialRecommender {
 						loss += regI * wlr_yj * yif * yif;
 					}
 
-					double[] wv = new double[numFactors];
-					for (int d = 0; d < numFactors; d++)
-						for (int v : tu)
-							wv[d] += socialMatrix.get(u, v) * Tr.get(v, d);
-
 					for (int v : tu) {
 						double tvf = Tr.get(v, f);
-						double ewv = Tr.get(u, f) - wv[f] / w_tu;
+						double ewv = Tr.get(u, f) - sum_ts[f];
 
 						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
 						double delta_t = euj * qjf / w_tu + regS * ewv * socialMatrix.get(u, v) - regS * wlr_tv * tvf;
