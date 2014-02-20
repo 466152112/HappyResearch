@@ -76,13 +76,14 @@ public class RSTE extends SocialRecommender {
 					}
 				}
 				double wp = count > 0 ? Math.sqrt(count) : 1.0;
+				csgd_p /= wp;
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
-					double usgd = alpha * csgd * qjf + (1 - alpha) * (csgd_p / wp) * qjf + regU * puf;
-					double jsgd = csgd * (alpha * puf + (1 - alpha) * (sum_us[f] / wk)) + regI * qjf;
+					double usgd = alpha * csgd * qjf + (1 - alpha) * csgd_p * qjf + regU * puf;
+					double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
 
 					P.add(u, f, -lRate * usgd);
 					Q.add(j, f, -lRate * jsgd);
