@@ -106,8 +106,8 @@ public class TrustSVD extends SocialRecommender {
 				int[] nu = ur.getIndex();
 				double w_nu = Math.sqrt(nu.length);
 
-				SparseVector tr = socialMatrix.row(u);
-				int[] tu = tr.getIndex();
+				SparseVector ut = socialMatrix.row(u);
+				int[] tu = ut.getIndex();
 				double w_tu = Math.sqrt(tu.length);
 
 				// update factors
@@ -142,42 +142,6 @@ public class TrustSVD extends SocialRecommender {
 						sum += W.get(v, f);
 
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
-				}
-
-				if (Debug.OFF) {
-					double[] sum_us = new double[numFactors];
-					for (int f = 0; f < numFactors; f++) {
-						double sum = 0;
-						for (int v : tu)
-							sum += P.get(v, f) * socialMatrix.get(u, v);
-
-						sum_us[f] = w_tu > 0 ? sum / w_tu : sum;
-					}
-
-					for (int f = 0; f < numFactors; f++) {
-						double diff = P.get(u, f) - sum_us[f];
-						PS.add(u, f, -regS * reg_u * diff);
-
-						loss += regS * reg_u * diff * diff;
-					}
-
-					SparseVector uvec = socialMatrix.column(u);
-					double w_uv = Math.sqrt(uvec.getCount());
-					for (int v : uvec.getIndex()) {
-						double tvu = socialMatrix.get(v, u);
-
-						SparseVector vvec = socialMatrix.row(v);
-						double w_vv = Math.sqrt(vvec.getCount());
-						double[] sumDiffs = new double[numFactors];
-
-						for (int w : vvec.getIndex()) {
-							for (int f = 0; f < numFactors; f++)
-								sumDiffs[f] += socialMatrix.get(v, w) * P.get(w, f);
-						}
-						if (w_vv > 0)
-							for (int f = 0; f < numFactors; f++)
-								PS.add(u, f, regS * reg_u * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
-					}
 				}
 
 				for (int f = 0; f < numFactors; f++) {

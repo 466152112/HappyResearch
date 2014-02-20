@@ -33,6 +33,10 @@ public class RSTE extends SocialRecommender {
 			loss = 0;
 			errs = 0;
 
+			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
+
+			// ratings
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row();
 				int j = me.column();
@@ -53,46 +57,63 @@ public class RSTE extends SocialRecommender {
 				SparseVector tu = socialMatrix.row(u);
 				int[] tks = tu.getIndex();
 				double[] sum_us = new double[numFactors];
-				double wk = Math.sqrt(tu.getCount());
+				//double wk = Math.sqrt(tu.getCount());
 				for (int k : tks) {
 					for (int f = 0; f < numFactors; f++)
-						sum_us[f] += tu.get(k) * P.get(k, f) / wk;
+						sum_us[f] += tu.get(k) * P.get(k, f);
 				}
-
-				SparseVector bu = socialMatrix.column(u);
-				int[] bps = bu.getIndex();
-				double csgd_p = 0;
-				int count = 0;
-				for (int p : bps) {
-					if (p < trainMatrix.numRows()) {
-						double rpj = trainMatrix.get(p, j);
-						if (rpj > 0) {
-							double pp = predict(p, j, false);
-							double epj = g(pp) - normalize(rpj);
-							double tpu = bu.get(p);
-							csgd_p += gd(pp) * epj * tpu;
-							count++;
-						}
-					}
-				}
-				double wp = count > 0 ? Math.sqrt(count) : 1.0;
-				csgd_p /= wp;
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
-					double usgd = alpha * csgd * qjf + (1 - alpha) * csgd_p * qjf + regU * puf;
+					double usgd = alpha * csgd * qjf + regU * puf;
 					double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
 
-					P.add(u, f, -lRate * usgd);
-					Q.add(j, f, -lRate * jsgd);
+					PS.add(u, f, usgd);
+					QS.add(j, f, jsgd);
 
 					loss += regU * puf * puf + regI * qjf * qjf;
 				}
 			}
+
+			// social
+			for (int u = 0; u < numUsers; u++) {
+				SparseVector bu = socialMatrix.column(u);
+				int[] bps = bu.getIndex();
+				if (bu.getCount() == 0)
+					continue;
+
+				double[] sum_ps = new double[numFactors];
+				for (int p : bps) {
+					if (p >= trainMatrix.numRows())
+						continue;
+
+					SparseVector pr = trainMatrix.row(p);
+					for (int j : pr.getIndex()) {
+						double rpj = pr.get(j);
+						if (rpj > 0) {
+							double pred = predict(p, j, false);
+							double epj = g(pred) - normalize(rpj);
+							double tpu = bu.get(p);
+							double csgd = gd(pred) * epj * tpu;
+
+							for (int f = 0; f < numFactors; f++)
+								sum_ps[f] += csgd * Q.get(j, f);
+						}
+					}
+				}
+
+				for (int f = 0; f < numFactors; f++)
+					PS.add(u, f, (1 - alpha) * sum_ps[f]);
+
+			}
+
 			loss *= 0.5;
 			errs *= 0.5;
+
+			P = P.add(PS.scale(-lRate));
+			Q = Q.add(QS.scale(-lRate));
 
 			if (isConverged(iter))
 				break;
