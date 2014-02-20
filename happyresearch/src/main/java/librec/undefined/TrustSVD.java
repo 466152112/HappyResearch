@@ -202,7 +202,7 @@ public class TrustSVD extends SocialRecommender {
 
 				for (int f = 0; f < numFactors; f++) {
 					double diff = P.get(u, f) - sum_us[f];
-					PS.add(u, f, regS * diff);
+					PS.add(u, f, -regS * diff);
 
 					loss += regS * diff * diff;
 				}
@@ -222,7 +222,7 @@ public class TrustSVD extends SocialRecommender {
 
 						if (w_vv > 0)
 							for (int f = 0; f < numFactors; f++)
-								PS.add(u, f, -regS * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_uv));
+								PS.add(u, f, regS * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_uv));
 					}
 				}
 			}// end of regularize pu
@@ -347,7 +347,7 @@ public class TrustSVD extends SocialRecommender {
 		}// end of training
 	}
 
-	protected void TrusteeSVD_worked_backup() {
+	protected void TrusterSVD_worked_backup() {
 		for (int iter = 1; iter <= maxIters; iter++) {
 
 			loss = 0;
@@ -371,7 +371,7 @@ public class TrustSVD extends SocialRecommender {
 				int[] nu = ur.getIndex();
 				double w_nu = Math.sqrt(nu.length);
 
-				SparseVector tr = socialMatrix.column(u);
+				SparseVector tr = socialMatrix.row(u);
 				int[] tu = tr.getIndex();
 				double w_tu = Math.sqrt(tu.length);
 
@@ -404,7 +404,7 @@ public class TrustSVD extends SocialRecommender {
 				for (int f = 0; f < numFactors; f++) {
 					double sum = 0;
 					for (int v : tu)
-						sum += Te.get(v, f);
+						sum += Tr.get(v, f);
 
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
@@ -424,21 +424,21 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double wlr_yj = wlr ? wlr_j.get(i) : 1.0;
-						double delta_y = euj * qjf / w_nu - regI * wlr_yj * yif;
+						double reg_yj = wlr ? wlr_j.get(i) : 1.0;
+						double delta_y = euj * qjf / w_nu - regI * reg_yj * yif;
 						Y.add(i, f, lRate * delta_y);
 
-						loss += regI * wlr_yj * yif * yif;
+						loss += regI * reg_yj * yif * yif;
 					}
 
 					for (int v : tu) {
-						double tvf = Te.get(v, f);
+						double tvf = Tr.get(v, f);
 
-						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
-						double delta_t = euj * qjf / w_tu - regS * wlr_tv * tvf;
-						Te.add(v, f, lRate * delta_t);
+						double reg_tv = wlr ? wlr_s.get(v) : 1.0;
+						double delta_t = euj * qjf / w_tu - regS * reg_tv * tvf;
+						Tr.add(v, f, lRate * delta_t);
 
-						loss += regS * wlr_tv * tvf * tvf;
+						loss += regS * reg_tv * tvf * tvf;
 					}
 				}
 
