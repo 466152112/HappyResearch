@@ -157,22 +157,22 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double wlr_yj = wlr ? wlr_j.get(i) : 1.0;
-						double delta_y = euj * qjf / w_nu - regI * wlr_yj * yif;
+						double reg_yj = wlr ? wlr_j.get(i) : 1.0;
+						double delta_y = euj * qjf / w_nu - regI * reg_yj * yif;
 						Y.add(i, f, lRate * delta_y);
 
-						loss += regI * wlr_yj * yif * yif;
+						loss += regI * reg_yj * yif * yif;
 					}
 
 					// update wvf
 					for (int v : tu) {
 						double tvf = Tr.get(v, f);
 
-						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
-						double delta_t = euj * qjf / w_tu - regS * wlr_tv * tvf;
+						double reg_tv = wlr ? wlr_s.get(v) : 1.0;
+						double delta_t = euj * qjf / w_tu - regS * reg_tv * tvf;
 						Tr.add(v, f, lRate * delta_t);
 
-						loss += regS * wlr_tv * tvf * tvf;
+						loss += regS * reg_tv * tvf * tvf;
 					}
 				}
 			}
@@ -196,12 +196,13 @@ public class TrustSVD extends SocialRecommender {
 
 					sum_us[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
+				double reg_u = wlr ? 1.0 / w_tu : 1.0;
 
 				for (int f = 0; f < numFactors; f++) {
 					double diff = P.get(u, f) - sum_us[f];
-					PS.add(u, f, -regS * diff);
+					PS.add(u, f, -regS * reg_u * diff);
 
-					loss += regS * diff * diff;
+					loss += regS * reg_u * diff * diff;
 				}
 
 				SparseVector uvec = socialMatrix.column(u);
@@ -219,10 +220,10 @@ public class TrustSVD extends SocialRecommender {
 
 						if (w_vv > 0)
 							for (int f = 0; f < numFactors; f++)
-								PS.add(u, f, regS * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
+								PS.add(u, f, regS * reg_u * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
 					}
 				}
-			}// end of regularize pu
+			}// end of regularized pu
 
 			P = P.add(PS.scale(lRate));
 
