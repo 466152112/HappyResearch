@@ -1,5 +1,7 @@
 package librec.undefined;
 
+import happy.coding.system.Debug;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -178,52 +180,60 @@ public class TrustSVD extends SocialRecommender {
 			}
 
 			// TODO: regularize pu
-			for (int u = 0; u < numUsers; u++) {
+			if (Debug.ON) {
+				for (int u = 0; u < numUsers; u++) {
 
-				SparseVector ur = socialMatrix.row(u);
-				int[] tu = ur.getIndex();
-				int cnt = ur.getCount();
-				if (cnt == 0)
-					continue;
+					SparseVector ur = socialMatrix.row(u);
+					int[] tu = ur.getIndex();
+					int cnt = ur.getCount();
+					if (cnt == 0)
+						continue;
 
-				double w_tu = Math.sqrt(cnt);
+					double w_tu = Math.sqrt(cnt);
 
-				double[] sum_us = new double[numFactors];
-				for (int f = 0; f < numFactors; f++) {
-					double sum = 0;
-					for (int v : tu)
-						sum += P.get(v, f) * socialMatrix.get(u, v);
+					double[] sum_us = new double[numFactors];
+					for (int f = 0; f < numFactors; f++) {
+						double sum = 0;
+						for (int v : tu)
+							sum += P.get(v, f) * socialMatrix.get(u, v);
 
-					sum_us[f] = w_tu > 0 ? sum / w_tu : sum;
-				}
-				double reg_u = wlr ? 1.0 / w_tu : 1.0;
-
-				for (int f = 0; f < numFactors; f++) {
-					double diff = P.get(u, f) - sum_us[f];
-					PS.add(u, f, -regS * reg_u * diff);
-
-					loss += regS * reg_u * diff * diff;
-				}
-
-				SparseVector uvec = socialMatrix.column(u);
-				double w_uv = Math.sqrt(uvec.getCount());
-				for (int v : uvec.getIndex()) {
-					double tvu = socialMatrix.get(v, u);
-
-					SparseVector vvec = socialMatrix.row(v);
-					double w_vv = Math.sqrt(vvec.getCount());
-					double[] sumDiffs = new double[numFactors];
-
-					for (int w : vvec.getIndex()) {
-						for (int f = 0; f < numFactors; f++)
-							sumDiffs[f] += socialMatrix.get(v, w) * P.get(w, f);
-
-						if (w_vv > 0)
-							for (int f = 0; f < numFactors; f++)
-								PS.add(u, f, regS * reg_u * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
+						sum_us[f] = w_tu > 0 ? sum / w_tu : sum;
 					}
-				}
-			}// end of regularized pu
+					
+					double reg_u = 1.0;
+					if (wlr && u < trainMatrix.numRows()) {
+						SparseVector rs = trainMatrix.row(u);
+						if (rs.getCount() > 0)
+							reg_u = 1.0 / Math.sqrt(rs.getCount());
+					}
+
+					for (int f = 0; f < numFactors; f++) {
+						double diff = P.get(u, f) - sum_us[f];
+						PS.add(u, f, -regS * reg_u * diff);
+
+						loss += regS * reg_u * diff * diff;
+					}
+
+					SparseVector uvec = socialMatrix.column(u);
+					double w_uv = Math.sqrt(uvec.getCount());
+					for (int v : uvec.getIndex()) {
+						double tvu = socialMatrix.get(v, u);
+
+						SparseVector vvec = socialMatrix.row(v);
+						double w_vv = Math.sqrt(vvec.getCount());
+						double[] sumDiffs = new double[numFactors];
+
+						for (int w : vvec.getIndex()) {
+							for (int f = 0; f < numFactors; f++)
+								sumDiffs[f] += socialMatrix.get(v, w) * P.get(w, f);
+
+							if (w_vv > 0)
+								for (int f = 0; f < numFactors; f++)
+									PS.add(u, f, regS * reg_u * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
+						}
+					}
+				}// end of regularized pu
+			}
 
 			P = P.add(PS.scale(lRate));
 
