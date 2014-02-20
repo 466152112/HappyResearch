@@ -53,14 +53,16 @@ public class RSTE extends SocialRecommender {
 				SparseVector tu = socialMatrix.row(u);
 				int[] tks = tu.getIndex();
 				double[] sum_us = new double[numFactors];
+				double wk = Math.sqrt(tu.getCount());
 				for (int k : tks) {
 					for (int f = 0; f < numFactors; f++)
-						sum_us[f] += tu.get(k) * P.get(k, f);
+						sum_us[f] += tu.get(k) * P.get(k, f) / wk;
 				}
 
 				SparseVector bu = socialMatrix.column(u);
 				int[] bps = bu.getIndex();
 				double csgd_p = 0;
+				int count = 0;
 				for (int p : bps) {
 					if (p < trainMatrix.numRows()) {
 						double rpj = trainMatrix.get(p, j);
@@ -69,16 +71,18 @@ public class RSTE extends SocialRecommender {
 							double epj = g(pp) - normalize(rpj);
 							double tpu = bu.get(p);
 							csgd_p += gd(pp) * epj * tpu;
+							count++;
 						}
 					}
 				}
+				double wp = count > 0 ? Math.sqrt(count) : 1.0;
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
-					double usgd = alpha * csgd * qjf + (1 - alpha) * csgd_p * qjf + regU * puf;
-					double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
+					double usgd = alpha * csgd * qjf + (1 - alpha) * (csgd_p / wp) * qjf + regU * puf;
+					double jsgd = csgd * (alpha * puf + (1 - alpha) * (sum_us[f] / wk)) + regI * qjf;
 
 					P.add(u, f, -lRate * usgd);
 					Q.add(j, f, -lRate * jsgd);
