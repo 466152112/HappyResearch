@@ -56,8 +56,9 @@ public class RSTE extends SocialRecommender {
 
 				double[] sum_us = new double[numFactors];
 				SparseVector tu = socialMatrix.row(u);
+				int[] tks = tu.getIndex();
 				for (int f = 0; f < numFactors; f++) {
-					for (int k : tu.getIndex())
+					for (int k : tks)
 						sum_us[f] += tu.get(k) * P.get(k, f);
 				}
 
