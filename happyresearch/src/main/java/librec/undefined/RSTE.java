@@ -57,7 +57,6 @@ public class RSTE extends SocialRecommender {
 				SparseVector tu = socialMatrix.row(u);
 				int[] tks = tu.getIndex();
 				double[] sum_us = new double[numFactors];
-				//double wk = Math.sqrt(tu.getCount());
 				for (int k : tks) {
 					for (int f = 0; f < numFactors; f++)
 						sum_us[f] += tu.get(k) * P.get(k, f);
@@ -80,12 +79,7 @@ public class RSTE extends SocialRecommender {
 			// social
 			for (int u = 0; u < numUsers; u++) {
 				SparseVector bu = socialMatrix.column(u);
-				int[] bps = bu.getIndex();
-				if (bu.getCount() == 0)
-					continue;
-
-				double[] sum_ps = new double[numFactors];
-				for (int p : bps) {
+				for (int p : bu.getIndex()) {
 					if (p >= trainMatrix.numRows())
 						continue;
 
@@ -99,14 +93,10 @@ public class RSTE extends SocialRecommender {
 							double csgd = gd(pred) * epj * tpu;
 
 							for (int f = 0; f < numFactors; f++)
-								sum_ps[f] += csgd * Q.get(j, f);
+								PS.add(u, f, (1 - alpha) * csgd * Q.get(j, f));
 						}
 					}
 				}
-
-				for (int f = 0; f < numFactors; f++)
-					PS.add(u, f, (1 - alpha) * sum_ps[f]);
-
 			}
 
 			loss *= 0.5;
