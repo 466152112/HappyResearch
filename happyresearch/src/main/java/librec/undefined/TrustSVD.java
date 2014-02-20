@@ -84,9 +84,6 @@ public class TrustSVD extends SocialRecommender {
 			errs = 0;
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
-			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
-			DenseMatrix YS = new DenseMatrix(numItems, numFactors);
-			DenseMatrix TS = new DenseMatrix(numUsers, numFactors);
 
 			for (MatrixEntry me : trainMatrix) {
 
@@ -152,8 +149,8 @@ public class TrustSVD extends SocialRecommender {
 					double delta_u = euj * qjf - regU * reg_u * puf;
 					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) - regI * reg_j * qjf;
 
-					PS.add(u, f, lRate * delta_u);
-					QS.add(j, f, lRate * delta_j);
+					PS.add(u, f, delta_u);
+					Q.add(j, f, lRate * delta_j);
 
 					loss += regU * reg_u * puf * puf + regI * reg_j * qjf * qjf;
 
@@ -162,7 +159,7 @@ public class TrustSVD extends SocialRecommender {
 
 						double wlr_yj = wlr ? wlr_j.get(i) : 1.0;
 						double delta_y = euj * qjf / w_nu - regI * wlr_yj * yif;
-						YS.add(i, f, lRate * delta_y);
+						Y.add(i, f, lRate * delta_y);
 
 						loss += regI * wlr_yj * yif * yif;
 					}
@@ -173,7 +170,7 @@ public class TrustSVD extends SocialRecommender {
 
 						double wlr_tv = wlr ? wlr_s.get(v) : 1.0;
 						double delta_t = euj * qjf / w_tu - regS * wlr_tv * tvf;
-						TS.add(v, f, lRate * delta_t);
+						Tr.add(v, f, lRate * delta_t);
 
 						loss += regS * wlr_tv * tvf * tvf;
 					}
@@ -222,15 +219,12 @@ public class TrustSVD extends SocialRecommender {
 
 						if (w_vv > 0)
 							for (int f = 0; f < numFactors; f++)
-								PS.add(u, f, regS * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_uv));
+								PS.add(u, f, regS * (tvu / w_uv) * (P.get(v, f) - sumDiffs[f] / w_vv));
 					}
 				}
 			}// end of regularize pu
 
 			P = P.add(PS.scale(lRate));
-			Q = Q.add(QS.scale(lRate));
-			Tr = Tr.add(TS.scale(lRate));
-			Y = Y.add(YS.scale(lRate));
 
 			errs *= 0.5;
 			loss *= 0.5;
