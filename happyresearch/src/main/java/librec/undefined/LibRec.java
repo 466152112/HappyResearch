@@ -260,6 +260,8 @@ public class LibRec {
 			return new SlopeOne(trainMatrix, testMatrix, fold);
 
 			/* ongoing */
+		case "rste":
+			return new RSTE(trainMatrix, testMatrix, fold);
 		case "trustsvd":
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "aaai-basemf":
