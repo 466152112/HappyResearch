@@ -59,7 +59,7 @@ public class RSTE extends SocialRecommender {
 				int[] tks = tu.getIndex();
 				for (int f = 0; f < numFactors; f++) {
 					for (int k : tks)
-						sum_us[f] += tu.get(k) * P.get(k, f);
+						sum_us[f] += tu.get(k) * P.get(k, f) / tks.length;
 				}
 
 				for (int f = 0; f < numFactors; f++) {
@@ -111,8 +111,9 @@ public class RSTE extends SocialRecommender {
 		double pred1 = DenseMatrix.rowMult(P, u, Q, j);
 		double pred2 = 0.0;
 		SparseVector tu = socialMatrix.row(u);
+		int count = tu.getCount();
 		for (int k : tu.getIndex())
-			pred2 += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
+			pred2 += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j) / count;
 
 		double pred = alpha * pred1 + (1 - alpha) * pred2;
 
