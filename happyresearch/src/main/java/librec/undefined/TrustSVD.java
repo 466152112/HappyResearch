@@ -16,7 +16,7 @@ import librec.intf.SocialRecommender;
 public class TrustSVD extends SocialRecommender {
 
 	private DenseMatrix W, Y;
-	private DenseVector wlr_j, wlr_s, wlr_u;
+	private DenseVector wlr_j, wlr_t, wlr_u;
 
 	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -50,13 +50,13 @@ public class TrustSVD extends SocialRecommender {
 		W.init(initMean, initStd);
 		Y.init(initMean, initStd);
 
-		wlr_s = new DenseVector(numUsers);
+		wlr_t = new DenseVector(numUsers);
 		wlr_u = new DenseVector(numUsers);
 		wlr_j = new DenseVector(numItems);
 
 		for (int u = 0; u < numUsers; u++) {
 			int count = socialMatrix.columnSize(u);
-			wlr_s.set(u, Math.sqrt(count));
+			wlr_t.set(u, Math.sqrt(count));
 
 			if (u < trainMatrix.numRows())
 				wlr_u.set(u, Math.sqrt(trainMatrix.rowSize(u)));
@@ -101,8 +101,8 @@ public class TrustSVD extends SocialRecommender {
 				double w_tu = Math.sqrt(tu.length);
 
 				// update factors
-				double reg_u = wlr_u.get(u);
-				double reg_j = wlr_j.get(j);
+				double reg_u = 1.0 / wlr_u.get(u);
+				double reg_j = 1.0 / wlr_j.get(j);
 
 				double bu = userBiases.get(u);
 				double sgd = euj + regU * reg_u * bu;
@@ -134,7 +134,7 @@ public class TrustSVD extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
-				double reg_us = nu.length + tu.length;
+				double reg_us = 1.0 / nu.length + 1.0 / tu.length;
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
@@ -161,7 +161,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = (wlr_s.get(v) + wlr_u.get(v));
+						double reg_tv = 1.0 / wlr_t.get(v) + 1.0 / wlr_u.get(v);
 						double delta_t = euj * qjf / w_tu + regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
@@ -300,7 +300,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = wlr_s.get(v);
+						double reg_tv = wlr_t.get(v);
 						double delta_t = euj * qjf / w_tu + regS * reg_tv * tvf;
 						W.add(v, f, -lRate * delta_t);
 
