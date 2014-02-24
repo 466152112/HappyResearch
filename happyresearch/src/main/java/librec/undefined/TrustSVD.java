@@ -56,15 +56,17 @@ public class TrustSVD extends SocialRecommender {
 
 		for (int u = 0; u < numUsers; u++) {
 			int count = socialMatrix.columnSize(u);
-			wlr_t.set(u, Math.sqrt(count));
+			wlr_t.set(u, count > 0 ? Math.sqrt(count) : 1.0);
 
-			if (u < trainMatrix.numRows())
-				wlr_u.set(u, Math.sqrt(trainMatrix.rowSize(u)));
+			if (u < trainMatrix.numRows()) {
+				count = trainMatrix.rowSize(u);
+				wlr_u.set(u, count > 0 ? Math.sqrt(count) : 1.0);
+			}
 		}
 
 		for (int j = 0; j < numItems; j++) {
 			int count = trainMatrix.columnSize(j);
-			wlr_j.set(j, Math.sqrt(count));
+			wlr_j.set(j, count > 0 ? Math.sqrt(count) : 1.0);
 		}
 	}
 
