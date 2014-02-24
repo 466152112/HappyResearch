@@ -103,7 +103,7 @@ public class TrustSVD extends SocialRecommender {
 				double w_tu = Math.sqrt(tu.length);
 
 				// update factors
-				double reg_u = 1.0 / wlr_u.get(u);
+				double reg_u = 1.0 / w_nu;
 				double reg_j = 1.0 / wlr_j.get(j);
 
 				double bu = userBiases.get(u);
@@ -136,7 +136,7 @@ public class TrustSVD extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
-				double reg_us = 1.0 / w_nu + (w_tu > 0 ? 1.0 / w_tu : 1.0);
+				double reg_us = Math.max(1.0 / w_nu, 1.0 / w_tu);
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
@@ -152,7 +152,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double reg_yj = wlr_j.get(i);
+						double reg_yj = 1.0 / wlr_j.get(i);
 						double delta_y = euj * qjf / w_nu + regI * reg_yj * yif;
 						Y.add(i, f, -lRate * delta_y);
 
@@ -163,7 +163,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = 1.0 / wlr_t.get(v) + 1.0 / wlr_u.get(v);
+						double reg_tv = 1.0 / wlr_t.get(v);// + 1.0 / wlr_u.get(v);
 						double delta_t = euj * qjf / w_tu + regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
