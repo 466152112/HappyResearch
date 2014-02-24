@@ -3,11 +3,11 @@
 
 <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">   
     <layout class="org.apache.log4j.PatternLayout">   
-        <param name="ConversionPattern" value="[%-5p] %m%n"/>   
+        <param name="ConversionPattern" value="[%-5p] %d -- %m%n"/>   
     </layout>   
     <filter class="org.apache.log4j.varia.LevelRangeFilter">   
 	     <param name="LevelMin" value="DEBUG" />   
-	     <param name="LevelMax" value="INFO" />   
+	     <param name="LevelMax" value="ERROR" />   
 	</filter>  
 </appender>   
 
@@ -21,14 +21,14 @@
     </layout>   
 	<filter class="org.apache.log4j.varia.LevelRangeFilter">   
 	     <param name="LevelMin" value="DEBUG" />   
-	     <param name="LevelMax" value="INFO" />   
+	     <param name="LevelMax" value="ERROR" />   
 	</filter>   
 </appender> 
 
 <appender name="INFO" class="org.apache.log4j.RollingFileAppender">   
     <param name="File" value="./results.txt" />   
     <param name="Append" value="false"/>   
-    <param name="MaxFileSize" value="20MB"/>   
+    <param name="MaxFileSize" value="5MB"/>   
     <param name="MaxBackupIndex" value="2"/>   
     <layout class="org.apache.log4j.PatternLayout">   
         <param name="ConversionPattern" value="%m%n"/>   

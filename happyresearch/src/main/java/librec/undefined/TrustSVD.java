@@ -168,10 +168,10 @@ public class TrustSVD extends SocialRecommender {
 						double tvf = W.get(v, f);
 
 						double reg_tv = wlr ? wlr_s.get(v) : 1.0;
-						double delta_t = euj * qjf / w_tu - regS * reg_tv * tvf;
+						double delta_t = euj * qjf / w_tu - regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
-						loss += regS * reg_tv * tvf * tvf;
+						loss += regU * reg_tv * tvf * tvf;
 					}
 				}
 			}
