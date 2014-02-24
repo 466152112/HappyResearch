@@ -56,20 +56,20 @@ public class TrustSVD extends SocialRecommender {
 
 		for (int u = 0; u < numUsers; u++) {
 			int count = socialMatrix.columnSize(u);
-			wlr_tc.set(u, 1.0 / Math.sqrt(count));
+			wlr_tc.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 
-			wlr_tr.set(u, 1.0 / Math.sqrt(socialMatrix.rowSize(u)));
+			count = socialMatrix.rowSize(u);
+			wlr_tr.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 		}
 
 		for (int j = 0; j < numItems; j++) {
 			int count = trainMatrix.columnSize(j);
-			wlr_j.set(j, 1.0 / Math.sqrt(count));
+			wlr_j.set(j, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 		}
 	}
 
 	protected void buildModel() {
 		for (int iter = 1; iter <= maxIters; iter++) {
-
 			loss = 0;
 			errs = 0;
 
@@ -77,7 +77,6 @@ public class TrustSVD extends SocialRecommender {
 			DenseMatrix WS = new DenseMatrix(numUsers, numFactors);
 
 			for (MatrixEntry me : trainMatrix) {
-
 				int u = me.row(); // user
 				int j = me.column(); // item
 
@@ -180,9 +179,8 @@ public class TrustSVD extends SocialRecommender {
 
 				loss += regS * eut * eut;
 
-				double csgd = eut * regS;
+				double csgd = regS * eut;
 				double reg_u = wlr_tr.get(u);
-				//double reg_v = wlr_t.get(v);
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
@@ -192,7 +190,6 @@ public class TrustSVD extends SocialRecommender {
 					WS.add(v, f, csgd * puf);
 
 					loss += regS * reg_u * puf * puf;
-					//loss += regS * reg_v * wvf * wvf;
 				}
 			}
 
@@ -474,7 +471,6 @@ public class TrustSVD extends SocialRecommender {
 
 		// W
 		SparseVector tr = socialMatrix.row(u);
-
 		if (tr.getCount() > 0) {
 			double sum = 0.0;
 			for (int v : tr.getIndex())
