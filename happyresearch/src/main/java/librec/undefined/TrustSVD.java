@@ -127,35 +127,39 @@ public class TrustSVD extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
+				double reg_u = 1.0 / w_nu;
+				double reg_j = wlr_j.get(j);
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
-					double delta_u = euj * qjf + regU * puf;
-					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) + regI * qjf;
+					double delta_u = euj * qjf + regU * reg_u * puf;
+					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) + regI * reg_j * qjf;
 
 					PS.add(u, f, delta_u);
 					Q.add(j, f, -lRate * delta_j);
 
-					loss += regU * puf * puf + regI * qjf * qjf;
+					loss += regU * reg_u * puf * puf + regI * reg_j * qjf * qjf;
 
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double delta_y = euj * qjf / w_nu + regI * yif;
+						double reg_yi = wlr_j.get(i);
+						double delta_y = euj * qjf / w_nu + regI * reg_yi * yif;
 						Y.add(i, f, -lRate * delta_y);
 
-						loss += regI * yif * yif;
+						loss += regI * reg_yi * yif * yif;
 					}
 
 					// update wvf
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double delta_t = euj * qjf / w_tu + regU * tvf;
+						double reg_v = wlr_t.get(v);
+						double delta_t = euj * qjf / w_tu + regU * reg_v * tvf;
 						WS.add(v, f, delta_t);
 
-						loss += regU * tvf * tvf;
+						loss += regU * reg_v * tvf * tvf;
 					}
 				}
 			}
@@ -173,10 +177,18 @@ public class TrustSVD extends SocialRecommender {
 				loss += regS * eut * eut;
 
 				double csgd = eut * regS;
+				double reg_u = wlr_t.get(u);
+				double reg_v = wlr_t.get(v);
 
 				for (int f = 0; f < numFactors; f++) {
-					PS.add(u, f, csgd * W.get(v, f) + regU * P.get(u, f));
-					WS.add(v, f, csgd * P.get(u, f) + regU * W.get(v, f));
+					double puf = P.get(u, f);
+					double wvf = W.get(v, f);
+
+					PS.add(u, f, csgd * wvf + regU * reg_u * puf);
+					WS.add(v, f, csgd * puf + regU * reg_v * wvf);
+
+					loss += regU * reg_u * puf * puf;
+					loss += regU * reg_v * wvf * wvf;
 				}
 			}
 
