@@ -145,11 +145,11 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double reg_yj = wlr_j.get(i);
-						double delta_y = euj * qjf / w_nu + regI * reg_yj * yif;
+						double reg_yi = wlr_j.get(i);
+						double delta_y = euj * qjf / w_nu + regI * reg_yi * yif;
 						Y.add(i, f, -lRate * delta_y);
 
-						loss += regI * reg_yj * yif * yif;
+						loss += regI * reg_yi * yif * yif;
 					}
 
 					// update wvf
