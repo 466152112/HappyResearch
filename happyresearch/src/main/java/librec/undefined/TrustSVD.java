@@ -53,11 +53,15 @@ public class TrustSVD extends SocialRecommender {
 		wlr_t = new DenseVector(numUsers);
 		wlr_j = new DenseVector(numItems);
 
-		for (int u = 0; u < numUsers; u++) 
-			wlr_t.set(u, Math.sqrt(socialMatrix.columnSize(u)));
+		for (int u = 0; u < numUsers; u++) {
+			int count = socialMatrix.columnSize(u);
+			wlr_t.set(u, 1.0 / Math.sqrt(count));
+		}
 
-		for (int j = 0; j < numItems; j++)
-			wlr_j.set(j, Math.sqrt(trainMatrix.columnSize(j)));
+		for (int j = 0; j < numItems; j++) {
+			int count = trainMatrix.columnSize(j);
+			wlr_j.set(j, 1.0 / Math.sqrt(count));
+		}
 	}
 
 	protected void buildModel() {
@@ -94,7 +98,7 @@ public class TrustSVD extends SocialRecommender {
 
 				// update factors
 				double reg_u = 1.0 / w_nu;
-				double reg_j = 1.0 / wlr_j.get(j);
+				double reg_j = wlr_j.get(j);
 
 				double bu = userBiases.get(u);
 				double sgd = euj + regU * reg_u * bu;
@@ -141,7 +145,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double reg_yj = 1.0 / wlr_j.get(i);
+						double reg_yj = wlr_j.get(i);
 						double delta_y = euj * qjf / w_nu + regI * reg_yj * yif;
 						Y.add(i, f, -lRate * delta_y);
 
@@ -152,7 +156,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = 1.0 / wlr_t.get(v);
+						double reg_tv = wlr_t.get(v);
 						double delta_t = euj * qjf / w_tu + regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
