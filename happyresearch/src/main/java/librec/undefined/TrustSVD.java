@@ -242,6 +242,8 @@ public class TrustSVD extends SocialRecommender {
 						double et = tv.get(v) - DenseMatrix.rowMult(P, u, W, v);
 						for (int f = 0; f < numFactors; f++)
 							sum_us[f] += et * W.get(v, f);
+
+						loss += regS * et * et;
 					}
 
 					for (int f = 0; f < numFactors; f++) {
