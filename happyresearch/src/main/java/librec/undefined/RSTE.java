@@ -1,5 +1,6 @@
 package librec.undefined;
 
+import happy.coding.io.Strings;
 import librec.data.DenseMatrix;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
@@ -123,4 +124,9 @@ public class RSTE extends SocialRecommender {
 		return pred;
 	}
 
+	@Override
+	public String toString() {
+		return Strings.toString(new Object[] { initLRate, (float) regU, (float) regI, numFactors, maxIters,
+				isBoldDriver, (float) alpha }, ",");
+	}
 }
