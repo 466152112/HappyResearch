@@ -55,19 +55,14 @@ public class TrustSVD extends SocialRecommender {
 		wlr_j = new DenseVector(numItems);
 
 		for (int u = 0; u < numUsers; u++) {
-			int count = socialMatrix.columnSize(u);
-			wlr_t.set(u, count > 0 ? Math.sqrt(count) : 1.0);
+			wlr_t.set(u, socialMatrix.columnSize(u));
 
-			if (u < trainMatrix.numRows()) {
-				count = trainMatrix.rowSize(u);
-				wlr_u.set(u, count > 0 ? Math.sqrt(count) : 1.0);
-			}
+			if (u < trainMatrix.numRows())
+				wlr_u.set(u, trainMatrix.rowSize(u));
 		}
 
-		for (int j = 0; j < numItems; j++) {
-			int count = trainMatrix.columnSize(j);
-			wlr_j.set(j, count > 0 ? Math.sqrt(count) : 1.0);
-		}
+		for (int j = 0; j < numItems; j++)
+			wlr_j.set(j, trainMatrix.columnSize(j));
 	}
 
 	protected void buildModel() {
@@ -104,7 +99,7 @@ public class TrustSVD extends SocialRecommender {
 
 				// update factors
 				double reg_u = 1.0 / w_nu;
-				double reg_j = 1.0 / wlr_j.get(j);
+				double reg_j = 1.0 / Math.sqrt(wlr_j.get(j));
 
 				double bu = userBiases.get(u);
 				double sgd = euj + regU * reg_u * bu;
@@ -136,7 +131,7 @@ public class TrustSVD extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
-				double reg_us = Math.max(1.0 / w_nu, 1.0 / w_tu);
+				double reg_us = 1.0 / Math.sqrt(nu.length + tu.length);
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
@@ -152,7 +147,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int i : nu) {
 						double yif = Y.get(i, f);
 
-						double reg_yj = 1.0 / wlr_j.get(i);
+						double reg_yj = 1.0 / Math.sqrt(wlr_j.get(i));
 						double delta_y = euj * qjf / w_nu + regI * reg_yj * yif;
 						Y.add(i, f, -lRate * delta_y);
 
@@ -163,7 +158,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = 1.0 / wlr_t.get(v);// + 1.0 / wlr_u.get(v);
+						double reg_tv = 1.0 / Math.sqrt(wlr_t.get(v) + wlr_u.get(v));
 						double delta_t = euj * qjf / w_tu + regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
