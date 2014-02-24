@@ -16,7 +16,7 @@ import librec.intf.SocialRecommender;
 public class TrustSVD extends SocialRecommender {
 
 	private DenseMatrix W, Y;
-	private DenseVector wlr_j, wlr_t;
+	private DenseVector wlr_j, wlr_tc, wlr_tr;
 
 	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -50,12 +50,15 @@ public class TrustSVD extends SocialRecommender {
 		W.init(initMean, initStd);
 		Y.init(initMean, initStd);
 
-		wlr_t = new DenseVector(numUsers);
+		wlr_tc = new DenseVector(numUsers);
+		wlr_tr = new DenseVector(numUsers);
 		wlr_j = new DenseVector(numItems);
 
 		for (int u = 0; u < numUsers; u++) {
 			int count = socialMatrix.columnSize(u);
-			wlr_t.set(u, 1.0 / Math.sqrt(count));
+			wlr_tc.set(u, 1.0 / Math.sqrt(count));
+
+			wlr_tr.set(u, 1.0 / Math.sqrt(socialMatrix.rowSize(u)));
 		}
 
 		for (int j = 0; j < numItems; j++) {
@@ -156,7 +159,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_v = wlr_t.get(v);
+						double reg_v = wlr_tc.get(v);
 						double delta_t = euj * qjf / w_tu + regU * reg_v * tvf;
 						WS.add(v, f, delta_t);
 
@@ -178,18 +181,18 @@ public class TrustSVD extends SocialRecommender {
 				loss += regS * eut * eut;
 
 				double csgd = eut * regS;
-				double reg_u = wlr_t.get(u);
-				double reg_v = wlr_t.get(v);
+				double reg_u = wlr_tr.get(u);
+				//double reg_v = wlr_t.get(v);
 
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double wvf = W.get(v, f);
 
-					PS.add(u, f, csgd * W.get(v, f) + regS * reg_u * puf);
-					WS.add(v, f, csgd * P.get(u, f) + regS * reg_v * wvf);
+					PS.add(u, f, csgd * wvf + regS * reg_u * puf);
+					WS.add(v, f, csgd * puf);
 
 					loss += regS * reg_u * puf * puf;
-					loss += regS * reg_v * wvf * wvf;
+					//loss += regS * reg_v * wvf * wvf;
 				}
 			}
 
@@ -297,7 +300,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = wlr_t.get(v);
+						double reg_tv = wlr_tc.get(v);
 						double delta_t = euj * qjf / w_tu + regU * reg_tv * tvf;
 						WS.add(v, f, delta_t);
 
@@ -436,7 +439,7 @@ public class TrustSVD extends SocialRecommender {
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
-						double reg_tv = wlr_t.get(v);
+						double reg_tv = wlr_tc.get(v);
 						double delta_t = euj * qjf / w_tu + regS * reg_tv * tvf;
 						W.add(v, f, -lRate * delta_t);
 
