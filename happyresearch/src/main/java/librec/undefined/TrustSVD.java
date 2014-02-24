@@ -16,7 +16,7 @@ import librec.intf.SocialRecommender;
 public class TrustSVD extends SocialRecommender {
 
 	private DenseMatrix W, Y;
-	private DenseVector wlr_j, wlr_t, wlr_u;
+	private DenseVector wlr_j, wlr_t;
 
 	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -51,15 +51,10 @@ public class TrustSVD extends SocialRecommender {
 		Y.init(initMean, initStd);
 
 		wlr_t = new DenseVector(numUsers);
-		wlr_u = new DenseVector(numUsers);
 		wlr_j = new DenseVector(numItems);
 
-		for (int u = 0; u < numUsers; u++) {
+		for (int u = 0; u < numUsers; u++) 
 			wlr_t.set(u, Math.sqrt(socialMatrix.columnSize(u)));
-
-			if (u < trainMatrix.numRows())
-				wlr_u.set(u, Math.sqrt(trainMatrix.rowSize(u)));
-		}
 
 		for (int j = 0; j < numItems; j++)
 			wlr_j.set(j, Math.sqrt(trainMatrix.columnSize(j)));
