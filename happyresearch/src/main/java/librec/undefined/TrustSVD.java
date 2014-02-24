@@ -178,10 +178,18 @@ public class TrustSVD extends SocialRecommender {
 				loss += regS * eut * eut;
 
 				double csgd = eut * regS;
+				double reg_u = wlr_t.get(u);
+				double reg_v = wlr_t.get(v);
 
 				for (int f = 0; f < numFactors; f++) {
-					PS.add(u, f, csgd * W.get(v, f));
-					WS.add(v, f, csgd * P.get(u, f));
+					double puf = P.get(u, f);
+					double wvf = W.get(v, f);
+
+					PS.add(u, f, csgd * W.get(v, f) + regS * reg_u * puf);
+					WS.add(v, f, csgd * P.get(u, f) + regS * reg_v * wvf);
+
+					loss += regS * reg_u * puf * puf;
+					loss += regS * reg_v * wvf * wvf;
 				}
 			}
 
