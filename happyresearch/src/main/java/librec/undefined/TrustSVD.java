@@ -136,7 +136,7 @@ public class TrustSVD extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
-				double reg_us = 1.0 / nu.length + 1.0 / tu.length;
+				double reg_us = 1.0 / nu.length + (tu.length > 0 ? 1.0 / tu.length : 1.0);
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
