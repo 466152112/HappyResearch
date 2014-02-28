@@ -482,11 +482,13 @@ public class TrustSVD extends SocialRecommender {
 		return pred;
 	}
 
-	@Override
-	protected void updateLRate(int iter) {
+	/**
+	 * This updating rules work for Epinions dataset
+	 */
+	protected void updateLRate2(int iter) {
 		if (iter == 10)
 			lRate *= 0.6;
-		else if (iter == 30)
+		else if (iter == 50)
 			lRate *= 0.333;
 		else if (iter == 100)
 			lRate *= 0.5;
