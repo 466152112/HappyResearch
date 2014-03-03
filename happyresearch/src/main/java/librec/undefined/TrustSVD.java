@@ -498,7 +498,7 @@ public class TrustSVD extends SocialRecommender {
 		}
 
 		return pred;
-	}
+	} 
 
 	/**
 	 * This updating rules work for Epinions dataset
