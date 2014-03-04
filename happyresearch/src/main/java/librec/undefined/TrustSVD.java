@@ -9,7 +9,7 @@
 //
 // LibRec is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -50,6 +50,8 @@ public class TrustSVD extends SocialRecommender {
 		} else {
 			regS = RecUtils.getMKey(params, "val.reg.social");
 		}
+
+		//initByNorm = false;
 	}
 
 	@Override
@@ -59,14 +61,21 @@ public class TrustSVD extends SocialRecommender {
 		userBiases = new DenseVector(numUsers);
 		itemBiases = new DenseVector(numItems);
 
-		userBiases.init(initMean, initStd);
-		itemBiases.init(initMean, initStd);
-
 		W = new DenseMatrix(numUsers, numFactors);
 		Y = new DenseMatrix(numItems, numFactors);
 
-		W.init(initMean, initStd);
-		Y.init(initMean, initStd);
+		if (initByNorm) {
+			userBiases.init(initMean, initStd);
+			itemBiases.init(initMean, initStd);
+			W.init(initMean, initStd);
+			Y.init(initMean, initStd);
+			
+		} else {
+			userBiases.init();
+			itemBiases.init();
+			W.init();
+			Y.init();
+		}
 
 		wlr_tc = new DenseVector(numUsers);
 		wlr_tr = new DenseVector(numUsers);
@@ -498,7 +507,7 @@ public class TrustSVD extends SocialRecommender {
 		}
 
 		return pred;
-	} 
+	}
 
 	/**
 	 * This updating rules work for Epinions dataset

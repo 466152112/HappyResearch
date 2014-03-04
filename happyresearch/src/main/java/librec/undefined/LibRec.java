@@ -124,27 +124,18 @@ public class LibRec {
 		FileIO.notifyMe(algorithm, cf.getString("notify.email.to"), cf.isOn("is.email.notify"));
 	}
 
+	/**
+	 * general interface to run a recommendation algorithm
+	 */
 	private static void runAlgorithm() throws Exception {
 		String testPath = cf.getPath("dataset.testing");
-		String view = cf.getString("dataset.testing.view");
 
 		if (!testPath.equals("-1"))
 			runTestFile(testPath);
-		else if (!view.equals("-1"))
-			runTestView(view);
 		else if (cf.isOn("is.cross.validation"))
 			runCrossValidation();
 		else
 			runRatio();
-	}
-
-	private static void runTestView(String view) throws Exception {
-		DataSplitter ds = new DataSplitter(rateMatrix);
-
-		Recommender algo = getRecommender(ds.getDataView(view), -1);
-		algo.execute();
-
-		printEvalInfo(algo, algo.measures);
 	}
 
 	/**
@@ -314,19 +305,13 @@ public class LibRec {
 
 		String testPath = cf.getPath("dataset.testing");
 		boolean isTestingFlie = !testPath.equals("-1");
-		boolean isTestingView = !cf.getString("dataset.testing.view").equals("-1");
+		String mode = isTestingFlie ? String.format("Testing:: %s.", Strings.last(testPath, 38)) : cvInfo;
 
-		String mode = "";
-		if (isTestingView)
-			mode = cf.getString("dataset.testing.view");
-		else if (isTestingFlie)
-			mode = String.format("Testing:: %s.", Strings.last(testPath, 38));
-		else
-			mode = cvInfo;
+		if (!Recommender.isRankingPred)
+			mode += ", " + cf.getString("rating.pred.view");
 
-		String datasetInfo = String.format("Training: %s, %s", Strings.last(cf.getPath("dataset.training"), 38), mode);
-		Logs.info(datasetInfo);
-
+		String debugInfo = String.format("Training: %s, %s", Strings.last(cf.getPath("dataset.training"), 38), mode);
+		Logs.info(debugInfo);
 	}
 
 	/**
