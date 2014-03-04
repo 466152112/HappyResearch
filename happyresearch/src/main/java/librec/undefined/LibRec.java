@@ -91,7 +91,7 @@ public class LibRec {
 		// prepare data
 		rateDao = new DataDAO(cf.getPath("dataset.training"));
 		rateMatrix = rateDao.readData();
-
+		
 		// config general recommender
 		Recommender.cf = cf;
 		Recommender.rateMatrix = rateMatrix;
