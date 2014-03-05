@@ -2,6 +2,7 @@ package librec.undefined;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.Logs;
+import happy.coding.system.Debug;
 
 import java.io.BufferedReader;
 import java.util.HashSet;
@@ -14,29 +15,31 @@ import com.google.common.collect.BiMap;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		String dirPath = "D:\\Java\\Datasets\\FilmTrust\\";
+		String dirPath = "D:\\Java\\Datasets\\Flixster\\";
 
 		String path = dirPath + "ratings.txt";
 		DataDAO dao = new DataDAO(path);
 		dao.readData();
-		//dao.printSpecs();
-		BiMap<String, Integer> userIds = dao.getUserIds();
+		if (Debug.ON) {
+			dao.printSpecs();
+		} else {
+			BiMap<String, Integer> userIds = dao.getUserIds();
 
-		String dataPath = dirPath + "trust.txt";
-		BufferedReader br = FileIO.getReader(dataPath);
-		String line = null;
+			String dataPath = dirPath + "trust.txt";
+			BufferedReader br = FileIO.getReader(dataPath);
+			String line = null;
 
-		Set<Integer> commons = new HashSet<>();
-		while ((line = br.readLine()) != null) {
-			String[] data = line.split("[ \t,]");
-			String user = data[0];
+			Set<Integer> commons = new HashSet<>();
+			while ((line = br.readLine()) != null) {
+				String[] data = line.split("[ \t,]");
+				String user = data[0];
 
-			if (userIds.containsKey(user))
-				commons.add(userIds.get(user));
+				if (userIds.containsKey(user))
+					commons.add(userIds.get(user));
+			}
+			br.close();
+
+			Logs.debug("Common size: {}", commons.size());
 		}
-		br.close();
-
-		Logs.debug("Common size: {}", commons.size());
-
 	}
 }
