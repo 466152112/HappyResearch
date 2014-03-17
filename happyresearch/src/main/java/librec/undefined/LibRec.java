@@ -91,7 +91,7 @@ public class LibRec {
 		// prepare data
 		rateDao = new DataDAO(cf.getPath("dataset.training"));
 		rateMatrix = rateDao.readData();
-		
+
 		// config general recommender
 		Recommender.cf = cf;
 		Recommender.rateMatrix = rateMatrix;
@@ -307,8 +307,21 @@ public class LibRec {
 		boolean isTestingFlie = !testPath.equals("-1");
 		String mode = isTestingFlie ? String.format("Testing:: %s.", Strings.last(testPath, 38)) : cvInfo;
 
-		if (!Recommender.isRankingPred)
-			mode += ", " + cf.getString("rating.pred.view");
+		if (!Recommender.isRankingPred) {
+			String view = cf.getString("rating.pred.view");
+			switch (view.toLowerCase()) {
+			case "cold-start":
+				mode += ", " + view;
+				break;
+			case "trust-degree":
+				mode += String.format(", %s [%d, %d]",
+						new Object[] { view, cf.getInt("min.trust.degree"), cf.getInt("max.trust.degree") });
+				break;
+			case "all":
+			default:
+				break;
+			}
+		}
 
 		String debugInfo = String.format("Training: %s, %s", Strings.last(cf.getPath("dataset.training"), 38), mode);
 		Logs.info(debugInfo);
