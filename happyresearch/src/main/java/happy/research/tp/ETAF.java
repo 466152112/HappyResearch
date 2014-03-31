@@ -261,7 +261,9 @@ public class ETAF extends TrustModel {
 		// TODO: integrity
 		if (Debug.ON) {
 			for (String u : users) {
+				// writer integrity
 				Collection<String> rvs = reviews.get(u);
+				float inw = 0f;
 				if (rvs.size() > 0) {
 					List<Float> qs = new ArrayList<>();
 					for (String rv : rvs)
@@ -269,9 +271,14 @@ public class ETAF extends TrustModel {
 
 					double mean = Stats.mean(qs);
 					double std = Stats.sd(qs, mean);
-					float inw = (float) (weight(rvs.size()) * mean * (1 - std));
+					inw = (float) (weight(rvs.size()) * mean * (1 - std));
+				}
 
-					Map<String, Float> rts = ratings.row(u);
+				// rater integrity
+				Map<String, Float> rts = ratings.row(u);
+				float inr = 0f;
+
+				if (rts.size() > 0) {
 					List<Float> us = new ArrayList<>();
 					List<Float> vs = new ArrayList<>();
 
@@ -282,7 +289,6 @@ public class ETAF extends TrustModel {
 						}
 					}
 
-					float inr = 0f;
 					if (us.size() > 1) {
 						double sim = Sims.pcc(us, vs);
 						if (!Double.isNaN(sim)) {
@@ -291,10 +297,14 @@ public class ETAF extends TrustModel {
 							inr *= w;
 						}
 					}
-
-					float in = eta * inw + (1 - eta) * inr;
-					ins.put(u, in);
 				}
+
+				float in = eta * inw + (1 - eta) * inr;
+				if (in > 0)
+					ins.put(u, in);
+				
+				// TODO: add distribution as integrity
+
 			}
 		} else if (Debug.OFF) {
 			// similarity between user's ratings w.r.t the real quality

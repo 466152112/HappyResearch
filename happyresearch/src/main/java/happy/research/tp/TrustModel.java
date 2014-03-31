@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 
 /**
@@ -76,6 +78,7 @@ public abstract class TrustModel {
 	protected static Table<String, String, Integer> userInters = null; // user interactions: {u, v, # interactions}
 
 	protected static Map<String, String> reviewUserMap = null; // {review, writer} mapping
+	protected static Map<Float, Double> dists = null;
 	protected static Set<String> users = null; // all the users
 	protected static Set<String> rws = null; // all the reviews
 
@@ -214,6 +217,16 @@ public abstract class TrustModel {
 			for (String rv : rvs)
 				reviewUserMap.put(rv, user);
 		}
+
+		// rating distribution
+		Multiset<Float> scales = HashMultiset.create();
+		for (Float s : ratings.values())
+			scales.add(s);
+
+		dists = new HashMap<>();
+		double tts = scales.size();
+		for (Float s : scales)
+			dists.put(s, scales.count(s) / tts);
 
 		/* prepare the test users */
 		testUsers = new HashSet<>();
@@ -483,8 +496,8 @@ public abstract class TrustModel {
 
 	public static void main(String[] args) throws Exception {
 
-		Logs.config(FileIO.getResource("log4j.properties"), false);
-		conf = new Configer("tm.conf");
+		// Logs.config(FileIO.getResource("log4j.properties"), false);
+		conf = new Configer("tp.conf");
 
 		dataset = conf.getString("dataset");
 		testView = conf.getString("test.view");
