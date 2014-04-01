@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+
 /**
  * Implementation of our model: ETAF (Extended Trust Antecedents Framework)
  * 
@@ -72,15 +75,33 @@ public class ETAF extends TrustModel {
 			}
 		}
 
-		// local ability
-		float ab = cnt > 0 ? logic(cnt, 0.5f, uw_u) * (sum / cnt) : 0f;
+		// local ability: changed from 0.5 to 0.1
+		float ab = cnt > 0 ? logic(cnt, 0.1f, 5) * (sum / cnt) : 0f;
 
 		// local benevolence
 		float be = lns.contains(u, v) ? (lns.get(u, v) - min_lns) / (max_lns - min_lns) : 0f;
 
 		// integrity
-		float in = ins.containsKey(v) ? ins.get(v) : 0f;
-		in = 1.0f;
+		Multiset<Float> uVals = HashMultiset.create(rts.values());
+		Multiset<Float> vVals = HashMultiset.create(ratings.row(v).values());
+
+		double dkl = 0;
+		int cnt_k = 0;
+		for (Float val : uVals) {
+			if (vVals.contains(val)) {
+				double pvk = (vVals.count(val) + 0.0) / vVals.size();
+				double puk = (uVals.count(val) + 0.0) / uVals.size();
+
+				if (pvk > 0 && puk > 0) {
+					dkl += Math.log(pvk / puk) * pvk;
+					cnt_k++;
+				}
+			}
+		}
+
+		//float in = ins.containsKey(v) ? ins.get(v) : 0f;
+		//in = 1.0f;
+		float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
 
 		// local trustworthiness
 		return ab * be * in;
@@ -302,8 +323,6 @@ public class ETAF extends TrustModel {
 				float in = eta * inw + (1 - eta) * inr;
 				if (in > 0)
 					ins.put(u, in);
-				
-				// TODO: add distribution as integrity
 
 			}
 		} else if (Debug.OFF) {

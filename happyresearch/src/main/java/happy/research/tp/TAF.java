@@ -165,7 +165,7 @@ public class TAF extends TrustModel {
 		}
 
 		if (cnt > 0)
-			ab = (sum / cnt) * logic(cnt, 0.5f, 5);
+			ab = (sum / cnt) * logic(cnt, 0.1f, 5); // TODO: changed from 0.5 to 0.1
 
 		// benevolence
 		if (lns.contains(u, v))
