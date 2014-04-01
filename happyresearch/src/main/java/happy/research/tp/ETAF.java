@@ -87,15 +87,15 @@ public class ETAF extends TrustModel {
 
 		double dkl = 0;
 		int cnt_k = 0;
-		for (Float val : uVals) {
+		for (Float val : uVals.elementSet()) {
 			if (vVals.contains(val)) {
 				double pvk = (vVals.count(val) + 0.0) / vVals.size();
 				double puk = (uVals.count(val) + 0.0) / uVals.size();
 
-				if (pvk > 0 && puk > 0) {
+				cnt_k++;
+				
+				if (pvk > 0 && puk > 0) 
 					dkl += Math.log(pvk / puk) * pvk;
-					cnt_k++;
-				}
 			}
 		}
 
