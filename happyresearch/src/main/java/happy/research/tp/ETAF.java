@@ -75,8 +75,8 @@ public class ETAF extends TrustModel {
 			}
 		}
 
-		// local ability: changed from 0.5 to 0.1
-		float ab = cnt > 0 ? logic(cnt, 0.5f, 5) * (sum / cnt) : 0f;
+		// local ability
+		float ab = cnt > 0 ? logic(cnt, 0.1f, 5) * (sum / cnt) : 0f;
 
 		// local benevolence
 		float be = lns.contains(u, v) ? (lns.get(u, v) - min_lns) / (max_lns - min_lns) : 0f;
@@ -108,8 +108,8 @@ public class ETAF extends TrustModel {
 				float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
 
 				lt *= in;
-			} else {
-				lt *= 1.0;
+			} else if (Debug.ON) {
+				lt *= 0.5;
 			}
 		}
 
