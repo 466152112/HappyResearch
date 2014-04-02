@@ -463,12 +463,12 @@ public abstract class TrustModel {
 	}
 
 	protected float weight(int n) {
-		return Debug.OFF ? 1 - 1 / (1.0f + n) : logic(n, 0.1f, 5);
+		return n / (n + 1.0f);
 	}
 
 	protected float logic(float x, float alpha, float u) {
-		float p = -alpha * (x - u);
-		return (float) (1.0 / (1.0 + Math.exp(p)));
+		float p = alpha * (x - u);
+		return (float) (1.0 / (1.0 + Math.exp(-p)));
 	}
 
 	protected float alpha(int n, int min) {
@@ -521,8 +521,8 @@ public abstract class TrustModel {
 							// eta for integrity combination
 							tm.eta = eta.floatValue();
 
-							Logs.debug("Settings: alpha = {}, gamma = {}, eta = {}, in = {}", new Object[] { alpha,
-									gamma, eta, tm.isIn });
+							Logs.debug("Settings: alpha = {}, gamma = {}, eta = {}, in = {}",
+									new Object[] { alpha.floatValue(), gamma.floatValue(), eta.floatValue(), tm.isIn });
 							settings = alpha + sep + gamma + sep + eta + sep + tm.isIn;
 
 							tm.execute();
@@ -531,7 +531,8 @@ public abstract class TrustModel {
 						// not to consider integrity at all
 						tm.eta = 1f;
 
-						Logs.debug("Settings: alpha = {}, gamma = {}, in = {}", new Object[] { alpha, gamma, tm.isIn });
+						Logs.debug("Settings: alpha = {}, gamma = {}, in = {}", new Object[] { alpha.floatValue(),
+								gamma.floatValue(), tm.isIn });
 						settings = alpha + sep + gamma + sep + tm.isIn;
 
 						tm.execute();

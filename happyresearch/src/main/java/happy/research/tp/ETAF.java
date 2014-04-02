@@ -81,30 +81,36 @@ public class ETAF extends TrustModel {
 		// local benevolence
 		float be = lns.contains(u, v) ? (lns.get(u, v) - min_lns) / (max_lns - min_lns) : 0f;
 
-		// integrity
-		Multiset<Float> uVals = HashMultiset.create(rts.values());
-		Multiset<Float> vVals = HashMultiset.create(ratings.row(v).values());
+		lt = ab * be;
 
-		double dkl = 0;
-		int cnt_k = 0;
-		for (Float val : uVals.elementSet()) {
-			if (vVals.contains(val)) {
-				double pvk = (vVals.count(val) + 0.0) / vVals.size();
-				double puk = (uVals.count(val) + 0.0) / uVals.size();
+		if (lt > 0) {
+			// integrity
+			Multiset<Float> uVals = HashMultiset.create(rts.values());
+			Multiset<Float> vVals = HashMultiset.create(ratings.row(v).values());
 
-				cnt_k++;
-				
-				if (pvk > 0 && puk > 0) 
-					dkl += Math.log(pvk / puk) * pvk;
+			double dkl = 0;
+			int cnt_k = 0;
+			for (Float val : uVals.elementSet()) {
+				if (vVals.contains(val)) {
+					double pvk = (vVals.count(val) + 0.0) / vVals.size();
+					double puk = (uVals.count(val) + 0.0) / uVals.size();
+
+					cnt_k++;
+
+					if (pvk > 0 && puk > 0)
+						dkl += Math.log(pvk / puk) * pvk;
+				}
 			}
+
+			//float in = ins.containsKey(v) ? ins.get(v) : 0f;
+			//in = 1.0f;
+			float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
+
+			lt *= in;
 		}
 
-		//float in = ins.containsKey(v) ? ins.get(v) : 0f;
-		//in = 1.0f;
-		float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
-
 		// local trustworthiness
-		return ab * be * in;
+		return lt;
 	}
 
 	/**
@@ -118,7 +124,7 @@ public class ETAF extends TrustModel {
 			rqs.put(rw, 0.0f);
 
 		// global ability using Digg's algorithm
-		float beta = 0.5f; // last_err = 0.0f;
+		float beta = 0.5f;
 		int iter = 0;
 		while (true) {
 			float err = 0;
@@ -153,7 +159,7 @@ public class ETAF extends TrustModel {
 					cnt++;
 				}
 
-				float rq = /* logic(cnt, 0.1f, 5) */weight(cnt) * num / den;
+				float rq = weight(cnt) * (num / den);
 				float rq_last = rqs.get(rv);
 				float e = rq_last - rq;
 
@@ -279,7 +285,6 @@ public class ETAF extends TrustModel {
 			gbs.put(u, gb);
 		}
 
-		// TODO: integrity
 		if (Debug.ON) {
 			for (String u : users) {
 				// writer integrity

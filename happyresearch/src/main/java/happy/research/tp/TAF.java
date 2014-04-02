@@ -41,8 +41,7 @@ public class TAF extends TrustModel {
 			// compute review quality
 			for (String rv : rws) {
 				if (pg_rv % 3000 == 0)
-					Logs.debug(
-							"Current progress: iteration {} with review: {}/{}",
+					Logs.debug("Current progress: iteration {} with review: {}/{}",
 							new Object[] { iter + 1, pg_rv, rws.size() });
 
 				pg_rv++;
@@ -57,8 +56,7 @@ public class TAF extends TrustModel {
 					float rate = en.getValue();
 
 					if (!lns.contains(u, v))
-						lns.put(u, v, (float) Math.random()); // late
-																// initialization
+						lns.put(u, v, (float) Math.random()); // lazy initialization
 
 					float ln = lns.get(u, v);
 					sum += rate * (1 - beta * ln);
@@ -78,9 +76,8 @@ public class TAF extends TrustModel {
 			// update local leniency
 			for (String u : users) {
 				if (pg_user % 3000 == 0)
-					Logs.debug(
-							"Current progress: iteration {} with user: {}/{}",
-							new Object[] { iter + 1, pg_user, users.size() });
+					Logs.debug("Current progress: iteration {} with user: {}/{}", new Object[] { iter + 1, pg_user,
+							users.size() });
 				pg_user++;
 
 				for (String v : users) {
@@ -165,7 +162,7 @@ public class TAF extends TrustModel {
 		}
 
 		if (cnt > 0)
-			ab = (sum / cnt) * logic(cnt, 0.1f, 5); // TODO: changed from 0.5 to 0.1
+			ab = (sum / cnt) * logic(cnt, 0.1f, 5);
 
 		// benevolence
 		if (lns.contains(u, v))
