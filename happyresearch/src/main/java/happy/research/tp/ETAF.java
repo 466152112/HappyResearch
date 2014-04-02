@@ -76,7 +76,7 @@ public class ETAF extends TrustModel {
 		}
 
 		// local ability: changed from 0.5 to 0.1
-		float ab = cnt > 0 ? logic(cnt, 0.1f, 5) * (sum / cnt) : 0f;
+		float ab = cnt > 0 ? logic(cnt, 0.5f, 5) * (sum / cnt) : 0f;
 
 		// local benevolence
 		float be = lns.contains(u, v) ? (lns.get(u, v) - min_lns) / (max_lns - min_lns) : 0f;
@@ -85,28 +85,32 @@ public class ETAF extends TrustModel {
 
 		if (lt > 0) {
 			// integrity
-			Multiset<Float> uVals = HashMultiset.create(rts.values());
-			Multiset<Float> vVals = HashMultiset.create(ratings.row(v).values());
+			if (Debug.OFF) {
+				Multiset<Float> uVals = HashMultiset.create(rts.values());
+				Multiset<Float> vVals = HashMultiset.create(ratings.row(v).values());
 
-			double dkl = 0;
-			int cnt_k = 0;
-			for (Float val : uVals.elementSet()) {
-				if (vVals.contains(val)) {
-					double pvk = (vVals.count(val) + 0.0) / vVals.size();
-					double puk = (uVals.count(val) + 0.0) / uVals.size();
+				double dkl = 0;
+				int cnt_k = 0;
+				for (Float val : uVals.elementSet()) {
+					if (vVals.contains(val)) {
+						double pvk = (vVals.count(val) + 0.0) / vVals.size();
+						double puk = (uVals.count(val) + 0.0) / uVals.size();
 
-					cnt_k++;
+						cnt_k++;
 
-					if (pvk > 0 && puk > 0)
-						dkl += Math.log(pvk / puk) * pvk;
+						if (pvk > 0 && puk > 0)
+							dkl += Math.log(pvk / puk) * pvk;
+					}
 				}
+
+				//float in = ins.containsKey(v) ? ins.get(v) : 0f;
+				//in = 1.0f;
+				float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
+
+				lt *= in;
+			} else {
+				lt *= 1.0;
 			}
-
-			//float in = ins.containsKey(v) ? ins.get(v) : 0f;
-			//in = 1.0f;
-			float in = cnt_k > 0 ? (float) Math.exp(-dkl) : 0f;
-
-			lt *= in;
 		}
 
 		// local trustworthiness
