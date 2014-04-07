@@ -359,10 +359,23 @@ public class DatasetUtils {
 					if (vrs.contains(rw))
 						num++;
 				}
-				nums.add(num);
 			}
 
 			// u rates, v writes
+			if (v < rows) {
+				SparseVector vrs_w = reviewMatrix.row(v);
+				if (u < rows) {
+					SparseVector urs_r = rateMatrix.row(u);
+					for (VectorEntry ve : vrs_w) {
+						int rw = ve.index();
+						if (urs_r.contains(rw))
+							num++;
+					}
+
+				}
+			}
+
+			nums.add(num);
 		}
 
 		Logs.debug(nums);
