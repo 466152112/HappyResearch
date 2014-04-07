@@ -1,6 +1,7 @@
 package happy.research.tp;
 
 import happy.coding.io.FileIO;
+import happy.coding.io.Logs;
 import happy.coding.math.Randoms;
 import happy.coding.system.Systems;
 
@@ -16,11 +17,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import librec.data.DataDAO;
+import librec.data.MatrixEntry;
+import librec.data.SparseMatrix;
+import librec.data.SparseVector;
+import librec.data.VectorEntry;
+
 import org.junit.Test;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.Table;
 
 public class DatasetUtils {
@@ -313,5 +322,49 @@ public class DatasetUtils {
 		if (newlines.size() > 0)
 			FileIO.writeList(destFile, newlines, null, true);
 		newlines.clear();
+	}
+
+	@Test
+	public void distribution() throws Exception {
+		String dirPath = "D:\\Java\\Datasets\\UMAP2014\\CiaoDVDs\\";
+
+		String ratingPath = dirPath + "review-ratings.txt";
+		DataDAO rateDao = new DataDAO(ratingPath);
+		SparseMatrix rateMatrix = rateDao.readData();
+		int rows = rateMatrix.numRows();
+		// int cols = rateMatrix.numColumns();
+
+		String reviewPath = dirPath + "user-reviews.txt";
+		DataDAO reviewDao = new DataDAO(reviewPath, rateDao.getUserIds(), rateDao.getItemIds());
+		SparseMatrix reviewMatrix = reviewDao.readData(new int[] { 0, 1 }, true);
+
+		String trustPath = dirPath + "trusts.txt";
+		DataDAO dao = new DataDAO(trustPath);
+		SparseMatrix trustMatrix = dao.readData();
+
+		Multiset<Integer> nums = HashMultiset.create();
+
+		for (MatrixEntry me : trustMatrix) {
+			int u = me.row();
+			int v = me.column();
+
+			// u writes, v rates
+			int num = 0;
+			SparseVector urs = reviewMatrix.row(u);
+
+			if (v < rows) {
+				SparseVector vrs = rateMatrix.row(v);
+				for (VectorEntry ve : urs) {
+					int rw = ve.index();
+					if (vrs.contains(rw))
+						num++;
+				}
+				nums.add(num);
+			}
+
+			// u rates, v writes
+		}
+
+		Logs.debug(nums);
 	}
 }
