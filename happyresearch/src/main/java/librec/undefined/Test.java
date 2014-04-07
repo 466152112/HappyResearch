@@ -5,8 +5,6 @@ import happy.coding.io.Logs;
 import happy.coding.system.Debug;
 
 import java.io.BufferedReader;
-import java.util.HashSet;
-import java.util.Set;
 
 import librec.data.DataDAO;
 
@@ -15,31 +13,48 @@ import com.google.common.collect.BiMap;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		String dirPath = "D:\\Java\\Datasets\\Flixster\\";
+		String dirPath = "D:\\Java\\Datasets\\UMAP2014\\Epinions_Sample\\";
 
-		String path = dirPath + "ratings.txt";
+		String path = dirPath + "review-ratings.txt";
 		DataDAO dao = new DataDAO(path);
-		dao.readData();
+		dao.readData(new int[] { 0, 1 }, false);
 		if (Debug.ON) {
 			dao.printSpecs();
 		} else {
 			BiMap<String, Integer> userIds = dao.getUserIds();
 
-			String dataPath = dirPath + "trust.txt";
+			String dataPath = dirPath + "review-ratings.txt";
 			BufferedReader br = FileIO.getReader(dataPath);
 			String line = null;
 
-			Set<Integer> commons = new HashSet<>();
 			while ((line = br.readLine()) != null) {
 				String[] data = line.split("[ \t,]");
-				String user = data[0];
+				String trustor = data[0];
+				String trustee = data[1];
 
-				if (userIds.containsKey(user))
-					commons.add(userIds.get(user));
+				if (!userIds.containsKey(trustor))
+					userIds.put(trustor, userIds.size());
+
+				if (!userIds.containsKey(trustee))
+					userIds.put(trustee, userIds.size());
 			}
 			br.close();
 
-			Logs.debug("Common size: {}", commons.size());
+			if (Debug.OFF) {
+				br = FileIO.getReader(dirPath + "user-reviews.txt");
+				line = null;
+
+				while ((line = br.readLine()) != null) {
+					String[] data = line.split("[ \t,]");
+					String user = data[0];
+
+					if (!userIds.containsKey(user))
+						userIds.put(user, userIds.size());
+				}
+				br.close();
+			}
+
+			Logs.debug("Total users: {}", userIds.size());
 		}
 	}
 }

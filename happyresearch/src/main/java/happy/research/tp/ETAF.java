@@ -83,7 +83,7 @@ public class ETAF extends TrustModel {
 
 		lt = ab * be;
 
-		if (lt > 0) {
+		if (lt > 0 && isIn) {
 			// integrity
 			if (Debug.OFF) {
 				Multiset<Float> uVals = HashMultiset.create(rts.values());
