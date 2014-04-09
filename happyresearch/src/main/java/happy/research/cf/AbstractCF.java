@@ -467,7 +467,7 @@ public abstract class AbstractCF
 		String d4 = "%4d";
 		String f2 = "%2.2f";
 		String format = null;
-		String results = Dataset.LABEL + "," + pf.getMethod() + "," + params.DATASET_MODE + "," + pf.size();
+		String results = Dataset.LABEL + "," + pf.getMethod() + "," + params.DATASET_MODE + "," + params.kNN;
 
 		if (printSettings.size() > 0)
 		{
@@ -563,7 +563,7 @@ public abstract class AbstractCF
 		String program = methodId + " [" + mode + "]";
 
 		/* Collect result files to specific directory */
-		Path source = FileSystems.getDefault().getPath("result.txt");
+		Path source = FileSystems.getDefault().getPath("results.txt");
 		Path target = FileSystems.getDefault().getPath(
 				FileIO.makeDirectory(AbstractCF.params.RESULTS_DIRECTORY + Dataset.LABEL) + program + "@"
 						+ Dates.now() + ".txt");

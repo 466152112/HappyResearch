@@ -1,13 +1,12 @@
 package happy.research.cf;
 
-import happy.coding.io.Logs;
 
 public class RunCF {
 
 	private final static String on = "on";
 
 	public static void main(String[] args) throws Exception {
-		Logs.config("log4j.xml", true);
+		// Logs.config("log4j.xml", true);
 		
 		ConfigParams params = ConfigParams.defaultInstance();
 		AbstractCF.params = params;
