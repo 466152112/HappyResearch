@@ -467,7 +467,7 @@ public abstract class AbstractCF
 		String d4 = "%4d";
 		String f2 = "%2.2f";
 		String format = null;
-		String results = Dataset.LABEL + "," + pf.getMethod() + "," + params.DATASET_MODE + "," + params.kNN;
+		String results = Dataset.LABEL + "," + pf.getMethod() + "," + params.DATASET_MODE; // + "," + params.kNN;
 
 		if (printSettings.size() > 0)
 		{
