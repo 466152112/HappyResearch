@@ -13,9 +13,9 @@ import com.google.common.collect.BiMap;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		String dirPath = "D:\\Java\\Datasets\\UMAP2014\\Epinions_Sample\\";
+		String dirPath = "D:\\Java\\Datasets\\ExtendedEpinions\\Sample_5000_users\\";
 
-		String path = dirPath + "review-ratings.txt";
+		String path = dirPath + "ratings.txt";
 		DataDAO dao = new DataDAO(path);
 		dao.readData(new int[] { 0, 1 }, false);
 		if (Debug.ON) {

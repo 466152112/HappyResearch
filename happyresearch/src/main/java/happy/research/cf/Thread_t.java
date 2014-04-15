@@ -604,6 +604,10 @@ public abstract class Thread_t extends DefaultCF_mt implements Runnable {
 				continue;
 
 			if (params.kNN > 0 && similarity > 0.0) {// kNN
+
+				if (params.SIMILARITY_METHOD == SimMethod.caPCC)
+					similarity = Math.pow(similarity, 2.5);
+
 				nnSims.put(user, similarity);
 				nnRatings.put(user, bsRating);
 			} else if (similarity > params.SIMILARITY_THRESHOLD) {// thresholding

@@ -331,6 +331,33 @@ public abstract class DefaultCF extends AbstractCF {
 		case COS:
 			similarity = Sims.cos(as, bs);
 			break;
+		case iufCOS:
+			/*
+			 * This implementation refer to the paper: Alan et al., Analyzing
+			 * Weighting Schemes in Collaborative Filtering: Cold Start, Post
+			 * Cold Start and Power Users, SAC 2012.
+			 */
+			double num_all_users = userRatingsMap.size();
+			double inner = 0; // inner product
+			double al = 0; // a's length
+			double bl = 0; // b's length
+			for (int i = 0, im = as.size(); i < im; i++) {
+				double rai = as.get(i);
+				double rbi = bs.get(i);
+				String item = items.get(i);
+
+				// inverse user frequency
+				double iuf = Math.log(num_all_users / itemRatingsMap.get(item).size());
+				
+				inner += iuf * rai * rbi;
+				al += iuf * rai * rai;
+				bl += iuf * rbi * rbi;
+			}
+
+			if (al > 0 && bl > 0)
+				similarity = inner / (Math.sqrt(al) * Math.sqrt(bl));
+
+			break;
 		case BS:
 			try {
 				/* This is the similarity method for IJCAI paper */
@@ -464,6 +491,7 @@ public abstract class DefaultCF extends AbstractCF {
 
 			break;
 		case PCC:
+		case caPCC:
 			if (as.size() < 2 || bs.size() < 2)
 				similarity = Double.NaN;
 			else
