@@ -8,6 +8,7 @@ import happy.research.cf.ConfigParams.ValidateMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public abstract class DefaultCF_mt extends DefaultCF {
 	protected static List<Rating>[] ratingArrays = null;
@@ -46,11 +47,9 @@ public abstract class DefaultCF_mt extends DefaultCF {
 		String[] trustDirs = null;
 
 		if (params.auto_trust_sets) {
-			trustDirs = new String[] { Dataset.TEMP_DIRECTORY, trustDir,
-					trustDir0, trustDir2 };
+			trustDirs = new String[] { Dataset.TEMP_DIRECTORY, trustDir, trustDir0, trustDir2 };
 		} else {
-			trustDirs = new String[] { Dataset.TEMP_DIRECTORY, trustDir,
-					trustDir2 };
+			trustDirs = new String[] { Dataset.TEMP_DIRECTORY, trustDir, trustDir2 };
 		}
 		trustDirPath = FileIO.makeDirPath(trustDirs);
 
@@ -76,11 +75,9 @@ public abstract class DefaultCF_mt extends DefaultCF {
 				e.printStackTrace();
 			}
 
-			if (params.DATASET_MODE == DatasetMode.nicheItems
-					|| params.DATASET_MODE == DatasetMode.contrItems) {
+			if (params.DATASET_MODE == DatasetMode.nicheItems || params.DATASET_MODE == DatasetMode.contrItems) {
 				for (String item : itemMap.keySet()) {
-					Map<String, Rating> trainItemRatings = itemRatingsMap
-							.get(item);
+					Map<String, Rating> trainItemRatings = itemRatingsMap.get(item);
 					Map<String, Rating> testItemRatings = itemMap.get(item);
 					boolean emptyTrain = trainItemRatings == null;
 
@@ -91,8 +88,7 @@ public abstract class DefaultCF_mt extends DefaultCF {
 						}
 						break;
 					case contrItems:
-						if (!emptyTrain
-								&& RatingUtils.std(trainItemRatings.values()) > 1.5) {
+						if (!emptyTrain && RatingUtils.std(trainItemRatings.values()) > 1.5) {
 							testRatings.addAll(testItemRatings.values());
 						}
 						break;
@@ -102,9 +98,9 @@ public abstract class DefaultCF_mt extends DefaultCF {
 				}
 
 			} else {
+				int min = 0, max = 0, count = 0;
 				for (String user : userMap.keySet()) {
-					Map<String, Rating> trainUserRatings = userRatingsMap
-							.get(user);
+					Map<String, Rating> trainUserRatings = userRatingsMap.get(user);
 					Map<String, Rating> testUserRatings = userMap.get(user);
 
 					boolean emptyTrain = trainUserRatings == null;
@@ -112,6 +108,40 @@ public abstract class DefaultCF_mt extends DefaultCF {
 					case all:
 						if (emptyTrain || trainUserRatings.size() > 0) {
 							testRatings.addAll(testUserRatings.values());
+						}
+						break;
+					case userDegree:
+						min = params.readInt("num.min.degree");
+						max = params.readInt("num.max.degree");
+						count = emptyTrain ? 0 : trainUserRatings.size();
+						if (min < 0)
+							min = 0;
+						if (max < 0)
+							max = Integer.MAX_VALUE;
+						if (max < min) {
+							Logs.debug("num.max.degree is smaller than num.min.degree!");
+							System.exit(-1);
+						}
+						if (count >= min && count <= max) {
+							testRatings.addAll(testUserRatings.values());
+						}
+						break;
+					case itemDegree:
+						min = params.readInt("num.min.degree");
+						max = params.readInt("num.max.degree");
+						if (min < 0)
+							min = 0;
+						if (max < 0)
+							max = Integer.MAX_VALUE;
+						if (max < min) {
+							Logs.debug("num.max.degree is smaller than num.min.degree!");
+							System.exit(-1);
+						}
+						for (Entry<String, Rating> enk : testUserRatings.entrySet()) {
+							String item = enk.getKey();
+							count = itemRatingsMap.containsKey(item) ? itemRatingsMap.get(item).size() : 0;
+							if (count >= min && count <= max)
+								testRatings.add(enk.getValue());
 						}
 						break;
 					case coldUsers:
@@ -125,17 +155,14 @@ public abstract class DefaultCF_mt extends DefaultCF {
 						}
 						break;
 					case opinUsers:
-						if (!emptyTrain
-								&& trainUserRatings.size() > 4
+						if (!emptyTrain && trainUserRatings.size() > 4
 								&& RatingUtils.std(trainUserRatings.values()) > 1.5) {
 							testRatings.addAll(testUserRatings.values());
 						}
 						break;
 					case blackSheep:
-						if (!emptyTrain
-								&& trainUserRatings.size() > 4
-								&& RatingUtils.meanDistance(trainUserRatings,
-										itemMeanMap) > 1) {
+						if (!emptyTrain && trainUserRatings.size() > 4
+								&& RatingUtils.meanDistance(trainUserRatings, itemMeanMap) > 1) {
 							testRatings.addAll(testUserRatings.values());
 						}
 						break;
@@ -143,6 +170,10 @@ public abstract class DefaultCF_mt extends DefaultCF {
 						break;
 					}// end of switch
 				}// end of for
+				if (min > 0 || max > 0) {
+					methodSettings.add(min + "");
+					methodSettings.add(max + "");
+				}
 			}// end of else
 
 		}

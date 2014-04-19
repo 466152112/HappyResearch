@@ -89,34 +89,32 @@ public abstract class DefaultCF extends AbstractCF {
 		} else {
 			for (Entry<String, Map<String, Rating>> en : userRatingsMap.entrySet()) {
 				Map<String, Rating> ratings = en.getValue();
+				int count = ratings.size();
 
 				switch (params.DATASET_MODE) {
 				case all:
-					if (ratings.size() > 0) {
+					if (count > 0) {
 						testRatings.addAll(ratings.values());
 					}
 					break;
 				case coldUsers:
 					//Map<Integer, Double> tns = userTNsMap.get(user);
-					if (ratings.size() < 5 /*
-											 * && (tns == null || tns.size() <
-											 * 5)
-											 */) {
+					if (count < 5) {
 						testRatings.addAll(ratings.values());
 					}
 					break;
 				case heavyUsers:
-					if (ratings.size() > 10) {
+					if (count > 10) {
 						testRatings.addAll(ratings.values());
 					}
 					break;
 				case opinUsers:
-					if (ratings.size() > 4 && RatingUtils.std(ratings.values()) > 1.5) {
+					if (count > 4 && RatingUtils.std(ratings.values()) > 1.5) {
 						testRatings.addAll(ratings.values());
 					}
 					break;
 				case blackSheep:
-					if (ratings.size() > 4 && RatingUtils.meanDistance(ratings, itemMeanMap) > 1) {
+					if (count > 4 && RatingUtils.meanDistance(ratings, itemMeanMap) > 1) {
 						testRatings.addAll(ratings.values());
 					}
 					break;
@@ -348,7 +346,7 @@ public abstract class DefaultCF extends AbstractCF {
 
 				// inverse user frequency
 				double iuf = Math.log(num_all_users / itemRatingsMap.get(item).size());
-				
+
 				inner += iuf * rai * rbi;
 				al += iuf * rai * rai;
 				bl += iuf * rbi * rbi;

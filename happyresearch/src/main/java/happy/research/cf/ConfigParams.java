@@ -65,7 +65,8 @@ public class ConfigParams {
 
 	public enum DatasetMode {
 		all("All"), coldUsers("Cold Users"), heavyUsers("Heavy Users"), opinUsers("Opin. Users"), blackSheep(
-				"Black Sheep"), nicheItems("Niche Items"), contrItems("Contr. Items"), batch("Batch");
+				"Black Sheep"), nicheItems("Niche Items"), contrItems("Contr. Items"), batch("Batch"), userDegree(
+				"user-degree"), itemDegree("item-degree");
 
 		public String label = null;
 

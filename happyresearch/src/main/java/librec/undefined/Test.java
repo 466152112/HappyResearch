@@ -13,7 +13,7 @@ import com.google.common.collect.BiMap;
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		String dirPath = "D:\\Java\\Datasets\\MovieLens\\100K\\";
+		String dirPath = "D:\\Java\\Datasets\\BookCrossing\\";
 
 		String path = dirPath + "ratings.txt";
 		DataDAO dao = new DataDAO(path);
@@ -21,7 +21,7 @@ public class Test {
 		if (Debug.OFF) {
 			dao.printSpecs();
 		} else if (Debug.ON) {
-			dao.printDistr();
+			dao.printDistr(true);
 		} else {
 			BiMap<String, Integer> userIds = dao.getUserIds();
 
