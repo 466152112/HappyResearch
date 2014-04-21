@@ -32,7 +32,7 @@ public class SimUtils {
 	public static double alpha = 0.2, beta = 0.2;
 
 	public enum SimMethod {
-		COS, PCC, MSD, CPC, SRC, BS, PIP, SM
+		COS, PCC, MSD, CPC, SRC, BS, PIP, SM, iufCOS, caPCC
 	};
 
 	/**
