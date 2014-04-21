@@ -230,6 +230,7 @@ public class LibRec {
 		algorithm = cf.getString("recommender");
 
 		switch (algorithm.toLowerCase()) {
+
 		/* baselines */
 		case "globalavg":
 			return new GlobalAverage(trainMatrix, testMatrix, fold);
@@ -279,6 +280,11 @@ public class LibRec {
 			return new RSTE(trainMatrix, testMatrix, fold);
 		case "trustsvd":
 			return new TrustSVD(trainMatrix, testMatrix, fold);
+		case "sorec":
+			return new SoRec(trainMatrix, testMatrix, fold);
+		case "soreg":
+			return new SoReg(trainMatrix, testMatrix, fold);
+			
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
 		case "aaai-dmf":

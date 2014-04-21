@@ -679,7 +679,7 @@ public abstract class Thread_t extends DefaultCF_mt implements Runnable {
 		if (size < step)
 			step = size / 5;
 		++progress;
-		if (progress % step == 0) {
+		if (step > 0 && progress % step == 0) {
 			sw.stop();
 			long remaining = (long) ((size - progress + 0.0) / step * sw.elapsed(TimeUnit.MILLISECONDS));
 			Logs.debug("{} progress: {}/{}, remaining {}", new Object[] { Thread.currentThread().getName(), progress,
