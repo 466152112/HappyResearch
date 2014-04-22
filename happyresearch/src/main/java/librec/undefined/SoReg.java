@@ -18,45 +18,73 @@
 
 package librec.undefined;
 
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
+
 import librec.data.DenseMatrix;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.data.SymmMatrix;
 import librec.intf.SocialRecommender;
 
 /**
  * Hao Ma, Dengyong Zhou, Chao Liu, Michael R. Lyu and Irwin King,
- * <strong>Recommender systems with social regularization</strong>, WSDM 2011.
+ * <strong>Recommender systems with social regularization</strong>, WSDM 2011.<br/>
+ * 
+ * In the original paper, this method is named as "SR2_pcc". For consistency, we
+ * rename it as "SoReg".
  * 
  * @author guoguibing
  * 
  */
 public class SoReg extends SocialRecommender {
 
-	private SymmMatrix userCorrs;
+	private Table<Integer, Integer, Double> userCorrs;
 	private double beta;
 
 	public SoReg(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
 		algoName = "SoReg";
+		initByNorm = false;
 	}
 
 	@Override
 	protected void initModel() {
 		super.initModel();
 
-		// build user correlations by PCC
-		userCorrs = buildCorrs(true);
-
+		userCorrs = HashBasedTable.create();
 		beta = 0.01;
+
+	}
+
+	protected double similarity(Integer u, Integer v) {
+		if (userCorrs.contains(u, v))
+			return userCorrs.get(u, v);
+
+		if (userCorrs.contains(v, u))
+			return userCorrs.get(v, u);
+
+		double sim = 0;
+
+		if (u < trainMatrix.numRows() && v < trainMatrix.numRows()) {
+			SparseVector uv = trainMatrix.row(u);
+			if (uv.getCount() > 0) {
+				SparseVector vv = trainMatrix.row(v);
+				sim = correlation(uv, vv, "pcc");
+			}
+		}
+
+		sim = Double.isNaN(sim) ? 0 : (1.0 + sim) / 2;
+		userCorrs.put(u, v, sim);
+
+		return sim;
 	}
 
 	@Override
 	protected void buildModel() {
-		for (int iter = 1; iter < maxIters; iter++) {
-			// temp data
+		for (int iter = 1; iter <= maxIters; iter++) {
+			// temporary data
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 
@@ -92,31 +120,35 @@ public class SoReg extends SocialRecommender {
 			for (int u = 0; u < numUsers; u++) {
 				// out links
 				SparseVector uos = socialMatrix.row(u);
+				double weight = uos.getCount();
 				for (int k : uos.getIndex()) {
-					double suk = userCorrs.get(u, k);
+					double suk = similarity(u, k);
 
 					for (int f = 0; f < numFactors; f++) {
 						double euk = P.get(u, f) - P.get(k, f);
-						PS.add(u, f, beta * suk * euk);
+						PS.add(u, f, beta * suk * euk / weight);
 
-						loss += suk * euk * euk;
+						loss += beta * suk * euk * euk / weight;
 					}
 				}
 
 				// in links
 				SparseVector uis = socialMatrix.column(u);
+				weight = uis.getCount();
+
 				for (int g : uis.getIndex()) {
-					double sug = userCorrs.get(u, g);
+					double sug = similarity(u, g);
 
-					for (int f = 0; f < numFactors; f++)
-						PS.add(u, f, beta * sug * (P.get(u, f) - P.get(g, f)));
-
+					for (int f = 0; f < numFactors; f++) {
+						double eug = P.get(u, f) - P.get(g, f);
+						PS.add(u, f, beta * sug * eug / weight);
+					}
 				}
 			} // end of for loop
 
 			P = P.add(PS.scale(-lRate));
 			Q = Q.add(QS.scale(-lRate));
-			
+
 			errs *= 0.5;
 			loss *= 0.5;
 
