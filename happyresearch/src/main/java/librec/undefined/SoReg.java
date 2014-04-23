@@ -54,7 +54,7 @@ public class SoReg extends SocialRecommender {
 		super.initModel();
 
 		userCorrs = HashBasedTable.create();
-		beta = 0.01;
+		beta = 0.001;
 
 	}
 
@@ -120,7 +120,7 @@ public class SoReg extends SocialRecommender {
 			for (int u = 0; u < numUsers; u++) {
 				// out links
 				SparseVector uos = socialMatrix.row(u);
-				double weight = uos.getCount();
+				double weight = 1;//uos.getCount();
 				for (int k : uos.getIndex()) {
 					double suk = similarity(u, k);
 
@@ -134,7 +134,7 @@ public class SoReg extends SocialRecommender {
 
 				// in links
 				SparseVector uis = socialMatrix.column(u);
-				weight = uis.getCount();
+				weight = 1; //uis.getCount();
 
 				for (int g : uis.getIndex()) {
 					double sug = similarity(u, g);
