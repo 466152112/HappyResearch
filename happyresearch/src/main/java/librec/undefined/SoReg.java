@@ -18,14 +18,14 @@
 
 package librec.undefined;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-
 import librec.data.DenseMatrix;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.intf.SocialRecommender;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 /**
  * Hao Ma, Dengyong Zhou, Chao Liu, Michael R. Lyu and Irwin King,
@@ -65,7 +65,7 @@ public class SoReg extends SocialRecommender {
 		if (userCorrs.contains(v, u))
 			return userCorrs.get(v, u);
 
-		double sim = 0;
+		double sim = Double.NaN;
 
 		if (u < trainMatrix.numRows() && v < trainMatrix.numRows()) {
 			SparseVector uv = trainMatrix.row(u);
@@ -75,8 +75,7 @@ public class SoReg extends SocialRecommender {
 			}
 		}
 
-		sim = Double.isNaN(sim) ? 0 : (1.0 + sim) / 2;
-		userCorrs.put(u, v, sim);
+		userCorrs.put(u, v, (1.0 + sim) / 2);
 
 		return sim;
 	}
@@ -123,6 +122,8 @@ public class SoReg extends SocialRecommender {
 				double weight = 1;//uos.getCount();
 				for (int k : uos.getIndex()) {
 					double suk = similarity(u, k);
+					if (Double.isNaN(suk))
+						continue;
 
 					for (int f = 0; f < numFactors; f++) {
 						double euk = P.get(u, f) - P.get(k, f);
@@ -138,6 +139,8 @@ public class SoReg extends SocialRecommender {
 
 				for (int g : uis.getIndex()) {
 					double sug = similarity(u, g);
+					if (Double.isNaN(sug))
+						continue;
 
 					for (int f = 0; f < numFactors; f++) {
 						double eug = P.get(u, f) - P.get(g, f);
