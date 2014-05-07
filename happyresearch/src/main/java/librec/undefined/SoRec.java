@@ -51,12 +51,15 @@ public class SoRec extends SocialRecommender {
 		Z = new DenseMatrix(numUsers, numFactors);
 		Z.init();
 
-		if (Debug.ON) {
-			// default settings on Epinions
+		if (Debug.OFF) {
+			// suggested settings on Epinions by the paper
 			regC = 10;
 			regU = 0.001;
 			regI = 0.001;
 			regZ = 0.001;
+		}else{
+			regC = cf.getDouble("SoRec.reg.c");
+			regZ = cf.getDouble("SoRec.reg.z");
 		}
 	}
 

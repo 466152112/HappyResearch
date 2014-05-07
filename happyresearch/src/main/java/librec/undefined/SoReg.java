@@ -32,7 +32,9 @@ import com.google.common.collect.Table;
  * <strong>Recommender systems with social regularization</strong>, WSDM 2011.<br/>
  * 
  * In the original paper, this method is named as "SR2_pcc". For consistency, we
- * rename it as "SoReg".
+ * rename it as "SoReg" as used by some other papers such as: Tang et al.,
+ * <strong>Exploiting Local and Global Social Context for
+ * Recommendation</strong>, IJCAI 2013. 
  * 
  * @author guoguibing
  * 
@@ -54,9 +56,12 @@ public class SoReg extends SocialRecommender {
 		super.initModel();
 
 		userCorrs = HashBasedTable.create();
-		beta = 0.001;
+		beta = cf.getDouble("SoReg.beta"); // suggested values: 0.01, 0.001
 	}
 
+	/**
+	 * compute similarity between users u and v
+	 */
 	protected double similarity(Integer u, Integer v) {
 		if (userCorrs.contains(u, v))
 			return userCorrs.get(u, v);
@@ -70,7 +75,7 @@ public class SoReg extends SocialRecommender {
 			SparseVector uv = trainMatrix.row(u);
 			if (uv.getCount() > 0) {
 				SparseVector vv = trainMatrix.row(v);
-				sim = correlation(uv, vv, "pcc");
+				sim = correlation(uv, vv, "pcc"); // could change to other measures
 
 				if (!Double.isNaN(sim))
 					sim = (1.0 + sim) / 2;
@@ -113,8 +118,7 @@ public class SoReg extends SocialRecommender {
 					PS.add(u, f, euj * qjf + regU * puf);
 					Q.add(j, f, -lRate * (euj * puf + regI * qjf));
 
-					loss += regU * puf * puf;
-					loss += regI * qjf * qjf;
+					loss += regU * puf * puf + regI * qjf * qjf;
 				}
 			}
 
@@ -127,21 +131,18 @@ public class SoReg extends SocialRecommender {
 				int count = 0;
 				for (int k : uos.getIndex()) {
 					double suk = similarity(u, k);
-					if (Double.isNaN(suk))
-						continue;
+					if (!Double.isNaN(suk)) {
+						count++;
+						for (int f = 0; f < numFactors; f++) {
+							double euk = P.get(u, f) - P.get(k, f);
+							sumF[f] += beta * suk * euk;
 
-					count++;
-
-					for (int f = 0; f < numFactors; f++) {
-						double euk = P.get(u, f) - P.get(k, f);
-						//PS.add(u, f, beta * suk * euk);
-						sumF[f] += beta * suk * euk;
-
-						loss += beta * suk * euk * euk;
+							loss += beta * suk * euk * euk;
+						}
 					}
 				}
 
-				if (count > 0)
+				if (count > 0) 
 					for (int f = 0; f < numFactors; f++)
 						PS.add(u, f, sumF[f] / count);
 
@@ -151,18 +152,16 @@ public class SoReg extends SocialRecommender {
 				count = 0;
 				for (int g : uis.getIndex()) {
 					double sug = similarity(u, g);
-					if (Double.isNaN(sug))
-						continue;
-
-					count++;
-					for (int f = 0; f < numFactors; f++) {
-						double eug = P.get(u, f) - P.get(g, f);
-						// PS.add(u, f, beta * sug * eug);
-						sumF[f] += beta * sug * eug;
+					if (!Double.isNaN(sug)) {
+						count++;
+						for (int f = 0; f < numFactors; f++) {
+							double eug = P.get(u, f) - P.get(g, f);
+							sumF[f] += beta * sug * eug;
+						}
 					}
 				}
 
-				if (count > 0)
+				if (count > 0) 
 					for (int f = 0; f < numFactors; f++)
 						PS.add(u, f, sumF[f] / count);
 
