@@ -55,7 +55,6 @@ public class SoReg extends SocialRecommender {
 
 		userCorrs = HashBasedTable.create();
 		beta = 0.001;
-
 	}
 
 	protected double similarity(Integer u, Integer v) {
@@ -72,10 +71,13 @@ public class SoReg extends SocialRecommender {
 			if (uv.getCount() > 0) {
 				SparseVector vv = trainMatrix.row(v);
 				sim = correlation(uv, vv, "pcc");
+
+				if (!Double.isNaN(sim))
+					sim = (1.0 + sim) / 2;
 			}
 		}
 
-		userCorrs.put(u, v, (1.0 + sim) / 2);
+		userCorrs.put(u, v, sim);
 
 		return sim;
 	}
@@ -83,23 +85,23 @@ public class SoReg extends SocialRecommender {
 	@Override
 	protected void buildModel() {
 		for (int iter = 1; iter <= maxIters; iter++) {
-			// temporary data
-			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
-			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 
 			errs = 0;
 			loss = 0;
+
+			// temporary data
+			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 
 			// ratings
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row();
 				int j = me.column();
-				double rate = me.get();
-				if (rate <= 0)
+				double ruj = me.get();
+				if (ruj <= 0)
 					continue;
 
 				double pred = predict(u, j);
-				double euj = pred - rate;
+				double euj = pred - ruj;
 
 				errs += euj * euj;
 				loss += euj * euj;
@@ -107,8 +109,9 @@ public class SoReg extends SocialRecommender {
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
+
 					PS.add(u, f, euj * qjf + regU * puf);
-					QS.add(j, f, euj * puf + regI * qjf);
+					Q.add(j, f, -lRate * (euj * puf + regI * qjf));
 
 					loss += regU * puf * puf;
 					loss += regI * qjf * qjf;
@@ -117,7 +120,7 @@ public class SoReg extends SocialRecommender {
 
 			// friends
 			for (int u = 0; u < numUsers; u++) {
-				// out links
+				// out links: F+
 				SparseVector uos = socialMatrix.row(u);
 				for (int k : uos.getIndex()) {
 					double suk = similarity(u, k);
@@ -132,7 +135,7 @@ public class SoReg extends SocialRecommender {
 					}
 				}
 
-				// in links
+				// in links: F-
 				SparseVector uis = socialMatrix.column(u);
 				for (int g : uis.getIndex()) {
 					double sug = similarity(u, g);
@@ -147,7 +150,6 @@ public class SoReg extends SocialRecommender {
 			} // end of for loop
 
 			P = P.add(PS.scale(-lRate));
-			Q = Q.add(QS.scale(-lRate));
 
 			errs *= 0.5;
 			loss *= 0.5;

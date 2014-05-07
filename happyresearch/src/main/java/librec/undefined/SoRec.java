@@ -93,7 +93,7 @@ public class SoRec extends SocialRecommender {
 				}
 			}
 
-			// trust
+			// friends
 			for (MatrixEntry me : socialMatrix) {
 				int u = me.row();
 				int v = me.column();
