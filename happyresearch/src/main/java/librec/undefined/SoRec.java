@@ -109,8 +109,10 @@ public class SoRec extends SocialRecommender {
 					double puf = P.get(u, f);
 					double zvf = Z.get(v, f);
 
-					PS.add(u, f, regC * gd(pred) * euv * zvf + regU * puf);
+					PS.add(u, f, regC * gd(pred) * euv * zvf);
 					Z.add(v, f, -lRate * (regC * gd(pred) * euv * puf + regZ * zvf));
+
+					loss += regZ * zvf * zvf;
 				}
 			}
 
