@@ -119,7 +119,6 @@ public class SoReg extends SocialRecommender {
 			for (int u = 0; u < numUsers; u++) {
 				// out links
 				SparseVector uos = socialMatrix.row(u);
-				double weight = 1;//uos.getCount();
 				for (int k : uos.getIndex()) {
 					double suk = similarity(u, k);
 					if (Double.isNaN(suk))
@@ -127,16 +126,14 @@ public class SoReg extends SocialRecommender {
 
 					for (int f = 0; f < numFactors; f++) {
 						double euk = P.get(u, f) - P.get(k, f);
-						PS.add(u, f, beta * suk * euk / weight);
+						PS.add(u, f, beta * suk * euk);
 
-						loss += beta * suk * euk * euk / weight;
+						loss += beta * suk * euk * euk;
 					}
 				}
 
 				// in links
 				SparseVector uis = socialMatrix.column(u);
-				weight = 1; //uis.getCount();
-
 				for (int g : uis.getIndex()) {
 					double sug = similarity(u, g);
 					if (Double.isNaN(sug))
@@ -144,7 +141,7 @@ public class SoReg extends SocialRecommender {
 
 					for (int f = 0; f < numFactors; f++) {
 						double eug = P.get(u, f) - P.get(g, f);
-						PS.add(u, f, beta * sug * eug / weight);
+						PS.add(u, f, beta * sug * eug);
 					}
 				}
 			} // end of for loop
