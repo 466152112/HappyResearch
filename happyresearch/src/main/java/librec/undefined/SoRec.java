@@ -19,6 +19,10 @@
 package librec.undefined;
 
 import happy.coding.system.Debug;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import librec.data.DenseMatrix;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
@@ -36,6 +40,8 @@ public class SoRec extends SocialRecommender {
 
 	private DenseMatrix Z;
 	private double regC, regZ;
+
+	private Map<Integer, Integer> inDegrees, outDegrees;
 
 	public SoRec(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -60,6 +66,17 @@ public class SoRec extends SocialRecommender {
 		} else {
 			regC = cf.getDouble("SoRec.reg.c");
 			regZ = cf.getDouble("SoRec.reg.z");
+		}
+
+		inDegrees = new HashMap<>();
+		outDegrees = new HashMap<>();
+
+		for (int u = 0; u < numUsers; u++) {
+			int in = socialMatrix.columnSize(u);
+			int out = socialMatrix.rowSize(u);
+
+			inDegrees.put(u, in);
+			outDegrees.put(u, out);
 		}
 	}
 
@@ -106,8 +123,8 @@ public class SoRec extends SocialRecommender {
 
 				double pred = DenseMatrix.rowMult(P, u, Z, v);
 
-				int vminus = socialMatrix.columnSize(v); // ~ d-(k)
-				int uplus = socialMatrix.rowSize(u); // ~ d+(i)
+				int vminus = inDegrees.get(v); // ~ d-(k)
+				int uplus = outDegrees.get(u); // ~ d+(i)
 				double weight = Math.sqrt(vminus / (uplus + vminus + 0.0));
 
 				double euv = g(pred) - weight * tuv; // weight * tuv ~ cik*
