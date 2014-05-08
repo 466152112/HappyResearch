@@ -106,9 +106,9 @@ public class SoRec extends SocialRecommender {
 
 				double pred = DenseMatrix.rowMult(P, u, Z, v);
 
-				int dminus = socialMatrix.columnSize(v);
-				int dplus = socialMatrix.rowSize(u);
-				double weight = Math.sqrt(dminus / (dplus + dminus + 0.0));
+				int vminus = socialMatrix.columnSize(v); // ~ d-(k)
+				int uplus = socialMatrix.rowSize(u); // ~ d+(i)
+				double weight = Math.sqrt(vminus / (uplus + vminus + 0.0));
 
 				double euv = g(pred) - weight * tuv; // weight * tuv ~ cik*
 				loss += regC * euv * euv;
