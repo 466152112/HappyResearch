@@ -57,7 +57,7 @@ public class SoRec extends SocialRecommender {
 			regU = 0.001;
 			regI = 0.001;
 			regZ = 0.001;
-		}else{
+		} else {
 			regC = cf.getDouble("SoRec.reg.c");
 			regZ = cf.getDouble("SoRec.reg.z");
 		}
@@ -100,12 +100,17 @@ public class SoRec extends SocialRecommender {
 			for (MatrixEntry me : socialMatrix) {
 				int u = me.row();
 				int v = me.column();
-				double tuv = me.get();
+				double tuv = me.get(); // tuv ~ cik in the original paper
 				if (tuv <= 0)
 					continue;
 
 				double pred = DenseMatrix.rowMult(P, u, Z, v);
-				double euv = g(pred) - tuv;
+
+				int dminus = socialMatrix.columnSize(v);
+				int dplus = socialMatrix.rowSize(u);
+				double weight = Math.sqrt(dminus / (dplus + dminus + 0.0));
+
+				double euv = g(pred) - weight * tuv; // weight * tuv ~ cik*
 				loss += regC * euv * euv;
 
 				for (int f = 0; f < numFactors; f++) {
