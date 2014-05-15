@@ -284,6 +284,8 @@ public class LibRec {
 			return new SoRec(trainMatrix, testMatrix, fold);
 		case "soreg":
 			return new SoReg(trainMatrix, testMatrix, fold);
+		case "wrmf":
+			return new WRMF(trainMatrix, testMatrix, fold);
 			
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
