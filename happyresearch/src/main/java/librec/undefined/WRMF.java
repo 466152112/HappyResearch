@@ -20,6 +20,10 @@ package librec.undefined;
 
 import happy.coding.io.Logs;
 import happy.coding.system.Debug;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.DiagMatrix;
@@ -47,6 +51,8 @@ public class WRMF extends IterativeRecommender {
 	private boolean isBinaryRating;
 	private double alpha;
 
+	private Map<Integer, Integer> rowSizes;
+
 	public WRMF(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
@@ -61,6 +67,10 @@ public class WRMF extends IterativeRecommender {
 			alpha = 40;
 			maxIters = 10;
 		}
+
+		rowSizes = new HashMap<>();
+		for (int u = 0; u < numUsers; u++)
+			rowSizes.put(u, trainMatrix.rowSize(u));
 
 	}
 
@@ -82,8 +92,12 @@ public class WRMF extends IterativeRecommender {
 				// diagonal matrix C^u for each user
 				Table<Integer, Integer, Double> cuData = HashBasedTable.create();
 
-				for (int j = 0; j < numItems; j++)
+				//for (int j = 0; j < numItems; j++)
+				//	cuData.put(j, j, wc(u, j));
+				for (VectorEntry ve : trainMatrix.row(u)) {
+					int j = ve.index();
 					cuData.put(j, j, wc(u, j));
+				}
 
 				DiagMatrix Cu = new DiagMatrix(numItems, numItems, cuData);
 				SparseVector pu = trainMatrix.row(u);
@@ -116,8 +130,13 @@ public class WRMF extends IterativeRecommender {
 				// diagonal matrix C^i for each item
 				Table<Integer, Integer, Double> ciData = HashBasedTable.create();
 
-				for (int u = 0; u < numUsers; u++)
+				//for (int u = 0; u < numUsers; u++)
+				//	ciData.put(u, u, wc(u, i));
+
+				for (VectorEntry ve : trainMatrix.column(i)) {
+					int u = ve.index();
 					ciData.put(u, u, wc(u, i));
+				}
 
 				DiagMatrix Ci = new DiagMatrix(numUsers, numUsers, ciData);
 				SparseVector pi = trainMatrix.column(i);
@@ -152,7 +171,7 @@ public class WRMF extends IterativeRecommender {
 
 		if (isBinaryRating) {
 			// user-oriented weighting 
-			wc = trainMatrix.rowSize(u);
+			wc = rowSizes.get(u);
 		} else {
 			// rating-based confidence
 			wc = 1 + alpha * trainMatrix.get(u, j);
@@ -163,7 +182,8 @@ public class WRMF extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return String.format("%d,%f,%f,%f,%d", new Object[] { numFactors, regU, regI, alpha, maxIters });
+		return String.format("%d,%f,%f,%f,%d", new Object[] { numFactors, (short) regU, (short) regI, (short) alpha,
+				maxIters });
 	}
 
 }
