@@ -19,6 +19,7 @@
 package librec.undefined;
 
 import happy.coding.io.Logs;
+import happy.coding.io.Strings;
 import happy.coding.system.Debug;
 
 import java.util.HashMap;
@@ -97,19 +98,17 @@ public class WRMF extends IterativeRecommender {
 
 				//for (int j = 0; j < numItems; j++)
 				//	cuData.put(j, j, wc(u, j));
-				for (VectorEntry ve : trainMatrix.row(u)) {
-					int j = ve.index();
-					cuData.put(j, j, wc(u, j));
+				SparseVector pu = trainMatrix.row(u);
+				for (VectorEntry ve : pu) {
+					int i = ve.index();
+					cuData.put(i, i, wc(u, i));
 				}
 
 				DiagMatrix Cu = new DiagMatrix(numItems, numItems, cuData);
-				SparseVector pu = trainMatrix.row(u);
 
 				// binarize real values
-				for (VectorEntry ve : pu) {
-					double ruj = ve.get();
-					ve.set(ruj > 0 ? 1 : 0);
-				}
+				for (VectorEntry ve : pu)
+					ve.set(ve.get() > 0 ? 1 : 0);
 
 				// Cu - I
 				DiagMatrix CuI = Cu.minus(DiagMatrix.eye(numItems));
@@ -137,20 +136,17 @@ public class WRMF extends IterativeRecommender {
 
 				//for (int u = 0; u < numUsers; u++)
 				//	ciData.put(u, u, wc(u, i));
-
-				for (VectorEntry ve : trainMatrix.column(i)) {
+				SparseVector pi = trainMatrix.column(i);
+				for (VectorEntry ve : pi) {
 					int u = ve.index();
 					ciData.put(u, u, wc(u, i));
 				}
 
 				DiagMatrix Ci = new DiagMatrix(numUsers, numUsers, ciData);
-				SparseVector pi = trainMatrix.column(i);
 
 				// binarize real values
-				for (VectorEntry ve : pi) {
-					double ruj = ve.get();
-					ve.set(ruj > 0 ? 1 : 0);
-				}
+				for (VectorEntry ve : pi)
+					ve.set(ve.get() > 0 ? 1 : 0);
 
 				// Ci - I
 				DiagMatrix CiI = Ci.minus(DiagMatrix.eye(numUsers));
@@ -187,7 +183,7 @@ public class WRMF extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return String.format("%d,%g,%g,%g,%d", new Object[] { numFactors, regU, regI, alpha, maxIters });
+		return Strings.toString(new Object[] { numFactors, (float) regU, (float) regI, (float) alpha, maxIters });
 	}
 
 }
