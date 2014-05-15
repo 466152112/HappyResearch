@@ -89,6 +89,9 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix Yt = Y.transpose();
 			DenseMatrix YtY = Yt.mult(Y);
 			for (int u = 0; u < numUsers; u++) {
+				if (verbose)
+					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u);
+
 				// diagonal matrix C^u for each user
 				Table<Integer, Integer, Double> cuData = HashBasedTable.create();
 
@@ -127,6 +130,8 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix Xt = X.transpose();
 			DenseMatrix XtX = Xt.mult(X);
 			for (int i = 0; i < numItems; i++) {
+				if (verbose)
+					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i);
 				// diagonal matrix C^i for each item
 				Table<Integer, Integer, Double> ciData = HashBasedTable.create();
 
@@ -182,8 +187,7 @@ public class WRMF extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return String.format("%d,%f,%f,%f,%d", new Object[] { numFactors, (short) regU, (short) regI, (short) alpha,
-				maxIters });
+		return String.format("%d,%g,%g,%g,%d", new Object[] { numFactors, regU, regI, alpha, maxIters });
 	}
 
 }
