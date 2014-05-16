@@ -81,14 +81,11 @@ public class WRMF extends IterativeRecommender {
 		// updating by using alternative least square (ALS) due to large amount of entries to be processed (SGD will be too slow)
 		for (int iter = 1; iter <= maxIters; iter++) {
 
-			if (verbose)
-				Logs.debug("Fold [{}] current progress at iteration = {}", fold, iter);
-
 			// Step 1: update user factors;
 			DenseMatrix Yt = Y.transpose();
 			DenseMatrix YtY = Yt.mult(Y);
 			for (int u = 0; u < numUsers; u++) {
-				if (verbose)
+				if (verbose && u % 100 == 0)
 					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u);
 
 				// diagonal matrix C^u for each user
@@ -123,7 +120,7 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix Xt = X.transpose();
 			DenseMatrix XtX = Xt.mult(X);
 			for (int i = 0; i < numItems; i++) {
-				if (verbose)
+				if (verbose && i % 100 == 0)
 					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i);
 
 				// diagonal matrix C^i for each item
