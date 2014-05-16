@@ -71,7 +71,7 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix YtY = Yt.mult(Y);
 			for (int u = 0; u < numUsers; u++) {
 				if (verbose && (u + 1) % 100 == 0)
-					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u + 1);
+					Logs.debug("Fold [{}] is running at iteration = {}, user = {}/{}", fold, iter, u + 1, numUsers);
 
 				// diagonal matrix C^u for each user
 				DiagMatrix Cu = DiagMatrix.eye(numItems); // all entries on the diagonal will be 1
@@ -106,7 +106,7 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix XtX = Xt.mult(X);
 			for (int i = 0; i < numItems; i++) {
 				if (verbose && (i + 1) % 100 == 0)
-					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i + 1);
+					Logs.debug("Fold [{}] is running at iteration = {}, item = {}/{}", fold, iter, i + 1, numItems);
 
 				// diagonal matrix C^i for each item
 				DiagMatrix Ci = DiagMatrix.eye(numUsers);
@@ -141,11 +141,6 @@ public class WRMF extends IterativeRecommender {
 	@Override
 	public String toString() {
 		return Strings.toString(new Object[] { numFactors, (float) regU, (float) regI, (float) alpha, maxIters }, ",");
-	}
-
-	@Override
-	protected double ranking(int u, int j) {
-		return predict(u, j);
 	}
 
 }
