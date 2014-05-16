@@ -75,7 +75,7 @@ public class WRMF extends IterativeRecommender {
 
 	@Override
 	protected void buildModel() {
-		// for consistency
+		// To be consistent with the symbols in the paper
 		DenseMatrix X = P, Y = Q;
 
 		// updating by using alternative least square (ALS) due to large amount of entries to be processed (SGD will be too slow)
@@ -94,7 +94,7 @@ public class WRMF extends IterativeRecommender {
 
 				for (VectorEntry ve : pu) {
 					int i = ve.index();
-					Cu.add(i, i, wc(u, i)); // changes some entries to 1 + alpha * r_{u, i}
+					Cu.add(i, i, wc(u, i, ve.get())); // changes some entries to 1 + alpha * r_{u, i}
 				}
 
 				// binarize real values
@@ -102,7 +102,7 @@ public class WRMF extends IterativeRecommender {
 					ve.set(ve.get() > 0 ? 1 : 0);
 
 				// Cu - I
-				DiagMatrix CuI = Cu.minus(DiagMatrix.eye(numItems));
+				DiagMatrix CuI = Cu.minus(1);
 				// YtY + Yt * (Cu - I) * Y
 				DenseMatrix YtCuY = YtY.add(Yt.mult(CuI).mult(Y));
 				// (YtCuY + lambda * I)^-1
@@ -129,7 +129,7 @@ public class WRMF extends IterativeRecommender {
 
 				for (VectorEntry ve : pi) {
 					int u = ve.index();
-					Ci.add(u, u, wc(u, i));
+					Ci.add(u, u, wc(u, i, ve.get()));
 				}
 
 				// binarize real values
@@ -137,11 +137,11 @@ public class WRMF extends IterativeRecommender {
 					ve.set(ve.get() > 0 ? 1 : 0);
 
 				// Ci - I
-				DiagMatrix CiI = Ci.minus(DiagMatrix.eye(numUsers));
+				DiagMatrix CiI = Ci.minus(1);
 				// XtX + Xt * (Ci - I) * X
 				DenseMatrix XtCiX = XtX.add(Xt.mult(CiI).mult(X));
 				// (XtCiX + lambda * I)^-1
-				DenseMatrix Wi = XtCiX.add(DenseMatrix.eye(numFactors).scale(regI)).inv();
+				DenseMatrix Wi = (XtCiX.add(DenseMatrix.eye(numFactors).scale(regI))).inv();
 				// Xt * Ci
 				DenseMatrix XtCi = Xt.mult(Ci);
 
@@ -155,7 +155,7 @@ public class WRMF extends IterativeRecommender {
 	}
 
 	// compute the weighting or confidence (wc) of a rating ruj
-	private double wc(int u, int j) {
+	private double wc(int u, int i, double rui) {
 		double wc = 0;
 
 		if (isBinaryRating) {
@@ -163,7 +163,7 @@ public class WRMF extends IterativeRecommender {
 			wc = rowSizes.get(u) - 1;
 		} else {
 			// rating-based confidence
-			wc = alpha * trainMatrix.get(u, j);
+			wc = alpha * rui;
 		}
 
 		return wc;
