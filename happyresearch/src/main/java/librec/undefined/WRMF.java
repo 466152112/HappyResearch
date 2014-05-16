@@ -59,11 +59,12 @@ public class WRMF extends IterativeRecommender {
 
 		isBinaryRating = (maxRate == minRate);
 
-		if (Debug.ON) {
+		if (Debug.OFF) {
 			// default parameters suggested by the papers
-
 			alpha = 40;
 			maxIters = 10;
+		} else {
+			alpha = cf.getDouble("WRMF.alpha");
 		}
 
 		rowSizes = new HashMap<>();
