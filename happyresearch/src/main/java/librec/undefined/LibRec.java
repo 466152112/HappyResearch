@@ -45,6 +45,7 @@ import librec.core.SVDPlusPlus;
 import librec.core.SocialMF;
 import librec.core.TrustMF;
 import librec.core.UserKNN;
+import librec.core.WRMF;
 import librec.data.DataDAO;
 import librec.data.DataSplitter;
 import librec.data.SparseMatrix;
