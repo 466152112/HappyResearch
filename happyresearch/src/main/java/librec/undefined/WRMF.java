@@ -33,9 +33,6 @@ import librec.data.SparseVector;
 import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-
 /**
  * <ul>
  * <li><strong>Binary ratings:</strong> Pan et al., <strong>One-class
@@ -94,17 +91,13 @@ public class WRMF extends IterativeRecommender {
 					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u);
 
 				// diagonal matrix C^u for each user
-				Table<Integer, Integer, Double> cuData = HashBasedTable.create();
-
-				//for (int j = 0; j < numItems; j++)
-				//	cuData.put(j, j, wc(u, j));
+				DiagMatrix Cu = DiagMatrix.eye(numItems); // all entries on the diagonal will be 1
 				SparseVector pu = trainMatrix.row(u);
+
 				for (VectorEntry ve : pu) {
 					int i = ve.index();
-					cuData.put(i, i, wc(u, i));
+					Cu.add(i, i, wc(u, i)); // changes some entries to 1 + alpha * r_{u, i}
 				}
-
-				DiagMatrix Cu = new DiagMatrix(numItems, numItems, cuData);
 
 				// binarize real values
 				for (VectorEntry ve : pu)
@@ -115,7 +108,7 @@ public class WRMF extends IterativeRecommender {
 				// YtY + Yt * (Cu - I) * Y
 				DenseMatrix YtCuY = YtY.add(Yt.mult(CuI).mult(Y));
 				// (YtCuY + lambda * I)^-1
-				DenseMatrix Wu = YtCuY.add(DenseMatrix.eye(numFactors).scale(regU)).inv();
+				DenseMatrix Wu = (YtCuY.add(DenseMatrix.eye(numFactors).scale(regU))).inv();
 				// Yt * Cu
 				DenseMatrix YtCu = Yt.mult(Cu);
 
@@ -131,18 +124,15 @@ public class WRMF extends IterativeRecommender {
 			for (int i = 0; i < numItems; i++) {
 				if (verbose)
 					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i);
-				// diagonal matrix C^i for each item
-				Table<Integer, Integer, Double> ciData = HashBasedTable.create();
 
-				//for (int u = 0; u < numUsers; u++)
-				//	ciData.put(u, u, wc(u, i));
+				// diagonal matrix C^i for each item
+				DiagMatrix Ci = DiagMatrix.eye(numUsers);
 				SparseVector pi = trainMatrix.column(i);
+
 				for (VectorEntry ve : pi) {
 					int u = ve.index();
-					ciData.put(u, u, wc(u, i));
+					Ci.add(u, u, wc(u, i));
 				}
-
-				DiagMatrix Ci = new DiagMatrix(numUsers, numUsers, ciData);
 
 				// binarize real values
 				for (VectorEntry ve : pi)
@@ -172,10 +162,10 @@ public class WRMF extends IterativeRecommender {
 
 		if (isBinaryRating) {
 			// user-oriented weighting 
-			wc = rowSizes.get(u);
+			wc = rowSizes.get(u) - 1;
 		} else {
 			// rating-based confidence
-			wc = 1 + alpha * trainMatrix.get(u, j);
+			wc = alpha * trainMatrix.get(u, j);
 		}
 
 		return wc;
