@@ -51,7 +51,7 @@ public class WRMF extends IterativeRecommender {
 		super(trainMatrix, testMatrix, fold);
 
 		algoName = "WRMF";
-		isRankingPred = true;
+		isRankingPred = true; // item recommendation
 
 		alpha = cf.getDouble("WRMF.alpha");
 	}
