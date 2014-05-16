@@ -29,14 +29,16 @@ import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 /**
- * <ul>
- * <li><strong>Binary ratings:</strong> Pan et al., <strong>One-class
- * Collaborative Filtering</strong>, ICDM 2008.</li>
- * <li><strong>Real ratings:</strong> Hu et al., <strong>Collaborative filtering
- * for implicit feedback datasets</strong>, ICDM 2008.</li>
- * </ul>
+ * <h3>WRMF: Weighted Regularized Matrix Factorization.</h3>
  * 
- * This implementation refers to the paper of Hu et al., ICDM 2008.
+ * This implementation refers to the method proposed by Hu et al. at ICDM 2008.
+ * 
+ * <ul>
+ * <li><strong>Binary ratings:</strong> Pan et al., One-class Collaborative
+ * Filtering, ICDM 2008.</li>
+ * <li><strong>Real ratings:</strong> Hu et al., Collaborative filtering for
+ * implicit feedback datasets, ICDM 2008.</li>
+ * </ul>
  * 
  * @author guoguibing
  * 
@@ -133,13 +135,17 @@ public class WRMF extends IterativeRecommender {
 				// udpate item factors
 				Y.setRow(i, yi);
 			}
-
 		}
 	}
 
 	@Override
 	public String toString() {
 		return Strings.toString(new Object[] { numFactors, (float) regU, (float) regI, (float) alpha, maxIters }, ",");
+	}
+
+	@Override
+	protected double ranking(int u, int j) {
+		return predict(u, j);
 	}
 
 }
