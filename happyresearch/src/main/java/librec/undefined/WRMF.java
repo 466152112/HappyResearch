@@ -20,11 +20,6 @@ package librec.undefined;
 
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
-import happy.coding.system.Debug;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.DiagMatrix;
@@ -41,44 +36,32 @@ import librec.intf.IterativeRecommender;
  * for implicit feedback datasets</strong>, ICDM 2008.</li>
  * </ul>
  * 
+ * This implementation refers to the paper of Hu et al., ICDM 2008.
+ * 
  * @author guoguibing
  * 
  */
 public class WRMF extends IterativeRecommender {
 
-	private boolean isBinaryRating;
 	private double alpha;
-
-	private Map<Integer, Integer> rowSizes;
 
 	public WRMF(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "WRMF"; // weighted low-rank matrix factorization 
+		algoName = "WRMF";
 		isRankingPred = true;
 
-		isBinaryRating = (maxRate == minRate);
-
-		if (Debug.OFF) {
-			// default parameters suggested by the papers
-			alpha = 40;
-			maxIters = 10;
-		} else {
-			alpha = cf.getDouble("WRMF.alpha");
-		}
-
-		rowSizes = new HashMap<>();
-		for (int u = 0; u < numUsers; u++)
-			rowSizes.put(u, trainMatrix.rowSize(u));
-
+		alpha = cf.getDouble("WRMF.alpha");
 	}
 
 	@Override
 	protected void buildModel() {
+
 		// To be consistent with the symbols in the paper
 		DenseMatrix X = P, Y = Q;
 
-		// updating by using alternative least square (ALS) due to large amount of entries to be processed (SGD will be too slow)
+		// Updating by using alternative least square (ALS) 
+		// due to large amount of entries to be processed (SGD will be too slow)
 		for (int iter = 1; iter <= maxIters; iter++) {
 
 			// Step 1: update user factors;
@@ -86,7 +69,7 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix YtY = Yt.mult(Y);
 			for (int u = 0; u < numUsers; u++) {
 				if (verbose && u % 100 == 0)
-					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u);
+					Logs.debug("Fold [{}] current progress at iteration = {}, user = {}", fold, iter, u + 1);
 
 				// diagonal matrix C^u for each user
 				DiagMatrix Cu = DiagMatrix.eye(numItems); // all entries on the diagonal will be 1
@@ -94,7 +77,7 @@ public class WRMF extends IterativeRecommender {
 
 				for (VectorEntry ve : pu) {
 					int i = ve.index();
-					Cu.add(i, i, wc(u, i, ve.get())); // changes some entries to 1 + alpha * r_{u, i}
+					Cu.add(i, i, alpha * ve.get()); // changes some entries to 1 + alpha * r_{u, i}
 				}
 
 				// binarize real values
@@ -106,7 +89,7 @@ public class WRMF extends IterativeRecommender {
 				// YtY + Yt * (Cu - I) * Y
 				DenseMatrix YtCuY = YtY.add(Yt.mult(CuI).mult(Y));
 				// (YtCuY + lambda * I)^-1
-				DenseMatrix Wu = (YtCuY.add(DenseMatrix.eye(numFactors).scale(regU))).inv();
+				DenseMatrix Wu = (YtCuY.add(DiagMatrix.eye(numFactors).scale(regU))).inv();
 				// Yt * Cu
 				DenseMatrix YtCu = Yt.mult(Cu);
 
@@ -121,7 +104,7 @@ public class WRMF extends IterativeRecommender {
 			DenseMatrix XtX = Xt.mult(X);
 			for (int i = 0; i < numItems; i++) {
 				if (verbose && i % 100 == 0)
-					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i);
+					Logs.debug("Fold [{}] current progress at iteration = {}, item = {}", fold, iter, i + 1);
 
 				// diagonal matrix C^i for each item
 				DiagMatrix Ci = DiagMatrix.eye(numUsers);
@@ -129,7 +112,7 @@ public class WRMF extends IterativeRecommender {
 
 				for (VectorEntry ve : pi) {
 					int u = ve.index();
-					Ci.add(u, u, wc(u, i, ve.get()));
+					Ci.add(u, u, alpha * ve.get());
 				}
 
 				// binarize real values
@@ -137,11 +120,11 @@ public class WRMF extends IterativeRecommender {
 					ve.set(ve.get() > 0 ? 1 : 0);
 
 				// Ci - I
-				DiagMatrix CiI = Ci.minus(1);
+				DiagMatrix CiI = Ci.minus(1); // more efficient than DiagMatrix.eye(numUsers)
 				// XtX + Xt * (Ci - I) * X
 				DenseMatrix XtCiX = XtX.add(Xt.mult(CiI).mult(X));
 				// (XtCiX + lambda * I)^-1
-				DenseMatrix Wi = (XtCiX.add(DenseMatrix.eye(numFactors).scale(regI))).inv();
+				DenseMatrix Wi = (XtCiX.add(DiagMatrix.eye(numFactors).scale(regI))).inv();
 				// Xt * Ci
 				DenseMatrix XtCi = Xt.mult(Ci);
 
@@ -152,21 +135,6 @@ public class WRMF extends IterativeRecommender {
 			}
 
 		}
-	}
-
-	// compute the weighting or confidence (wc) of a rating ruj
-	private double wc(int u, int i, double rui) {
-		double wc = 0;
-
-		if (isBinaryRating) {
-			// user-oriented weighting 
-			wc = rowSizes.get(u) - 1;
-		} else {
-			// rating-based confidence
-			wc = alpha * rui;
-		}
-
-		return wc;
 	}
 
 	@Override
