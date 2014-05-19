@@ -87,7 +87,7 @@ public class BPRMF extends IterativeRecommender {
 				double xuj = predict(u, j);
 				double xuij = xui - xuj;
 
-				double cmg = 1.0 / (1 + Math.exp(xuij)) * lRate;
+				double cmg = 1.0 / (1 + Math.exp(xuij));
 
 				for (int f = 0; f < numFactors; f++) {
 					double wuf = P.get(u, f);
@@ -100,8 +100,8 @@ public class BPRMF extends IterativeRecommender {
 				}
 			}
 
-			P = P.add(Ps);
-			Q = Q.add(Qs);
+			P = P.add(Ps.scale(lRate));
+			Q = Q.add(Qs.scale(lRate));
 		}
 	}
 
