@@ -19,6 +19,7 @@
 package librec.undefined;
 
 import happy.coding.io.Logs;
+import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
@@ -42,6 +43,7 @@ public class BPRMF extends IterativeRecommender {
 
 		algoName = "BPRMF";
 		isRankingPred = true;
+		initByNorm = false;
 
 		regJ = cf.getDouble("BPRMF.reg.j");
 	}
@@ -85,7 +87,7 @@ public class BPRMF extends IterativeRecommender {
 				double xuj = predict(u, j);
 				double xuij = xui - xuj;
 
-				double cmg = Math.exp(-xuij) / (1 + Math.exp(-xuij)) * lRate;
+				double cmg = 1.0 / (1 + Math.exp(xuij)) * lRate;
 
 				for (int f = 0; f < numFactors; f++) {
 					double wuf = P.get(u, f);
@@ -101,5 +103,10 @@ public class BPRMF extends IterativeRecommender {
 			P = P.add(Ps);
 			Q = Q.add(Qs);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(new Object[] { numFactors, lRate, regU, regI, regJ, maxIters }, ",");
 	}
 }
