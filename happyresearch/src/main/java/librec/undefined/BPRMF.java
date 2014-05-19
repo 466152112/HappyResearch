@@ -18,7 +18,9 @@
 
 package librec.undefined;
 
+import happy.coding.io.Logs;
 import happy.coding.math.Randoms;
+import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.intf.IterativeRecommender;
@@ -50,6 +52,12 @@ public class BPRMF extends IterativeRecommender {
 		for (int iter = 1; iter <= maxIters; iter++) {
 
 			int sampleSize = numUsers * 100;
+			if (verbose)
+				Logs.debug("Sample size = {}, running at iteration = {}", sampleSize, iter);
+
+			DenseMatrix Ps = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix Qs = new DenseMatrix(numItems, numFactors);
+
 			for (int s = 0; s < sampleSize; s++) {
 
 				// draw (u, i, j) from Ds with replacement
@@ -84,11 +92,14 @@ public class BPRMF extends IterativeRecommender {
 					double hif = Q.get(i, f);
 					double hjf = Q.get(j, f);
 
-					P.add(u, f, cmg * (hif - hjf) + regU * wuf);
-					Q.add(i, f, cmg * wuf + regI * hif);
-					Q.add(j, f, cmg * (-wuf) + regJ * hjf);
+					Ps.add(u, f, cmg * (hif - hjf) + regU * wuf);
+					Qs.add(i, f, cmg * wuf + regI * hif);
+					Qs.add(j, f, cmg * (-wuf) + regJ * hjf);
 				}
 			}
+
+			P = P.add(Ps);
+			Q = Q.add(Qs);
 		}
 	}
 }
