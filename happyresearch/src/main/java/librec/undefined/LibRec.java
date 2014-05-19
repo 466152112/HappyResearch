@@ -267,6 +267,8 @@ public class LibRec {
 			return new SocialMF(trainMatrix, testMatrix, fold);
 		case "trustmf":
 			return new TrustMF(trainMatrix, testMatrix, fold);
+		case "wrmf":
+			return new WRMF(trainMatrix, testMatrix, fold);
 
 			/* extension */
 		case "nmf":
@@ -285,9 +287,9 @@ public class LibRec {
 			return new SoRec(trainMatrix, testMatrix, fold);
 		case "soreg":
 			return new SoReg(trainMatrix, testMatrix, fold);
-		case "wrmf":
-			return new WRMF(trainMatrix, testMatrix, fold);
-			
+		case "bprmf":
+			return new BPRMF(trainMatrix, testMatrix, fold);
+
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
 		case "aaai-dmf":
