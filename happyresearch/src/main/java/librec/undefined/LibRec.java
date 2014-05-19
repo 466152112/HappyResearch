@@ -36,6 +36,7 @@ import librec.baseline.MostPopular;
 import librec.baseline.RandomGuess;
 import librec.baseline.UserAverage;
 import librec.core.BPMF;
+import librec.core.BPRMF;
 import librec.core.BiasedMF;
 import librec.core.CLiMF;
 import librec.core.ItemKNN;
