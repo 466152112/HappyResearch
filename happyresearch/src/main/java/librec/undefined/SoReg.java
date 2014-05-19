@@ -34,7 +34,7 @@ import com.google.common.collect.Table;
  * In the original paper, this method is named as "SR2_pcc". For consistency, we
  * rename it as "SoReg" as used by some other papers such as: Tang et al.,
  * <strong>Exploiting Local and Global Social Context for
- * Recommendation</strong>, IJCAI 2013. 
+ * Recommendation</strong>, IJCAI 2013.
  * 
  * @author guoguibing
  * 
@@ -96,6 +96,7 @@ public class SoReg extends SocialRecommender {
 
 			// temporary data
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 
 			// ratings
 			for (MatrixEntry me : trainMatrix) {
@@ -116,7 +117,7 @@ public class SoReg extends SocialRecommender {
 					double qjf = Q.get(j, f);
 
 					PS.add(u, f, euj * qjf + regU * puf);
-					Q.add(j, f, -lRate * (euj * puf + regI * qjf));
+					QS.add(j, f, euj * puf + regI * qjf);
 
 					loss += regU * puf * puf + regI * qjf * qjf;
 				}
@@ -142,7 +143,7 @@ public class SoReg extends SocialRecommender {
 					}
 				}
 
-				if (count > 0) 
+				if (count > 0)
 					for (int f = 0; f < numFactors; f++)
 						PS.add(u, f, sumF[f] / count);
 
@@ -161,13 +162,14 @@ public class SoReg extends SocialRecommender {
 					}
 				}
 
-				if (count > 0) 
+				if (count > 0)
 					for (int f = 0; f < numFactors; f++)
 						PS.add(u, f, sumF[f] / count);
 
 			} // end of for loop
 
 			P = P.add(PS.scale(-lRate));
+			Q = Q.add(QS.scale(-lRate));
 
 			errs *= 0.5;
 			loss *= 0.5;

@@ -87,6 +87,8 @@ public class SoRec extends SocialRecommender {
 			loss = 0;
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix ZS = new DenseMatrix(numUsers, numFactors);
 
 			// ratings
 			for (MatrixEntry me : trainMatrix) {
@@ -107,7 +109,7 @@ public class SoRec extends SocialRecommender {
 					double qjf = Q.get(j, f);
 
 					PS.add(u, f, gd(pred) * euj * qjf + regU * puf);
-					Q.add(j, f, -lRate * (gd(pred) * euj * puf + regI * qjf));
+					QS.add(j, f, gd(pred) * euj * puf + regI * qjf);
 
 					loss += regU * puf * puf + regI * qjf * qjf;
 				}
@@ -135,13 +137,15 @@ public class SoRec extends SocialRecommender {
 					double zvf = Z.get(v, f);
 
 					PS.add(u, f, regC * gd(pred) * euv * zvf);
-					Z.add(v, f, -lRate * (regC * gd(pred) * euv * puf + regZ * zvf));
+					ZS.add(v, f, regC * gd(pred) * euv * puf + regZ * zvf);
 
 					loss += regZ * zvf * zvf;
 				}
 			}
 
 			P = P.add(PS.scale(-lRate));
+			Q = Q.add(QS.scale(-lRate));
+			Z = Z.add(ZS.scale(-lRate));
 
 			errs *= 0.5;
 			loss *= 0.5;
