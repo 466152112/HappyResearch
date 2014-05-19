@@ -87,7 +87,7 @@ public class SoRec extends SocialRecommender {
 			loss = 0;
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
-			DenseMatrix QS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 			DenseMatrix ZS = new DenseMatrix(numUsers, numFactors);
 
 			// ratings
