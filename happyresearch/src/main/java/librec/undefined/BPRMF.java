@@ -18,20 +18,10 @@
 
 package librec.undefined;
 
-import happy.coding.io.KeyValPair;
-import happy.coding.io.Logs;
 import happy.coding.math.Randoms;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.intf.IterativeRecommender;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * 
@@ -43,7 +33,6 @@ import com.google.common.collect.Multimap;
  */
 public class BPRMF extends IterativeRecommender {
 
-	private Multimap<Integer, KeyValPair<Integer>> D;
 	private double regJ;
 
 	public BPRMF(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
@@ -56,32 +45,7 @@ public class BPRMF extends IterativeRecommender {
 	}
 
 	@Override
-	protected void initModel() {
-		super.initModel();
-
-		D = HashMultimap.create();
-
-		for (int u = 0; u < numUsers; u++) {
-			SparseVector pu = trainMatrix.row(u);
-			for (int i : pu.getIndex()) {
-				for (int j = 0; j < numItems; j++) {
-					if (i != j) {
-						// add one entry to Ds
-						KeyValPair<Integer> pair = new KeyValPair<Integer>(i, j);
-						D.put(u, pair);
-					}
-				}
-			}
-		}
-
-	}
-
-	@Override
 	protected void buildModel() {
-
-		List<Entry<Integer, KeyValPair<Integer>>> Ds = new ArrayList<>(D.entries());
-		int size = Ds.size();
-		Logs.debug("Total size = {}", size);
 
 		for (int iter = 1; iter <= maxIters; iter++) {
 
@@ -89,12 +53,24 @@ public class BPRMF extends IterativeRecommender {
 			for (int s = 0; s < sampleSize; s++) {
 
 				// draw (u, i, j) from Ds with replacement
-				Entry<Integer, KeyValPair<Integer>> entry = Ds.get(Randoms.uniform(size));
-				int u = entry.getKey();
-				KeyValPair<Integer> pair = entry.getValue();
+				int u = 0, i = 0, j = 0;
 
-				int i = pair.getKey();
-				int j = pair.getVal().intValue();
+				while (true) {
+					u = Randoms.uniform(numUsers);
+					SparseVector pu = trainMatrix.row(u);
+
+					if (pu.getCount() == 0)
+						continue;
+
+					int[] is = pu.getIndex();
+					i = is[Randoms.uniform(is.length)];
+
+					do {
+						j = Randoms.uniform(numItems);
+					} while (pu.contains(j));
+
+					break;
+				}
 
 				// update \theta 
 				double xui = predict(u, i);
