@@ -94,7 +94,7 @@ public class SoReg extends SocialRecommender {
 			errs = 0;
 			loss = 0;
 
-			// temporary data
+			// temp data
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 
@@ -136,7 +136,7 @@ public class SoReg extends SocialRecommender {
 						count++;
 						for (int f = 0; f < numFactors; f++) {
 							double euk = P.get(u, f) - P.get(k, f);
-							sumF[f] += beta * suk * euk;
+							sumF[f] += suk * euk;
 
 							loss += beta * suk * euk * euk;
 						}
@@ -145,7 +145,7 @@ public class SoReg extends SocialRecommender {
 
 				if (count > 0)
 					for (int f = 0; f < numFactors; f++)
-						PS.add(u, f, sumF[f] / count);
+						PS.add(u, f, beta * sumF[f] / count);
 
 				// in links: F-
 				SparseVector uis = socialMatrix.column(u);
@@ -157,14 +157,14 @@ public class SoReg extends SocialRecommender {
 						count++;
 						for (int f = 0; f < numFactors; f++) {
 							double eug = P.get(u, f) - P.get(g, f);
-							sumF[f] += beta * sug * eug;
+							sumF[f] += sug * eug;
 						}
 					}
 				}
 
 				if (count > 0)
 					for (int f = 0; f < numFactors; f++)
-						PS.add(u, f, sumF[f] / count);
+						PS.add(u, f, beta * sumF[f] / count);
 
 			} // end of for loop
 
