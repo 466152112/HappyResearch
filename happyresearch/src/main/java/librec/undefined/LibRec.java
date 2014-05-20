@@ -44,6 +44,7 @@ import librec.core.PMF;
 import librec.core.RegSVD;
 import librec.core.SVDPlusPlus;
 import librec.core.SoRec;
+import librec.core.SoReg;
 import librec.core.SocialMF;
 import librec.core.TrustMF;
 import librec.core.UserKNN;
