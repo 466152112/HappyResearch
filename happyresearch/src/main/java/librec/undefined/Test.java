@@ -2,15 +2,48 @@ package librec.undefined;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.Logs;
+import happy.coding.io.Strings;
 import happy.coding.system.Debug;
 
 import java.io.BufferedReader;
 
 import librec.data.DataDAO;
+import librec.data.SparseMatrix;
 
 import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 public class Test {
+
+	@org.junit.Test
+	public void testSparseMatrix() throws Exception {
+		Table<Integer, Integer, Double> vals = HashBasedTable.create();
+		vals.put(0, 0, 10.0);
+		vals.put(0, 4, -2.0);
+		vals.put(1, 0, 3.0);
+		vals.put(1, 1, 9.0);
+		vals.put(1, 5, 3.0);
+		vals.put(2, 1, 7.0);
+		vals.put(2, 2, 8.0);
+		vals.put(2, 3, 7.0);
+		vals.put(3, 0, 3.0);
+		vals.put(3, 2, 8.0);
+		vals.put(3, 3, 7.0);
+		vals.put(3, 4, 5.0);
+		vals.put(4, 1, 8.0);
+		vals.put(4, 3, 9.0);
+		vals.put(4, 4, 9.0);
+		vals.put(4, 5, 13.0);
+		vals.put(5, 1, 4.0);
+		vals.put(5, 4, 2.0);
+		vals.put(5, 5, -1.0);
+
+		SparseMatrix A = new SparseMatrix(6, 6, vals);
+		Logs.debug(A);
+		
+		Logs.debug(Strings.toString(A.rowList()));
+	}
 
 	public static void main(String[] args) throws Exception {
 		String dirPath = "D:\\Java\\Datasets\\BookCrossing\\";
