@@ -42,7 +42,7 @@ public class RSTE extends SocialRecommender {
 		algoName = "RSTE";
 
 		initByNorm = false;
-		alpha = 0.4;
+		alpha = cf.getDouble("RSTE.alpha");
 	}
 
 	@Override
