@@ -9,7 +9,7 @@
 //
 // LibRec is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -20,9 +20,9 @@ package librec.undefined;
 
 import happy.coding.io.Strings;
 import librec.data.DenseMatrix;
-import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
+import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
@@ -55,23 +55,11 @@ public class RSTE extends SocialRecommender {
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 
-			// ratings
-			for (MatrixEntry me : trainMatrix) {
-				int u = me.row();
-				int j = me.column();
-				double rate = me.get();
+			for (int u = 0; u < numUsers; u++) {
 
-				if (rate <= 0)
+				SparseVector pu = trainMatrix.row(u);
+				if (pu.getCount() == 0)
 					continue;
-
-				double ruj = normalize(rate);
-				double pred = predict(u, j, false);
-				double euj = g(pred) - ruj;
-
-				errs += euj * euj;
-				loss += euj * euj;
-
-				double csgd = gd(pred) * euj;
 
 				double[] sum_us = new double[numFactors];
 				SparseVector tu = socialMatrix.row(u);
@@ -81,22 +69,35 @@ public class RSTE extends SocialRecommender {
 						sum_us[f] += tu.get(k) * P.get(k, f); // /tks.length;
 				}
 
-				for (int f = 0; f < numFactors; f++) {
-					double puf = P.get(u, f);
-					double qjf = Q.get(j, f);
+				// ratings
+				for (VectorEntry ve : pu) {
+					
+					int j = ve.index();
+					double rate = ve.get();
+					double ruj = normalize(rate);
+					double pred = predict(u, j, false);
+					double euj = g(pred) - ruj;
 
-					double usgd = alpha * csgd * qjf + regU * puf;
-					double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
+					errs += euj * euj;
+					loss += euj * euj;
 
-					PS.add(u, f, usgd);
-					QS.add(j, f, jsgd);
+					double csgd = gd(pred) * euj;
 
-					loss += regU * puf * puf + regI * qjf * qjf;
+					for (int f = 0; f < numFactors; f++) {
+						double puf = P.get(u, f);
+						double qjf = Q.get(j, f);
+
+						double usgd = alpha * csgd * qjf + regU * puf;
+						double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
+
+						PS.add(u, f, usgd);
+						QS.add(j, f, jsgd);
+
+						loss += regU * puf * puf + regI * qjf * qjf;
+					}
 				}
-			}
 
-			// social
-			for (int u = 0; u < numUsers; u++) {
+				// social
 				SparseVector bu = socialMatrix.column(u);
 				for (int p : bu.getIndex()) {
 					if (p >= trainMatrix.numRows())
