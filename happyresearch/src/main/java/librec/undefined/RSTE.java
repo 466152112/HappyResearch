@@ -120,8 +120,23 @@ public class RSTE extends SocialRecommender {
 						continue;
 
 					SparseVector pp = trainMatrix.row(p);
+					SparseVector tp = socialMatrix.row(p);
+					int[] tps = tp.getIndex();
+					
 					for (int j : pp.getIndex()) {
-						double pred = predict(p, j, false);
+
+						// compute prediction for user-item (p, j)
+						double pred1 = DenseMatrix.rowMult(P, p, Q, j);
+						double sum = 0.0, ws = 0.0;
+						for (int k : tps) {
+							double tuk = tp.get(k);
+							sum += tuk * DenseMatrix.rowMult(P, k, Q, j);
+							ws += tuk;
+						}
+						double pred2 = ws > 0 ? sum / ws : 0;
+						double pred = alpha * pred1 + (1 - alpha) * pred2;
+
+						// double pred = predict(p, j, false);
 						double epj = g(pred) - normalize(pp.get(j));
 						double csgd = gd(pred) * epj * bu.get(p);
 
