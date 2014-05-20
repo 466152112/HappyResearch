@@ -25,7 +25,20 @@ import librec.intf.IterativeRecommender;
  * Weimer et al., <strong>Improving Maximum Margin Matrix
  * Factorization</strong>, Machine Learning, 2008. <br>
  * 
- * Original implementation in Matlab: http://ttic.uchicago.edu/~nati/mmmf/code.html
+ * Weimer et al., <strong>CoFI^{RANK} - Maximum Margin Matrix Factorization for
+ * Collaborative Ranking</strong>, NIPS 2008. <br>
+ * 
+ * <p>
+ * This method aims to optimzie the NDCG measure.Original implementation in
+ * Matlab: http://ttic.uchicago.edu/~nati/mmmf/code.html
+ * </p>
+ * 
+ * <p>
+ * Related Work:
+ * <ul>
+ * <li>Srebro et al., Maximum-margin Matrix Factorization, NIPS 2005.</li>
+ * </ul>
+ * </p>
  * 
  * @author guoguibing
  * 
