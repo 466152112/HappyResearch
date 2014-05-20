@@ -57,10 +57,10 @@ public class RSTE extends SocialRecommender {
 
 			for (int u = 0; u < numUsers; u++) {
 
-				SparseVector pu = trainMatrix.row(u);
+				SparseVector pu = u < trainMatrix.numRows() ? trainMatrix.row(u) : null;
 
 				// ratings
-				if (pu.getCount() > 0) {
+				if (pu != null && pu.getCount() > 0) {
 
 					SparseVector tu = socialMatrix.row(u);
 					int[] tks = tu.getIndex();
