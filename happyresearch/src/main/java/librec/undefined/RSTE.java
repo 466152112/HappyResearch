@@ -75,7 +75,17 @@ public class RSTE extends SocialRecommender {
 					int j = ve.index();
 					double rate = ve.get();
 					double ruj = normalize(rate);
-					double pred = predict(u, j, false);
+					
+					// compute directly to speed up calculation 
+					double pred1 = DenseMatrix.rowMult(P, u, Q, j);
+					double pred2 = 0.0;
+					//int count = tu.getCount();
+					for (int k : tks)
+						pred2 += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
+
+					double pred = alpha * pred1 + (1 - alpha) * pred2;
+					
+					// prediction error
 					double euj = g(pred) - ruj;
 
 					errs += euj * euj;
