@@ -66,25 +66,28 @@ public class RSTE extends SocialRecommender {
 				int[] tks = tu.getIndex();
 				for (int f = 0; f < numFactors; f++) {
 					for (int k : tks)
-						sum_us[f] += tu.get(k) * P.get(k, f); // /tks.length;
+						sum_us[f] += tu.get(k) * P.get(k, f); 
 				}
+
+				double ws = 0;
+				for (int k : tks)
+					ws += tu.get(k);
 
 				// ratings
 				for (VectorEntry ve : pu) {
-					
+
 					int j = ve.index();
 					double rate = ve.get();
 					double ruj = normalize(rate);
-					
+
 					// compute directly to speed up calculation 
 					double pred1 = DenseMatrix.rowMult(P, u, Q, j);
-					double pred2 = 0.0;
-					//int count = tu.getCount();
+					double sum = 0.0;
 					for (int k : tks)
-						pred2 += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
+						sum += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
 
-					double pred = alpha * pred1 + (1 - alpha) * pred2;
-					
+					double pred = alpha * pred1 + (1 - alpha) * (sum / ws);
+
 					// prediction error
 					double euj = g(pred) - ruj;
 
@@ -98,7 +101,7 @@ public class RSTE extends SocialRecommender {
 						double qjf = Q.get(j, f);
 
 						double usgd = alpha * csgd * qjf + regU * puf;
-						double jsgd = csgd * (alpha * puf + (1 - alpha) * sum_us[f]) + regI * qjf;
+						double jsgd = csgd * (alpha * puf + (1 - alpha) * (sum_us[f] / ws)) + regI * qjf;
 
 						PS.add(u, f, usgd);
 						QS.add(j, f, jsgd);
@@ -139,13 +142,16 @@ public class RSTE extends SocialRecommender {
 	@Override
 	protected double predict(int u, int j, boolean bound) {
 		double pred1 = DenseMatrix.rowMult(P, u, Q, j);
-		double pred2 = 0.0;
+		double sum = 0.0, ws = 0.0;
 		SparseVector tu = socialMatrix.row(u);
-		//int count = tu.getCount();
-		for (int k : tu.getIndex())
-			pred2 += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
 
-		double pred = alpha * pred1 + (1 - alpha) * pred2;
+		for (int k : tu.getIndex()) {
+			double tuk = tu.get(k);
+			sum += tuk * DenseMatrix.rowMult(P, k, Q, j);
+			ws += tuk;
+		}
+
+		double pred = alpha * pred1 + (1 - alpha) * (sum / ws);
 
 		if (bound)
 			return denormalize(g(pred));
