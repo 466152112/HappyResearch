@@ -58,55 +58,60 @@ public class RSTE extends SocialRecommender {
 			for (int u = 0; u < numUsers; u++) {
 
 				SparseVector pu = trainMatrix.row(u);
-				if (pu.getCount() == 0)
-					continue;
-
-				double[] sum_us = new double[numFactors];
-				SparseVector tu = socialMatrix.row(u);
-				int[] tks = tu.getIndex();
-				for (int f = 0; f < numFactors; f++) {
-					for (int k : tks)
-						sum_us[f] += tu.get(k) * P.get(k, f); 
-				}
-
-				double ws = 0;
-				for (int k : tks)
-					ws += tu.get(k);
 
 				// ratings
-				for (VectorEntry ve : pu) {
+				if (pu.getCount() > 0) {
 
-					int j = ve.index();
-					double rate = ve.get();
-					double ruj = normalize(rate);
+					SparseVector tu = socialMatrix.row(u);
+					int[] tks = tu.getIndex();
 
-					// compute directly to speed up calculation 
-					double pred1 = DenseMatrix.rowMult(P, u, Q, j);
-					double sum = 0.0;
+					double ws = 0;
 					for (int k : tks)
-						sum += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
+						ws += tu.get(k);
 
-					double pred = alpha * pred1 + (1 - alpha) * (sum / ws);
-
-					// prediction error
-					double euj = g(pred) - ruj;
-
-					errs += euj * euj;
-					loss += euj * euj;
-
-					double csgd = gd(pred) * euj;
-
+					double[] sum_us = new double[numFactors];
 					for (int f = 0; f < numFactors; f++) {
-						double puf = P.get(u, f);
-						double qjf = Q.get(j, f);
+						for (int k : tks)
+							sum_us[f] += tu.get(k) * P.get(k, f);
+					}
 
-						double usgd = alpha * csgd * qjf + regU * puf;
-						double jsgd = csgd * (alpha * puf + (1 - alpha) * (sum_us[f] / ws)) + regI * qjf;
+					for (VectorEntry ve : pu) {
 
-						PS.add(u, f, usgd);
-						QS.add(j, f, jsgd);
+						int j = ve.index();
+						double rate = ve.get();
+						double ruj = normalize(rate);
 
-						loss += regU * puf * puf + regI * qjf * qjf;
+						// compute directly to speed up calculation 
+						double pred1 = DenseMatrix.rowMult(P, u, Q, j);
+						double sum = 0.0;
+						for (int k : tks)
+							sum += tu.get(k) * DenseMatrix.rowMult(P, k, Q, j);
+
+						double pred2 = ws > 0 ? sum / ws : 0;
+						double pred = alpha * pred1 + (1 - alpha) * pred2;
+
+						// prediction error
+						double euj = g(pred) - ruj;
+
+						errs += euj * euj;
+						loss += euj * euj;
+
+						double csgd = gd(pred) * euj;
+
+						for (int f = 0; f < numFactors; f++) {
+							double puf = P.get(u, f);
+							double qjf = Q.get(j, f);
+
+							double usgd = alpha * csgd * qjf + regU * puf;
+
+							double jd = ws > 0 ? sum_us[f] / ws : 0;
+							double jsgd = csgd * (alpha * puf + (1 - alpha) * jd) + regI * qjf;
+
+							PS.add(u, f, usgd);
+							QS.add(j, f, jsgd);
+
+							loss += regU * puf * puf + regI * qjf * qjf;
+						}
 					}
 				}
 
@@ -116,10 +121,10 @@ public class RSTE extends SocialRecommender {
 					if (p >= trainMatrix.numRows())
 						continue;
 
-					SparseVector pr = trainMatrix.row(p);
-					for (int j : pr.getIndex()) {
+					SparseVector pp = trainMatrix.row(p);
+					for (int j : pp.getIndex()) {
 						double pred = predict(p, j, false);
-						double epj = g(pred) - normalize(pr.get(j));
+						double epj = g(pred) - normalize(pp.get(j));
 						double csgd = gd(pred) * epj * bu.get(p);
 
 						for (int f = 0; f < numFactors; f++)
@@ -151,7 +156,9 @@ public class RSTE extends SocialRecommender {
 			ws += tuk;
 		}
 
-		double pred = alpha * pred1 + (1 - alpha) * (sum / ws);
+		double pred2 = ws > 0 ? sum / ws : 0;
+
+		double pred = alpha * pred1 + (1 - alpha) * pred2;
 
 		if (bound)
 			return denormalize(g(pred));
