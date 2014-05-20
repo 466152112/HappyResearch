@@ -112,7 +112,7 @@ public class RSTE extends SocialRecommender {
 			}
 
 			// social
-			for (int u : socialMatrix.rowList()) {
+			for (int u : socialMatrix.columnList()) {
 
 				SparseVector bu = socialMatrix.column(u);
 				for (int p : bu.getIndex()) {

@@ -43,6 +43,7 @@ public class Test {
 		Logs.debug(A);
 		
 		Logs.debug(Strings.toString(A.rowList()));
+		Logs.debug(Strings.toString(A.columnList()));
 	}
 
 	public static void main(String[] args) throws Exception {
