@@ -41,6 +41,7 @@ import librec.core.BiasedMF;
 import librec.core.CLiMF;
 import librec.core.ItemKNN;
 import librec.core.PMF;
+import librec.core.RSTE;
 import librec.core.RegSVD;
 import librec.core.SVDPlusPlus;
 import librec.core.SoRec;
