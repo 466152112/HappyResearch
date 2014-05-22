@@ -54,7 +54,7 @@ import com.google.common.collect.Table;
  * 
  * @author guoguibing
  * 
- */ 
+ */
 public class SLIM extends IterativeRecommender {
 
 	private DenseMatrix itemWeights; // ~ W
@@ -112,11 +112,11 @@ public class SLIM extends IterativeRecommender {
 	protected void buildModel() {
 		for (int iter = 1; iter <= maxIters; iter++) {
 
+			if (verbose)
+				Logs.debug("{} [{}] is running at iteration = {}", algoName, fold, iter);
+
 			// computing W_j for each item j
 			for (int j = 0; j < numItems; j++) {
-
-				if (verbose)
-					Logs.debug("Iteration {} at item = {}", iter, j + 1);
 
 				// find k-nearest neighbors
 				Map<Integer, Double> nns = nnsTable.row(j);
