@@ -43,12 +43,16 @@ import com.google.common.collect.Table;
  * <p>
  * Related Work:
  * <ul>
+ * <li>C++ Code: <a
+ * href="http://www-users.cs.umn.edu/~xning/slim/html/index.html">Slim</a></li>
  * <li>Python Code: <a href=
  * "https://github.com/Mendeley/mrec/blob/master/mrec/item_similarity/slim.py"
  * >mrec: slim.py</a></li>
  * <li>C# Code: <a href="">MyMediaLite: SLIM.cs</a></li>
  * <li>Friedman et al., Regularization Paths for Generalized Linear Models via
  * Coordinate Descent, Journal of Statistical Software, 2010.</li>
+ * <li>Levy and Jack, Efficient Top-N Recommendation by Linear Regression,
+ * RecSys 2013.</li>
  * </ul>
  * </p>
  * 
