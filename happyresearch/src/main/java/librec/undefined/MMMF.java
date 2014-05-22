@@ -22,14 +22,10 @@ import librec.data.SparseMatrix;
 import librec.intf.IterativeRecommender;
 
 /**
- * Weimer et al., <strong>Improving Maximum Margin Matrix
- * Factorization</strong>, Machine Learning, 2008. <br>
- * 
- * Weimer et al., <strong>CoFI^{RANK} - Maximum Margin Matrix Factorization for
- * Collaborative Ranking</strong>, NIPS 2008. <br>
+ * Maximum Margin Matrix Factorization
  * 
  * <p>
- * This method aims to optimzie the NDCG measure.Original implementation in
+ * This method aims to optimzie the NDCG measure. Original implementation in
  * Matlab: http://ttic.uchicago.edu/~nati/mmmf/code.html
  * </p>
  * 
@@ -37,6 +33,14 @@ import librec.intf.IterativeRecommender;
  * Related Work:
  * <ul>
  * <li>Srebro et al., Maximum-margin Matrix Factorization, NIPS 2005.</li>
+ * <li>Rennie and Srebro, Fast Maximum Margin Matrix Factorization for
+ * Collaborative Prediction, ICML 2005.</li>
+ * <li>Rennie and Srebro, Loss Functions for Preference Levels: Regression with
+ * Discrete Ordered Labels, 2005.</li>
+ * <li>Weimer et al., Improving Maximum Margin Matrix Factorization, Machine
+ * Learning, 2008.</li>
+ * <li>Weimer et al., CoFI^{RANK} - Maximum Margin Matrix Factorization for
+ * Collaborative Ranking, NIPS 2008.</li>
  * </ul>
  * </p>
  * 

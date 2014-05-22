@@ -236,7 +236,24 @@ public class LibRec {
 
 		switch (algorithm.toLowerCase()) {
 
-		/* baselines */
+			/* ongoing */
+		case "trustsvd":
+			return new TrustSVD(trainMatrix, testMatrix, fold);
+		case "slim":
+			return new SLIM(trainMatrix, testMatrix, fold);
+
+		case "aaai-basemf":
+			return new BaseMF(trainMatrix, testMatrix, fold);
+		case "aaai-dmf":
+			return new DMF(trainMatrix, testMatrix, fold);
+		case "aaai-basenm":
+			return new BaseNM(trainMatrix, testMatrix, fold);
+		case "aaai-dnm":
+			return new DNM(trainMatrix, testMatrix, fold);
+		case "aaai-drm":
+			return new DRM(trainMatrix, testMatrix, fold);
+
+			/* baselines */
 		case "globalavg":
 			return new GlobalAverage(trainMatrix, testMatrix, fold);
 		case "useravg":
@@ -273,6 +290,14 @@ public class LibRec {
 			return new TrustMF(trainMatrix, testMatrix, fold);
 		case "wrmf":
 			return new WRMF(trainMatrix, testMatrix, fold);
+		case "rste":
+			return new RSTE(trainMatrix, testMatrix, fold);
+		case "sorec":
+			return new SoRec(trainMatrix, testMatrix, fold);
+		case "soreg":
+			return new SoReg(trainMatrix, testMatrix, fold);
+		case "bprmf":
+			return new BPRMF(trainMatrix, testMatrix, fold);
 
 			/* extension */
 		case "nmf":
@@ -281,29 +306,6 @@ public class LibRec {
 			return new Hybrid(trainMatrix, testMatrix, fold);
 		case "slopeone":
 			return new SlopeOne(trainMatrix, testMatrix, fold);
-
-			/* ongoing */
-		case "rste":
-			return new RSTE(trainMatrix, testMatrix, fold);
-		case "trustsvd":
-			return new TrustSVD(trainMatrix, testMatrix, fold);
-		case "sorec":
-			return new SoRec(trainMatrix, testMatrix, fold);
-		case "soreg":
-			return new SoReg(trainMatrix, testMatrix, fold);
-		case "bprmf":
-			return new BPRMF(trainMatrix, testMatrix, fold);
-
-		case "aaai-basemf":
-			return new BaseMF(trainMatrix, testMatrix, fold);
-		case "aaai-dmf":
-			return new DMF(trainMatrix, testMatrix, fold);
-		case "aaai-basenm":
-			return new BaseNM(trainMatrix, testMatrix, fold);
-		case "aaai-dnm":
-			return new DNM(trainMatrix, testMatrix, fold);
-		case "aaai-drm":
-			return new DRM(trainMatrix, testMatrix, fold);
 
 		default:
 			throw new Exception("No recommender is specified!");
