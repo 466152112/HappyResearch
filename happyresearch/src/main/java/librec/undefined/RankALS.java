@@ -63,7 +63,7 @@ public class RankALS extends IterativeRecommender {
 		super.initModel();
 
 		isSupportWeight = false;
-		binaryHold = 1;
+		binaryHold = 4;
 
 		s = new DenseVector(numItems);
 		sum_s = 0;
@@ -197,6 +197,9 @@ public class RankALS extends IterativeRecommender {
 		}
 	}
 
+	/**
+	 * transform a real-valued rating into binary one
+	 */
 	private double binary(double rui) {
 		return rui >= binaryHold ? 1 : 0;
 	}
