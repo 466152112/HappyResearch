@@ -23,10 +23,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import librec.core.CLiMF;
 import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
+import librec.ranking.CLiMF;
 
 public class DRM extends CLiMF {
 

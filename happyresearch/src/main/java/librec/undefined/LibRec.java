@@ -35,21 +35,6 @@ import librec.baseline.ItemAverage;
 import librec.baseline.MostPopular;
 import librec.baseline.RandomGuess;
 import librec.baseline.UserAverage;
-import librec.core.BPMF;
-import librec.core.BPRMF;
-import librec.core.BiasedMF;
-import librec.core.CLiMF;
-import librec.core.ItemKNN;
-import librec.core.PMF;
-import librec.core.RSTE;
-import librec.core.RegSVD;
-import librec.core.SVDPlusPlus;
-import librec.core.SoRec;
-import librec.core.SoReg;
-import librec.core.SocialMF;
-import librec.core.TrustMF;
-import librec.core.UserKNN;
-import librec.core.WRMF;
 import librec.data.DataDAO;
 import librec.data.DataSplitter;
 import librec.data.SparseMatrix;
@@ -58,6 +43,22 @@ import librec.ext.NMF;
 import librec.ext.SlopeOne;
 import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
+import librec.ranking.BPRMF;
+import librec.ranking.CLiMF;
+import librec.ranking.RankALS;
+import librec.ranking.WRMF;
+import librec.rating.BPMF;
+import librec.rating.BiasedMF;
+import librec.rating.ItemKNN;
+import librec.rating.PMF;
+import librec.rating.RSTE;
+import librec.rating.RegSVD;
+import librec.rating.SVDPlusPlus;
+import librec.rating.SoRec;
+import librec.rating.SoReg;
+import librec.rating.SocialMF;
+import librec.rating.TrustMF;
+import librec.rating.UserKNN;
 
 /**
  * Main Class of the LibRec Library
@@ -241,8 +242,6 @@ public class LibRec {
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "slim":
 			return new SLIM(trainMatrix, testMatrix, fold);
-		case "rankals":
-			return new RankALS(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
@@ -255,21 +254,17 @@ public class LibRec {
 		case "aaai-drm":
 			return new DRM(trainMatrix, testMatrix, fold);
 
-			/* baselines */
-		case "globalavg":
-			return new GlobalAverage(trainMatrix, testMatrix, fold);
-		case "useravg":
-			return new UserAverage(trainMatrix, testMatrix, fold);
-		case "itemavg":
-			return new ItemAverage(trainMatrix, testMatrix, fold);
-		case "random":
-			return new RandomGuess(trainMatrix, testMatrix, fold);
-		case "constant":
-			return new ConstantGuess(trainMatrix, testMatrix, fold);
-		case "mostpop":
-			return new MostPopular(trainMatrix, testMatrix, fold);
-
-			/* cores */
+			/* item ranking */
+		case "rankals":
+			return new RankALS(trainMatrix, testMatrix, fold);
+		case "climf":
+			return new CLiMF(trainMatrix, testMatrix, fold);
+		case "bprmf":
+			return new BPRMF(trainMatrix, testMatrix, fold);
+		case "wrmf":
+			return new WRMF(trainMatrix, testMatrix, fold);
+			
+			/* user ratings */
 		case "userknn":
 			return new UserKNN(trainMatrix, testMatrix, fold);
 		case "itemknn":
@@ -284,23 +279,31 @@ public class LibRec {
 			return new PMF(trainMatrix, testMatrix, fold);
 		case "bpmf":
 			return new BPMF(trainMatrix, testMatrix, fold);
-		case "climf":
-			return new CLiMF(trainMatrix, testMatrix, fold);
 		case "socialmf":
 			return new SocialMF(trainMatrix, testMatrix, fold);
 		case "trustmf":
 			return new TrustMF(trainMatrix, testMatrix, fold);
-		case "wrmf":
-			return new WRMF(trainMatrix, testMatrix, fold);
 		case "rste":
 			return new RSTE(trainMatrix, testMatrix, fold);
 		case "sorec":
 			return new SoRec(trainMatrix, testMatrix, fold);
 		case "soreg":
 			return new SoReg(trainMatrix, testMatrix, fold);
-		case "bprmf":
-			return new BPRMF(trainMatrix, testMatrix, fold);
 
+			/* baselines */
+		case "globalavg":
+			return new GlobalAverage(trainMatrix, testMatrix, fold);
+		case "useravg":
+			return new UserAverage(trainMatrix, testMatrix, fold);
+		case "itemavg":
+			return new ItemAverage(trainMatrix, testMatrix, fold);
+		case "random":
+			return new RandomGuess(trainMatrix, testMatrix, fold);
+		case "constant":
+			return new ConstantGuess(trainMatrix, testMatrix, fold);
+		case "mostpop":
+			return new MostPopular(trainMatrix, testMatrix, fold);
+			
 			/* extension */
 		case "nmf":
 			return new NMF(trainMatrix, testMatrix, fold);
