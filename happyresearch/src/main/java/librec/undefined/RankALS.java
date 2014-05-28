@@ -19,6 +19,7 @@
 package librec.undefined;
 
 import happy.coding.io.Logs;
+import happy.coding.io.Strings;
 
 import java.util.HashMap;
 import java.util.List;
@@ -62,8 +63,8 @@ public class RankALS extends IterativeRecommender {
 	protected void initModel() {
 		super.initModel();
 
-		isSupportWeight = false;
-		binaryHold = 4;
+		isSupportWeight = cf.isOn("RankALS.is.support.weight");
+		binaryHold = cf.getDouble("RankALS.binary.threshold");
 
 		s = new DenseVector(numItems);
 		sum_s = 0;
@@ -108,7 +109,7 @@ public class RankALS extends IterativeRecommender {
 
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
-					double rui = binary(ve.get());
+					double rui = binary(u, i, ve.get());
 					// double cui = 1; 
 					DenseVector qi = Q.row(i);
 
@@ -147,7 +148,7 @@ public class RankALS extends IterativeRecommender {
 
 				for (VectorEntry ve : Ru) {
 					int j = ve.index();
-					double ruj = binary(ve.get());
+					double ruj = binary(u, j, ve.get());
 					double sj = s.get(j);
 
 					sum_sr += sj * ruj;
@@ -175,7 +176,7 @@ public class RankALS extends IterativeRecommender {
 
 				for (int u : cus) {
 					DenseVector pu = P.row(u);
-					double rui = binary(trainMatrix.get(u, i));
+					double rui = binary(u, i, trainMatrix.get(u, i));
 
 					DenseMatrix pp = pu.outer(pu);
 					sum_cpp = sum_cpp.add(pp);
@@ -202,7 +203,12 @@ public class RankALS extends IterativeRecommender {
 	/**
 	 * transform a real-valued rating into binary one
 	 */
-	private double binary(double rui) {
+	protected double binary(int u, int j, double rui) {
 		return rui >= binaryHold ? 1 : 0;
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(new Object[] { binaryHold, isSupportWeight, maxIters }, ",");
 	}
 }

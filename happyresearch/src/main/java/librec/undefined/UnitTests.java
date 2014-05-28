@@ -7,16 +7,35 @@ import happy.coding.system.Debug;
 
 import java.io.BufferedReader;
 
+import librec.data.DataConvertor;
 import librec.data.DataDAO;
 import librec.data.SparseMatrix;
+
+import org.junit.Test;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
-public class Test {
+public class UnitTests {
 
-	@org.junit.Test
+	@Test
+	public void testCvtFirstLines() throws Exception {
+		String dirPath = "D:\\Research\\Datasets\\KDD Cup 2011\\Yahoo! Music Dataset\\track2\\";
+		String sourcePath = dirPath + "trainIdx2.firstLines.txt";
+		String targetPath = dirPath + "train.txt";
+
+		// train data set
+		DataConvertor dc = new DataConvertor(sourcePath, targetPath);
+		dc.cvtFirstLines("\\|", "\t");
+		
+		// test data set
+		dc.setSourcePath(dirPath+"testIdx2.firstLines.txt");
+		dc.setTargetPath(dirPath+"test.txt");
+		dc.cvtFirstLines("\\|", "\t");
+	}
+
+	@Test
 	public void testSparseMatrix() throws Exception {
 		Table<Integer, Integer, Double> vals = HashBasedTable.create();
 		vals.put(0, 0, 10.0);
@@ -41,7 +60,7 @@ public class Test {
 
 		SparseMatrix A = new SparseMatrix(6, 6, vals);
 		Logs.debug(A);
-		
+
 		Logs.debug(Strings.toString(A.rowList()));
 		Logs.debug(Strings.toString(A.columnList()));
 	}
