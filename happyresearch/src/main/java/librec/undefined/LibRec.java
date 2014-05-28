@@ -236,11 +236,13 @@ public class LibRec {
 
 		switch (algorithm.toLowerCase()) {
 
-			/* ongoing */
+		/* ongoing */
 		case "trustsvd":
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "slim":
 			return new SLIM(trainMatrix, testMatrix, fold);
+		case "rankals":
+			return new RankALS(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
