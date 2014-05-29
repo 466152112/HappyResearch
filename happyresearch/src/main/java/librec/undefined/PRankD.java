@@ -25,7 +25,7 @@ import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
-import librec.intf.IterativeRecommender;
+import librec.ranking.RankALS;
 
 /**
  * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
@@ -39,7 +39,7 @@ import librec.intf.IterativeRecommender;
  * @author guoguibing
  * 
  */
-public class PRankD extends IterativeRecommender {
+public class PRankD extends RankALS {
 
 	// item popularity (probabilities)
 	private DenseVector s;
@@ -104,7 +104,7 @@ public class PRankD extends IterativeRecommender {
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row();
 				int i = me.column();
-				double rui = me.get();
+				double rui = binary(u, i, me.get());
 				if (rui <= 0)
 					continue;
 
@@ -153,6 +153,6 @@ public class PRankD extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { (float) alpha, (float) lRate, maxIters }, ",");
+		return Strings.toString(new Object[] { binaryHold, (float) alpha, (float) lRate, maxIters }, ",");
 	}
 }
