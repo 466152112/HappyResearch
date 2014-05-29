@@ -127,7 +127,7 @@ public class PRankD extends RankALS {
 
 				// compute predictions
 				double pui = predict(u, i), puj = predict(u, j);
-				double dij = itemCorrs.get(i, j);
+				double dij = Math.sqrt(1 - itemCorrs.get(i, j));
 
 				double e = s.get(j) * (pui - puj - dij * (rui - ruj));
 				double ye = -lRate * e;
