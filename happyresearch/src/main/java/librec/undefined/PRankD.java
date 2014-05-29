@@ -18,6 +18,7 @@
 
 package librec.undefined;
 
+import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 import librec.data.DenseVector;
 import librec.data.MatrixEntry;
@@ -148,5 +149,10 @@ public class PRankD extends IterativeRecommender {
 			if (isConverged(iter))
 				break;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return Strings.toString(new Object[] { (float) alpha, (float) lRate, maxIters }, ",");
 	}
 }
