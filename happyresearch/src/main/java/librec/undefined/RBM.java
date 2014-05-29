@@ -31,6 +31,8 @@ import librec.intf.IterativeRecommender;
  * <ul>
  * <li>Gunawardana and Meek, Tied Boltzmann Machines for Cold Start
  * Recommendations, RecSys 2008.</li>
+ * <li>Section 2.4 of Jahrer and Toscher, Collaborative Filtering Ensemble,
+ * JMLR, 2012.</li>
  * <li>Edwin Chen's Blog: <a href=
  * "http://blog.echen.me/2011/07/18/introduction-to-restricted-boltzmann-machines/"
  * >Introduction to Restricted Boltzmann Machines</a>, <a

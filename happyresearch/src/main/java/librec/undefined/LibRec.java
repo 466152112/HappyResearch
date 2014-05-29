@@ -242,6 +242,8 @@ public class LibRec {
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "slim":
 			return new SLIM(trainMatrix, testMatrix, fold);
+		case "prankd":
+			return new PRankD(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
@@ -263,7 +265,7 @@ public class LibRec {
 			return new BPRMF(trainMatrix, testMatrix, fold);
 		case "wrmf":
 			return new WRMF(trainMatrix, testMatrix, fold);
-			
+
 			/* user ratings */
 		case "userknn":
 			return new UserKNN(trainMatrix, testMatrix, fold);
@@ -303,7 +305,7 @@ public class LibRec {
 			return new ConstantGuess(trainMatrix, testMatrix, fold);
 		case "mostpop":
 			return new MostPopular(trainMatrix, testMatrix, fold);
-			
+
 			/* extension */
 		case "nmf":
 			return new NMF(trainMatrix, testMatrix, fold);
