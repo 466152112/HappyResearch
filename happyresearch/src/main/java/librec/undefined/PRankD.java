@@ -61,6 +61,16 @@ public class PRankD extends RankALS {
 	protected void initModel() {
 		super.initModel();
 
+		// pre-processing: binarize training data
+		for (MatrixEntry me : trainMatrix) {
+			int u = me.row();
+			int j = me.column();
+			double ruj = me.get();
+
+			double buj = binary(u, j, ruj);
+			me.set(buj);
+		}
+
 		// compute item popularity
 		s = new DenseVector(numItems);
 		itemProbs = new DenseVector(numItems);
@@ -107,7 +117,7 @@ public class PRankD extends RankALS {
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row();
 				int i = me.column();
-				double rui = binary(u, i, me.get());
+				double rui = me.get();
 				if (rui <= 0)
 					continue;
 
@@ -118,7 +128,7 @@ public class PRankD extends RankALS {
 					if (k == i)
 						continue;
 
-					double ruk = binary(u, k);
+					double ruk = trainMatrix.get(u, k);
 					if (ruk <= 0) {
 						// unrated
 						double prob = itemProbs.get(k);
