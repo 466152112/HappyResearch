@@ -112,21 +112,21 @@ public class PRankD extends RankALS {
 				int j = -1;
 				double ruj = 0;
 				for (int k = 0; k < numItems; k++) {
-					double ruk = trainMatrix.get(u, k);
+					double ruk = binary(u, k);
 					if (ruk <= 0) {
 						// unrated
 						double prob = s.get(k);
 						double rand = Randoms.random();
 						if (prob < rand) {
 							j = k;
+							ruj = ruk;
 							break;
 						}
 					}
 				}
 
 				// compute predictions
-				double pui = predict(u, i);
-				double puj = predict(u, j);
+				double pui = predict(u, i), puj = predict(u, j);
 				double dij = itemCorrs.get(i, j);
 
 				double e = s.get(j) * (pui - puj - dij * (rui - ruj));
