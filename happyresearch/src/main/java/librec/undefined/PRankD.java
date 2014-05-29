@@ -41,8 +41,8 @@ import librec.ranking.RankALS;
  */
 public class PRankD extends RankALS {
 
-	// item popularity (probabilities)
-	private DenseVector s;
+	// item importance, popularity (probabilities)
+	private DenseVector s, itemProbs;
 
 	// item correlations
 	private SymmMatrix itemCorrs;
@@ -63,7 +63,9 @@ public class PRankD extends RankALS {
 
 		// compute item popularity
 		s = new DenseVector(numItems);
+		itemProbs = new DenseVector(numItems);
 		double maxUsers = 0;
+
 		for (int j = 0; j < numItems; j++) {
 			int users = trainMatrix.columnSize(j);
 
@@ -71,6 +73,7 @@ public class PRankD extends RankALS {
 				maxUsers = users;
 
 			s.set(j, users);
+			itemProbs.set(j, users / numUsers);
 		}
 
 		for (int j = 0; j < numItems; j++) {
@@ -108,54 +111,51 @@ public class PRankD extends RankALS {
 				if (rui <= 0)
 					continue;
 
-				for (int sample = 0; sample < 100; sample++) {
-					
-					// draw an item j not rated by user u with probability proportional to popularity
-					int j = -1;
-					double ruj = 0;
-					for (int k = 0; k < numItems; k++) {
-						if (k == i)
-							continue;
-
-						double ruk = binary(u, k);
-						if (ruk <= 0) {
-							// unrated
-							double prob = s.get(k);
-							double rand = Randoms.random();
-							if (prob < rand) {
-								j = k;
-								ruj = ruk;
-								break;
-							}
-						}
-					}
-
-					if (j < 0)
+				// draw an item j not rated by user u with probability proportional to popularity
+				int j = -1;
+				double ruj = 0;
+				for (int k = 0; k < numItems; k++) {
+					if (k == i)
 						continue;
 
-					// compute predictions
-					double pui = predict(u, i), puj = predict(u, j);
-					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
-
-					double e = s.get(j) * (pui - puj - dij * (rui - ruj));
-					double ye = -lRate * e;
-
-					errs += e * e;
-					loss += e * e;
-
-					// update vectors
-					DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
-
-					P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
-					Q.setRow(i, qi.minus(pu.scale(ye)));
-					Q.setRow(j, qj.add(pu.scale(ye)));
+					double ruk = binary(u, k);
+					if (ruk <= 0) {
+						// unrated
+						double prob = itemProbs.get(k);
+						double rand = Randoms.random();
+						if (prob < rand) {
+							j = k;
+							ruj = ruk;
+							break;
+						}
+					}
 				}
+
+				if (j < 0)
+					continue;
+
+				// compute predictions
+				double pui = predict(u, i), puj = predict(u, j);
+				double dij = Math.sqrt(1 - itemCorrs.get(i, j));
+
+				double e = s.get(j) * (pui - puj - dij * (rui - ruj));
+				double ye = -lRate * e;
+
+				errs += e * e;
+				loss += e * e;
+
+				// update vectors
+				DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
+
+				P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
+				Q.setRow(i, qi.minus(pu.scale(ye)));
+				Q.setRow(j, qj.add(pu.scale(ye)));
 			}
 
 			errs *= 0.5;
 			loss *= 0.5;
 
-			if(isConverged(iter))
+			if (isConverged(iter))
 				break;
 		}
 	}
