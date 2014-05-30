@@ -23,6 +23,7 @@ import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,16 +34,16 @@ import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
 import librec.ranking.RankALS;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-
 /**
  * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
  * 2013.
  * 
  * <p>
- * Our implementation refers to the algorithm illustrated in Figure 3, i.e.,
- * learning by sampling-based stochastic gradient decent (SGD).
+ * Related Work:
+ * <ul>
+ * <li>Jahrer and Toscher, Collaborative Filtering Ensembler for Ranking, JMLR,
+ * 2012.</li>
+ * </ul>
  * </p>
  * 
  * @author guoguibing
@@ -53,14 +54,14 @@ public class PRankD extends RankALS {
 	// item importance
 	private DenseVector s;
 
+	// item sampling probabilities
+	private Map<Integer, Double> itemProbs;
+
 	// item correlations
 	private SymmMatrix itemCorrs;
 
 	// similarity filter
 	private double alpha;
-
-	// user, item, item sampling probability
-	private Table<Integer, Integer, Double> probs;
 
 	public PRankD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -82,6 +83,9 @@ public class PRankD extends RankALS {
 		s = new DenseVector(numItems);
 		double maxUsers = 0;
 
+		// compute item sampling probability
+		itemProbs = new HashMap<>();
+
 		for (int j = 0; j < numItems; j++) {
 			int users = trainMatrix.columnSize(j);
 
@@ -89,23 +93,7 @@ public class PRankD extends RankALS {
 				maxUsers = users;
 
 			s.set(j, users);
-		}
-
-		// compute item sampling probability
-		probs = HashBasedTable.create();
-		for (int u = 0; u < numUsers; u++) {
-			// unrated items
-			List<Integer> items = trainMatrix.rowZeros(u);
-
-			double sum = 0;
-			for (int j : items) {
-				sum += s.get(j);
-			}
-
-			// add probs
-			for (int j : items) {
-				probs.put(u, j, s.get(j) / sum);
-			}
+			itemProbs.put(j, (users + 0.0) / numRates);
 		}
 
 		// compute item relative importance
@@ -140,10 +128,17 @@ public class PRankD extends RankALS {
 			// for each rated user-item (u,i) pair
 			for (int u : trainMatrix.rowList()) {
 
-				Map<Integer, Double> itemProbs = probs.row(u);
-				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
+				// make a copy
+				Map<Integer, Double> probs = new HashMap<>(itemProbs);
+				
+				// remove the rated items
+				SparseVector Ru = trainMatrix.row(u);
+				for (VectorEntry ve : Ru)
+					probs.remove(ve.index());
 
-				for (VectorEntry ve : trainMatrix.row(u)) {
+				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(probs);
+
+				for (VectorEntry ve : Ru) {
 					// each rated item i
 					int i = ve.index();
 					double rui = ve.get();
