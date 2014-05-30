@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.Map;
 
 import librec.data.DenseVector;
-import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
+import librec.data.VectorEntry;
 import librec.ranking.RankALS;
 
 import com.google.common.collect.HashBasedTable;
@@ -135,48 +135,49 @@ public class PRankD extends RankALS {
 			loss = 0;
 
 			// for each rated user-item (u,i) pair
-			for (MatrixEntry me : trainMatrix) {
-				int u = me.row();
-				int i = me.column();
-				double rui = me.get();
-				if (rui <= 0)
-					continue;
+			for (int u : trainMatrix.rowList()) {
 
-				// draw an item j not rated by user u with probability proportional to popularity
-				int j = -1;
 				Map<Integer, Double> itemProbs = probs.row(u);
 				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
-				
-				double sum = 0, rand = Randoms.random();
-				for (KeyValPair<Integer> en : sortedItemProbs) {
-					int k = en.getKey();
-					double prob = en.getVal().doubleValue();
 
-					sum += prob;
-					if (sum < rand) {
-						j = k;
-						break;
+				for (VectorEntry ve : trainMatrix.row(u)) {
+					// each rated item i
+					int i = ve.index();
+					double rui = ve.get();
+
+					// draw an unrated item j with probability proportional to popularity
+					int j = -1;
+					double sum = 0, rand = Randoms.random();
+					for (KeyValPair<Integer> en : sortedItemProbs) {
+						int k = en.getKey();
+						double prob = en.getValue().doubleValue();
+
+						sum += prob;
+						if (sum >= rand) {
+							j = k;
+							break;
+						}
 					}
+					double ruj = trainMatrix.get(u, j);
+
+					// compute predictions
+					double pui = predict(u, i), puj = predict(u, j);
+					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
+
+					double e = s.get(j) * (pui - puj - dij * (rui - ruj));
+					double ye = -lRate * e;
+
+					errs += e * e;
+					loss += e * e;
+
+					// update vectors
+					DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
+					DenseVector yepu = pu.scale(ye);
+
+					P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
+					Q.setRow(i, qi.minus(yepu));
+					Q.setRow(j, qj.add(yepu));
 				}
-				double ruj = trainMatrix.get(u, j);
-
-				// compute predictions
-				double pui = predict(u, i), puj = predict(u, j);
-				double dij = Math.sqrt(1 - itemCorrs.get(i, j));
-
-				double e = s.get(j) * (pui - puj - dij * (rui - ruj));
-				double ye = -lRate * e;
-
-				errs += e * e;
-				loss += e * e;
-
-				// update vectors
-				DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
-				DenseVector yepu = pu.scale(ye);
-
-				P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
-				Q.setRow(i, qi.minus(yepu));
-				Q.setRow(j, qj.add(yepu));
 			}
 
 			errs *= 0.5;

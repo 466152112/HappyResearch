@@ -90,7 +90,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 
 				found.add(sp);
 				if (k == 0)
-					System.out.println(sp.getKey() + ":" + sp.getVal().floatValue());
+					System.out.println(sp.getKey() + ":" + sp.getValue().floatValue());
 
 				knn++;
 				if (knn >= 5)
@@ -108,7 +108,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 				double val = 0;
 				for (KeyValPair<String> sp : found) {
 					String v = sp.getKey();
-					double c = sp.getVal().doubleValue();
+					double c = sp.getValue().doubleValue();
 
 					if (userRatingsMap.get(v).containsKey(item)) {
 						val += userRatingsMap.get(v).get(item).getRating() * c;
@@ -127,7 +127,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 			int cnt = 0;
 			for (int m = 0; m < recs.size(); m++) {
 				KeyValPair<String> rec = recs.get(m);
-				String val = Strings.toString(rec.getVal(), 3);
+				String val = Strings.toString(rec.getValue(), 3);
 				String line = rec.getKey() + " " + val;
 				cnt++;
 				if (cnt > recNum)
@@ -152,7 +152,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 				double val = 0;
 				for (KeyValPair<String> sp : found) {
 					String v = sp.getKey();
-					double c = sp.getVal().doubleValue();
+					double c = sp.getValue().doubleValue();
 
 					Map<String, Rating> vsRatings = userRatingsMap.get(v);
 					if (vsRatings.containsKey(item)) {
@@ -174,7 +174,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 			cnt = 0;
 			for (int m = 0; m < recs.size(); m++) {
 				KeyValPair<String> rec = recs.get(m);
-				String val = Strings.toString(rec.getVal(), 3);
+				String val = Strings.toString(rec.getValue(), 3);
 				String line = rec.getKey() + " " + val;
 				cnt++;
 				if (cnt > recNum)

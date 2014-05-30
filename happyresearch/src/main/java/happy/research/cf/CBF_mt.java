@@ -187,7 +187,7 @@ public class CBF_mt extends DefaultCF_mt
 			for (int i = 0; i < 5; i++)
 			{
 				KeyValPair<String> pair = pairs.get(i);
-				sb.append("  " + pair.getKey() + ": " + Strings.toString(pair.getVal(), 4) + "\n");
+				sb.append("  " + pair.getKey() + ": " + Strings.toString(pair.getValue(), 4) + "\n");
 			}
 
 			if (k < 5) System.out.println(sb.toString());
