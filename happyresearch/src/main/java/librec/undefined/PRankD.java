@@ -20,12 +20,19 @@ package librec.undefined;
 
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
+
+import java.util.List;
+import java.util.Map.Entry;
+
 import librec.data.DenseVector;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
 import librec.ranking.RankALS;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 /**
  * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
@@ -41,14 +48,17 @@ import librec.ranking.RankALS;
  */
 public class PRankD extends RankALS {
 
-	// item importance, popularity (probabilities)
-	private DenseVector s, itemProbs;
+	// item importance, popularities
+	private DenseVector s, itemPops;
 
 	// item correlations
 	private SymmMatrix itemCorrs;
 
 	// similarity filter
 	private double alpha;
+
+	// user, item, item sampling probability
+	private Table<Integer, Integer, Double> probs;
 
 	public PRankD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -62,18 +72,11 @@ public class PRankD extends RankALS {
 		super.initModel();
 
 		// pre-processing: binarize training data
-		for (MatrixEntry me : trainMatrix) {
-			int u = me.row();
-			int j = me.column();
-			double ruj = me.get();
+		super.binary(trainMatrix);
 
-			double buj = binary(u, j, ruj);
-			me.set(buj);
-		}
-
-		// compute item popularity
+		// compute item importance and popularity
 		s = new DenseVector(numItems);
-		itemProbs = new DenseVector(numItems);
+		itemPops = new DenseVector(numItems);
 		double maxUsers = 0;
 
 		for (int j = 0; j < numItems; j++) {
@@ -83,7 +86,23 @@ public class PRankD extends RankALS {
 				maxUsers = users;
 
 			s.set(j, users);
-			itemProbs.set(j, users / numUsers);
+			itemPops.set(j, users);
+		}
+
+		probs = HashBasedTable.create();
+		for (int u = 0; u < numUsers; u++) {
+			// unrated items
+			List<Integer> items = trainMatrix.rowZeros(u);
+
+			double sum = 0;
+			for (int j : items) {
+				sum += itemPops.get(j);
+			}
+
+			// add probs
+			for (int j : items) {
+				probs.put(u, j, itemPops.get(j) / sum);
+			}
 		}
 
 		for (int j = 0; j < numItems; j++) {
@@ -92,7 +111,7 @@ public class PRankD extends RankALS {
 		}
 
 		// compute item correlations by cosine similarity
-		alpha = 20;
+		alpha = cf.getDouble("PRankD.alpha");
 		itemCorrs = buildCorrs(false);
 	}
 
@@ -123,26 +142,18 @@ public class PRankD extends RankALS {
 
 				// draw an item j not rated by user u with probability proportional to popularity
 				int j = -1;
-				double ruj = 0;
-				for (int k = 0; k < numItems; k++) {
-					if (k == i)
-						continue;
+				double sum = 0, rand = Randoms.random();
+				for (Entry<Integer, Double> en : probs.row(u).entrySet()) {
+					int k = en.getKey();
+					double prob = en.getValue();
 
-					double ruk = trainMatrix.get(u, k);
-					if (ruk <= 0) {
-						// unrated
-						double prob = itemProbs.get(k);
-						double rand = Randoms.random();
-						if (prob < rand) {
-							j = k;
-							ruj = ruk;
-							break;
-						}
+					sum += prob;
+					if (sum < rand) {
+						j = k;
+						break;
 					}
 				}
-
-				if (j < 0)
-					continue;
+				double ruj = trainMatrix.get(u, j);
 
 				// compute predictions
 				double pui = predict(u, i), puj = predict(u, j);
