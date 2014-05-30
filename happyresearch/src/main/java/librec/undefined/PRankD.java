@@ -42,7 +42,7 @@ import librec.ranking.RankALS;
  * Related Work:
  * <ul>
  * <li><strong>RankSGD:</strong> Jahrer and Toscher, Collaborative Filtering
- * Ensembler for Ranking, JMLR, 2012.</li>
+ * Ensembler for Ranking, JMLR, 2012 (KDD Cup 2011 Track 2). </li>
  * </ul>
  * </p>
  * 
@@ -76,6 +76,7 @@ public class PRankD extends RankALS {
 
 		// pre-processing: binarize training data
 		super.binary(trainMatrix);
+		numRates = trainMatrix.size();
 
 		alpha = cf.getDouble("PRankD.alpha");
 
@@ -124,11 +125,12 @@ public class PRankD extends RankALS {
 
 			errs = 0;
 			loss = 0;
+			
+			// sort item probabilities
+			List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
 
 			// for each rated user-item (u,i) pair
 			for (int u : trainMatrix.rowList()) {
-
-				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
 
 				SparseVector Ru = trainMatrix.row(u);
 				for (VectorEntry ve : Ru) {
@@ -151,7 +153,7 @@ public class PRankD extends RankALS {
 							}
 						}
 
-						// ensured that it is unrated by user u
+						// ensure that it is unrated by user u
 						if (!Ru.contains(j))
 							break;
 					}
