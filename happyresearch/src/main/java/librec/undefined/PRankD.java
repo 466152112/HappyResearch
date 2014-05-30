@@ -121,7 +121,8 @@ public class PRankD extends RankALS {
 	 * override this approach to transform item similarity
 	 */
 	protected double correlation(SparseVector iv, SparseVector jv) {
-		double sim = correlation(iv, jv, "cos");
+		// not appropriate to use the correlation(iv, jv, "cos") function as it works only for sparse vectors
+		double sim = iv.inner(jv) / (Math.sqrt(iv.inner(iv)) * Math.sqrt(jv.inner(jv)));
 
 		// to obtain a greater spread of diversity values
 		return Math.tanh(alpha * sim);
