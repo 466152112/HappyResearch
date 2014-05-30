@@ -41,8 +41,8 @@ import librec.ranking.RankALS;
  * <p>
  * Related Work:
  * <ul>
- * <li>Jahrer and Toscher, Collaborative Filtering Ensembler for Ranking, JMLR,
- * 2012.</li>
+ * <li><strong>RankSGD:</strong> Jahrer and Toscher, Collaborative Filtering
+ * Ensembler for Ranking, JMLR, 2012.</li>
  * </ul>
  * </p>
  * 
@@ -79,13 +79,11 @@ public class PRankD extends RankALS {
 
 		alpha = cf.getDouble("PRankD.alpha");
 
-		// compute item popularity
-		s = new DenseVector(numItems);
-		double maxUsers = 0;
-
 		// compute item sampling probability
+		s = new DenseVector(numItems);
 		itemProbs = new HashMap<>();
 
+		double maxUsers = 0;
 		for (int j = 0; j < numItems; j++) {
 			int users = trainMatrix.columnSize(j);
 
@@ -93,6 +91,8 @@ public class PRankD extends RankALS {
 				maxUsers = users;
 
 			s.set(j, users);
+
+			// sample items based on popularity
 			itemProbs.put(j, (users + 0.0) / numRates);
 		}
 
@@ -128,35 +128,34 @@ public class PRankD extends RankALS {
 			// for each rated user-item (u,i) pair
 			for (int u : trainMatrix.rowList()) {
 
-				// make a copy
-				Map<Integer, Double> probs = new HashMap<>(itemProbs);
-				
-				// remove the rated items
+				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
+
 				SparseVector Ru = trainMatrix.row(u);
-				for (VectorEntry ve : Ru)
-					probs.remove(ve.index());
-
-				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(probs);
-
 				for (VectorEntry ve : Ru) {
 					// each rated item i
 					int i = ve.index();
 					double rui = ve.get();
 
-					// draw an unrated item j with probability proportional to popularity
 					int j = -1;
-					double sum = 0, rand = Randoms.random();
-					for (KeyValPair<Integer> en : sortedItemProbs) {
-						int k = en.getKey();
-						double prob = en.getValue();
+					while (true) {
+						// draw an item j with probability proportional to popularity
+						double sum = 0, rand = Randoms.random();
+						for (KeyValPair<Integer> en : sortedItemProbs) {
+							int k = en.getKey();
+							double prob = en.getValue();
 
-						sum += prob;
-						if (sum >= rand) {
-							j = k;
-							break;
+							sum += prob;
+							if (sum >= rand) {
+								j = k;
+								break;
+							}
 						}
+
+						// ensured that it is unrated by user u
+						if (!Ru.contains(j))
+							break;
 					}
-					double ruj = trainMatrix.get(u, j);
+					double ruj = 0;
 
 					// compute predictions
 					double pui = predict(u, i), puj = predict(u, j);
