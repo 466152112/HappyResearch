@@ -18,11 +18,13 @@
 
 package librec.undefined;
 
+import happy.coding.io.KeyValPair;
+import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import librec.data.DenseVector;
 import librec.data.MatrixEntry;
@@ -142,10 +144,13 @@ public class PRankD extends RankALS {
 
 				// draw an item j not rated by user u with probability proportional to popularity
 				int j = -1;
+				Map<Integer, Double> itemProbs = probs.row(u);
+				List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
+				
 				double sum = 0, rand = Randoms.random();
-				for (Entry<Integer, Double> en : probs.row(u).entrySet()) {
+				for (KeyValPair<Integer> en : sortedItemProbs) {
 					int k = en.getKey();
-					double prob = en.getValue();
+					double prob = en.getVal().doubleValue();
 
 					sum += prob;
 					if (sum < rand) {
