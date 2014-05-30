@@ -48,8 +48,8 @@ import com.google.common.collect.Table;
  */
 public class PRankD extends RankALS {
 
-	// item importance, popularities
-	private DenseVector s, itemPops;
+	// item importance
+	private DenseVector s;
 
 	// item correlations
 	private SymmMatrix itemCorrs;
@@ -74,9 +74,10 @@ public class PRankD extends RankALS {
 		// pre-processing: binarize training data
 		super.binary(trainMatrix);
 
-		// compute item importance and popularity
+		alpha = cf.getDouble("PRankD.alpha");
+
+		// compute item popularity
 		s = new DenseVector(numItems);
-		itemPops = new DenseVector(numItems);
 		double maxUsers = 0;
 
 		for (int j = 0; j < numItems; j++) {
@@ -86,9 +87,9 @@ public class PRankD extends RankALS {
 				maxUsers = users;
 
 			s.set(j, users);
-			itemPops.set(j, users);
 		}
 
+		// compute item sampling probability
 		probs = HashBasedTable.create();
 		for (int u = 0; u < numUsers; u++) {
 			// unrated items
@@ -96,22 +97,21 @@ public class PRankD extends RankALS {
 
 			double sum = 0;
 			for (int j : items) {
-				sum += itemPops.get(j);
+				sum += s.get(j);
 			}
 
 			// add probs
 			for (int j : items) {
-				probs.put(u, j, itemPops.get(j) / sum);
+				probs.put(u, j, s.get(j) / sum);
 			}
 		}
 
+		// compute item relative importance
 		for (int j = 0; j < numItems; j++) {
-			// normalization to obtain the probability
 			s.set(j, s.get(j) / maxUsers);
 		}
 
 		// compute item correlations by cosine similarity
-		alpha = cf.getDouble("PRankD.alpha");
 		itemCorrs = buildCorrs(false);
 	}
 
@@ -167,10 +167,11 @@ public class PRankD extends RankALS {
 
 				// update vectors
 				DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
+				DenseVector yepu = pu.scale(ye);
 
 				P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
-				Q.setRow(i, qi.minus(pu.scale(ye)));
-				Q.setRow(j, qj.add(pu.scale(ye)));
+				Q.setRow(i, qi.minus(yepu));
+				Q.setRow(j, qj.add(yepu));
 			}
 
 			errs *= 0.5;
