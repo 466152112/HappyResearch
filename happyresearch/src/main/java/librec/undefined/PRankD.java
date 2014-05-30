@@ -123,6 +123,9 @@ public class PRankD extends RankALS {
 	protected double correlation(SparseVector iv, SparseVector jv) {
 		double sim = correlation(iv, jv, "cos-binary");
 
+		if (Double.isNaN(sim))
+			sim = 0.0;
+
 		// to obtain a greater spread of diversity values
 		return Math.tanh(alpha * sim);
 	}
