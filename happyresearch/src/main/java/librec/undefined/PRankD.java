@@ -22,6 +22,7 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
+import happy.coding.system.Debug;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +43,7 @@ import librec.ranking.RankALS;
  * Related Work:
  * <ul>
  * <li><strong>RankSGD:</strong> Jahrer and Toscher, Collaborative Filtering
- * Ensembler for Ranking, JMLR, 2012 (KDD Cup 2011 Track 2). </li>
+ * Ensembler for Ranking, JMLR, 2012 (KDD Cup 2011 Track 2).</li>
  * </ul>
  * </p>
  * 
@@ -55,7 +56,7 @@ public class PRankD extends RankALS {
 	private DenseVector s;
 
 	// item sampling probabilities
-	private Map<Integer, Double> itemProbs;
+	private List<KeyValPair<Integer>> itemProbs;
 
 	// item correlations
 	private SymmMatrix itemCorrs;
@@ -81,10 +82,10 @@ public class PRankD extends RankALS {
 		alpha = cf.getDouble("PRankD.alpha");
 
 		// compute item sampling probability
-		s = new DenseVector(numItems);
-		itemProbs = new HashMap<>();
-
+		Map<Integer, Double> itemProbsMap = new HashMap<>();
 		double maxUsers = 0;
+
+		s = new DenseVector(numItems);
 		for (int j = 0; j < numItems; j++) {
 			int users = trainMatrix.columnSize(j);
 
@@ -94,8 +95,11 @@ public class PRankD extends RankALS {
 			s.set(j, users);
 
 			// sample items based on popularity
-			itemProbs.put(j, (users + 0.0) / numRates);
+			double prob = (users + 0.0) / numRates;
+			if (prob > 0)
+				itemProbsMap.put(j, prob);
 		}
+		itemProbs = Lists.sortMap(itemProbsMap);
 
 		// compute item relative importance
 		for (int j = 0; j < numItems; j++) {
@@ -125,9 +129,6 @@ public class PRankD extends RankALS {
 
 			errs = 0;
 			loss = 0;
-			
-			// sort item probabilities
-			List<KeyValPair<Integer>> sortedItemProbs = Lists.sortMap(itemProbs);
 
 			// for each rated user-item (u,i) pair
 			for (int u : trainMatrix.rowList()) {
@@ -142,7 +143,7 @@ public class PRankD extends RankALS {
 					while (true) {
 						// draw an item j with probability proportional to popularity
 						double sum = 0, rand = Randoms.random();
-						for (KeyValPair<Integer> en : sortedItemProbs) {
+						for (KeyValPair<Integer> en : itemProbs) {
 							int k = en.getKey();
 							double prob = en.getValue();
 
@@ -162,8 +163,15 @@ public class PRankD extends RankALS {
 					// compute predictions
 					double pui = predict(u, i), puj = predict(u, j);
 					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
+					double sj = s.get(j);
 
-					double e = s.get(j) * (pui - puj - dij * (rui - ruj));
+					if (Debug.ON) {
+						// the same case as RankALS
+						dij = 1;
+						sj = 1;
+					}
+
+					double e = sj * (pui - puj - dij * (rui - ruj));
 					double ye = lRate * e;
 
 					errs += e * e;
