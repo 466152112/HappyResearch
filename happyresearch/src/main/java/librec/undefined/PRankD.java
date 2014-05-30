@@ -77,7 +77,8 @@ public class PRankD extends RankALS {
 		super.initModel();
 
 		// pre-processing: binarize training data
-		super.binary(trainMatrix);
+		// super.binary(trainMatrix);
+		// super.binary(testMatrix); // TODO: testing 
 		numRates = trainMatrix.size();
 
 		alpha = cf.getDouble("PRankD.alpha");
@@ -189,11 +190,9 @@ public class PRankD extends RankALS {
 						double qif = Q.get(i, f);
 						double qjf = Q.get(j, f);
 
-						P.add(u, f, -lRate * (e * (qif - qjf) + regU * puf));
-						Q.add(i, f, -lRate * (e * puf + regI * qif));
-						Q.add(j, f, -lRate * (-e * puf + regI * qjf));
-
-						loss += regU * puf * puf + regI * qif * qif + regI * qjf * qjf;
+						P.add(u, f, -lRate * e * (qif - qjf));
+						Q.add(i, f, -lRate * e * puf);
+						Q.add(j, f, lRate * e * puf);
 					}
 				}
 			}
@@ -208,7 +207,6 @@ public class PRankD extends RankALS {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binaryHold, (float) alpha, (float) lRate, (float) regU, (float) regI,
-				maxIters }, ",");
+		return Strings.toString(new Object[] { binaryHold, (float) alpha, (float) lRate, maxIters }, ",");
 	}
 }
