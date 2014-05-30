@@ -165,7 +165,7 @@ public class PRankD extends RankALS {
 					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
 
 					double e = s.get(j) * (pui - puj - dij * (rui - ruj));
-					double ye = -lRate * e;
+					double ye = lRate * e;
 
 					errs += e * e;
 					loss += e * e;
