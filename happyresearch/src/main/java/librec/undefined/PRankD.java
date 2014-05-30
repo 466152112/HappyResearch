@@ -172,18 +172,23 @@ public class PRankD extends RankALS {
 					}
 
 					double e = sj * (pui - puj - dij * (rui - ruj));
-					double ye = lRate * e;
+					//double ye = lRate * e;
 
 					errs += e * e;
 					loss += e * e;
 
 					// update vectors
-					DenseVector pu = P.row(u), qi = Q.row(i), qj = Q.row(j);
-					DenseVector yepu = pu.scale(ye);
+					for (int f = 0; f < numFactors; f++) {
+						double puf = P.get(u, f);
+						double qif = Q.get(i, f);
+						double qjf = Q.get(j, f);
 
-					P.setRow(u, pu.minus(qi.minus(qj).scale(ye)));
-					Q.setRow(i, qi.minus(yepu));
-					Q.setRow(j, qj.add(yepu));
+						P.add(u, f, -lRate * (e * (qif - qjf) + regU * puf));
+						Q.add(i, f, -lRate * (e * puf + regI * qif));
+						Q.add(j, f, -lRate * (-e * puf + regI * qjf));
+
+						loss += regU * puf * puf + regI * qif * qif + regI * qjf * qjf;
+					}
 				}
 			}
 
