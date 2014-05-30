@@ -55,7 +55,7 @@ public class PRankD extends RankALS {
 	// item importance
 	private DenseVector s;
 
-	// item sampling probabilities
+	// item sampling probabilities sorted ascendingly 
 	private List<KeyValPair<Integer>> itemProbs;
 
 	// item correlations
@@ -131,7 +131,7 @@ public class PRankD extends RankALS {
 			loss = 0;
 
 			// for each rated user-item (u,i) pair
-			for (int u : trainMatrix.rowList()) {
+			for (int u : trainMatrix.rows()) {
 
 				SparseVector Ru = trainMatrix.row(u);
 				for (VectorEntry ve : Ru) {
@@ -202,6 +202,7 @@ public class PRankD extends RankALS {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binaryHold, (float) alpha, (float) lRate, maxIters }, ",");
+		return Strings.toString(new Object[] { binaryHold, (float) alpha, (float) lRate, (float) regU, (float) regI,
+				maxIters }, ",");
 	}
 }
