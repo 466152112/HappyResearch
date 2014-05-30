@@ -103,7 +103,7 @@ public class SLIM extends IterativeRecommender {
 				List<KeyValPair<Integer>> subset = sorted.subList(0, knn);
 				nns.clear();
 				for (KeyValPair<Integer> kv : subset)
-					nns.put(kv.getKey(), kv.getValue().doubleValue());
+					nns.put(kv.getKey(), kv.getValue());
 			}
 
 			// put into the nns table

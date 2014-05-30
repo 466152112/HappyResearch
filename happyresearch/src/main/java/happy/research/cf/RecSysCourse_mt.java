@@ -90,7 +90,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 
 				found.add(sp);
 				if (k == 0)
-					System.out.println(sp.getKey() + ":" + sp.getValue().floatValue());
+					System.out.println(sp.getKey() + ":" + sp.getValue());
 
 				knn++;
 				if (knn >= 5)
@@ -108,7 +108,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 				double val = 0;
 				for (KeyValPair<String> sp : found) {
 					String v = sp.getKey();
-					double c = sp.getValue().doubleValue();
+					double c = sp.getValue();
 
 					if (userRatingsMap.get(v).containsKey(item)) {
 						val += userRatingsMap.get(v).get(item).getRating() * c;
@@ -152,7 +152,7 @@ public class RecSysCourse_mt extends DefaultCF_mt {
 				double val = 0;
 				for (KeyValPair<String> sp : found) {
 					String v = sp.getKey();
-					double c = sp.getValue().doubleValue();
+					double c = sp.getValue();
 
 					Map<String, Rating> vsRatings = userRatingsMap.get(v);
 					if (vsRatings.containsKey(item)) {

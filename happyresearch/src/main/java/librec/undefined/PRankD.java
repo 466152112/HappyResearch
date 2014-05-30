@@ -150,7 +150,7 @@ public class PRankD extends RankALS {
 					double sum = 0, rand = Randoms.random();
 					for (KeyValPair<Integer> en : sortedItemProbs) {
 						int k = en.getKey();
-						double prob = en.getValue().doubleValue();
+						double prob = en.getValue();
 
 						sum += prob;
 						if (sum >= rand) {
