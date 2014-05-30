@@ -22,7 +22,6 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
-import happy.coding.system.Debug;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +62,8 @@ public class PRankD extends RankALS {
 
 	// similarity filter
 	private double alpha;
+
+	private boolean flag;
 
 	public PRankD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -106,8 +107,11 @@ public class PRankD extends RankALS {
 			s.set(j, s.get(j) / maxUsers);
 		}
 
-		// compute item correlations by cosine similarity
-		itemCorrs = buildCorrs(false);
+		flag = true;
+
+		if (!flag)
+			// compute item correlations by cosine similarity
+			itemCorrs = buildCorrs(false);
 	}
 
 	/**
@@ -162,13 +166,15 @@ public class PRankD extends RankALS {
 
 					// compute predictions
 					double pui = predict(u, i), puj = predict(u, j);
-					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
-					double sj = s.get(j);
+					double dij, sj;
 
-					if (Debug.ON) {
+					if (flag) {
 						// the same case as RankALS
 						dij = 1;
 						sj = 1;
+					} else {
+						dij = Math.sqrt(1 - itemCorrs.get(i, j));
+						sj = s.get(j);
 					}
 
 					double e = sj * (pui - puj - dij * (rui - ruj));
