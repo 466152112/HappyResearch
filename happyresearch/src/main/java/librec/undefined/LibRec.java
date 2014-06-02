@@ -140,8 +140,10 @@ public class LibRec {
 			runTestFile(testPath);
 		else if (cf.isOn("is.cross.validation"))
 			runCrossValidation();
-		else
+		else if (cf.getDouble("val.ratio") > 0)
 			runRatio();
+		else
+			runGiven();
 	}
 
 	/**
@@ -200,6 +202,21 @@ public class LibRec {
 	}
 
 	/**
+	 * Interface to run (Given N)-validation approach
+	 */
+	private static void runGiven() throws Exception {
+
+		DataSplitter ds = new DataSplitter(rateMatrix);
+		int n = cf.getInt("num.given.n");
+		double ratio = cf.getDouble("val.given.ratio");
+
+		Recommender algo = getRecommender(ds.getGiven(n > 0 ? n : ratio), -1);
+		algo.execute();
+
+		printEvalInfo(algo, algo.measures);
+	}
+
+	/**
 	 * Interface to run testing using data from an input file
 	 * 
 	 */
@@ -244,6 +261,8 @@ public class LibRec {
 			return new SLIM(trainMatrix, testMatrix, fold);
 		case "prankd":
 			return new PRankD(trainMatrix, testMatrix, fold);
+		case "pd":
+			return new PD(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
@@ -325,7 +344,13 @@ public class LibRec {
 	private static void debugInfo() {
 		String cv = "kFold: " + cf.getInt("num.kfold")
 				+ (cf.isOn("is.parallel.folds") ? " [Parallel]" : " [Singleton]");
-		String cvInfo = cf.isOn("is.cross.validation") ? cv : "ratio: " + (float) cf.getDouble("val.ratio");
+
+		float ratio = (float) cf.getDouble("val.ratio");
+		int givenN = cf.getInt("num.given.n");
+		float givenRatio = cf.getFloat("val.given.ratio");
+
+		String cvInfo = cf.isOn("is.cross.validation") ? cv : (ratio > 0 ? "ratio: " + ratio : "given: "
+				+ (givenN > 0 ? givenN : givenRatio));
 
 		String testPath = cf.getPath("dataset.testing");
 		boolean isTestingFlie = !testPath.equals("-1");
