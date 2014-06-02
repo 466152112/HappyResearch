@@ -40,6 +40,7 @@ import librec.data.DataSplitter;
 import librec.data.SparseMatrix;
 import librec.ext.Hybrid;
 import librec.ext.NMF;
+import librec.ext.PD;
 import librec.ext.SlopeOne;
 import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
