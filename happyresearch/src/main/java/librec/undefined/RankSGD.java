@@ -35,21 +35,13 @@ import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 /**
- * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
- * 2013.
- * 
- * <p>
- * Related Work:
- * <ul>
- * <li>Jahrer and Toscher, Collaborative Filtering Ensemble for Ranking, JMLR,
- * 2012 (KDD Cup 2011 Track 2).</li>
- * </ul>
- * </p>
+ * Jahrer and Toscher, Collaborative Filtering Ensemble for Ranking, JMLR, 2012
+ * (KDD Cup 2011 Track 2).
  * 
  * @author guoguibing
  * 
  */
-public class PRankD extends IterativeRecommender {
+public class RankSGD extends IterativeRecommender {
 
 	// item importance
 	private DenseVector s;
@@ -65,7 +57,7 @@ public class PRankD extends IterativeRecommender {
 
 	private boolean flag;
 
-	public PRankD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
+	public RankSGD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
 		algoName = "PRankD";
