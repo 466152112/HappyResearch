@@ -30,7 +30,6 @@ import java.util.Map;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
@@ -44,18 +43,10 @@ import librec.intf.IterativeRecommender;
 public class RankSGD extends IterativeRecommender {
 
 	// item importance
-	private DenseVector s;
+	protected DenseVector s;
 
 	// item sampling probabilities sorted ascendingly 
-	private List<KeyValPair<Integer>> itemProbs;
-
-	// item correlations
-	private SymmMatrix itemCorrs;
-
-	// similarity filter
-	private double alpha;
-
-	private boolean flag;
+	protected List<KeyValPair<Integer>> itemProbs;
 
 	public RankSGD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -72,8 +63,6 @@ public class RankSGD extends IterativeRecommender {
 		// super.binary(trainMatrix);
 		// super.binary(testMatrix); 
 		numRates = trainMatrix.size();
-
-		alpha = cf.getDouble("PRankD.alpha");
 
 		// compute item sampling probability
 		Map<Integer, Double> itemProbsMap = new HashMap<>();
@@ -100,24 +89,6 @@ public class RankSGD extends IterativeRecommender {
 			s.set(j, s.get(j) / maxUsers);
 		}
 
-		flag = true;
-
-		if (!flag)
-			// compute item correlations by cosine similarity
-			itemCorrs = buildCorrs(false);
-	}
-
-	/**
-	 * override this approach to transform item similarity
-	 */
-	protected double correlation(SparseVector iv, SparseVector jv) {
-		double sim = correlation(iv, jv, "cos-binary");
-
-		if (Double.isNaN(sim))
-			sim = 0.0;
-
-		// to obtain a greater spread of diversity values
-		return Math.tanh(alpha * sim);
 	}
 
 	@Override
@@ -159,18 +130,8 @@ public class RankSGD extends IterativeRecommender {
 
 					// compute predictions
 					double pui = predict(u, i), puj = predict(u, j);
-					double dij, sj;
 
-					if (flag) {
-						// the same case as RankALS
-						dij = 1;
-						sj = 1;
-					} else {
-						dij = Math.sqrt(1 - itemCorrs.get(i, j));
-						sj = s.get(j);
-					}
-
-					double e = sj * (pui - puj - dij * (rui - ruj));
+					double e = (pui - puj) - (rui - ruj);
 
 					errs += e * e;
 					loss += e * e;
@@ -199,6 +160,6 @@ public class RankSGD extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binThold, (float) alpha, (float) lRate, maxIters }, ",");
+		return Strings.toString(new Object[] { binThold, (float) lRate, maxIters }, ",");
 	}
 }

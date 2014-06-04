@@ -19,20 +19,11 @@
 package librec.undefined;
 
 import happy.coding.io.KeyValPair;
-import happy.coding.io.Lists;
-import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
-import librec.intf.IterativeRecommender;
 
 /**
  * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
@@ -49,21 +40,13 @@ import librec.intf.IterativeRecommender;
  * @author guoguibing
  * 
  */
-public class PRankD extends IterativeRecommender {
-
-	// item importance
-	private DenseVector s;
-
-	// item sampling probabilities sorted ascendingly 
-	private List<KeyValPair<Integer>> itemProbs;
+public class PRankD extends RankSGD {
 
 	// item correlations
 	private SymmMatrix itemCorrs;
 
 	// similarity filter
 	private double alpha;
-
-	private boolean flag;
 
 	public PRankD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -83,36 +66,8 @@ public class PRankD extends IterativeRecommender {
 
 		alpha = cf.getDouble("PRankD.alpha");
 
-		// compute item sampling probability
-		Map<Integer, Double> itemProbsMap = new HashMap<>();
-		double maxUsers = 0;
-
-		s = new DenseVector(numItems);
-		for (int j = 0; j < numItems; j++) {
-			int users = trainMatrix.columnSize(j);
-
-			if (maxUsers < users)
-				maxUsers = users;
-
-			s.set(j, users);
-
-			// sample items based on popularity
-			double prob = (users + 0.0) / numRates;
-			if (prob > 0)
-				itemProbsMap.put(j, prob);
-		}
-		itemProbs = Lists.sortMap(itemProbsMap);
-
-		// compute item relative importance
-		for (int j = 0; j < numItems; j++) {
-			s.set(j, s.get(j) / maxUsers);
-		}
-
-		flag = true;
-
-		if (!flag)
-			// compute item correlations by cosine similarity
-			itemCorrs = buildCorrs(false);
+		// compute item correlations by cosine similarity
+		itemCorrs = buildCorrs(false);
 	}
 
 	/**
@@ -167,16 +122,9 @@ public class PRankD extends IterativeRecommender {
 
 					// compute predictions
 					double pui = predict(u, i), puj = predict(u, j);
-					double dij, sj;
 
-					if (flag) {
-						// the same case as RankALS
-						dij = 1;
-						sj = 1;
-					} else {
-						dij = Math.sqrt(1 - itemCorrs.get(i, j));
-						sj = s.get(j);
-					}
+					double dij = Math.sqrt(1 - itemCorrs.get(i, j));
+					double sj = s.get(j);
 
 					double e = sj * (pui - puj - dij * (rui - ruj));
 
@@ -207,6 +155,6 @@ public class PRankD extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binThold, (float) alpha, (float) lRate, maxIters }, ",");
+		return super.toString() + "," + (float) alpha;
 	}
 }
