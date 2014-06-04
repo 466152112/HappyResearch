@@ -70,7 +70,7 @@ public class RankSGD extends IterativeRecommender {
 
 		// pre-processing: binarize training data
 		// super.binary(trainMatrix);
-		// super.binary(testMatrix); // TODO: testing 
+		// super.binary(testMatrix); 
 		numRates = trainMatrix.size();
 
 		alpha = cf.getDouble("PRankD.alpha");
