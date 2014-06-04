@@ -60,7 +60,7 @@ public class RankSGD extends IterativeRecommender {
 	public RankSGD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "PRankD";
+		algoName = "RankSGD";
 		isRankingPred = true;
 	}
 
