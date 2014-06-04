@@ -41,8 +41,8 @@ import librec.ranking.RankALS;
  * <p>
  * Related Work:
  * <ul>
- * <li><strong>RankSGD:</strong> Jahrer and Toscher, Collaborative Filtering
- * Ensembler for Ranking, JMLR, 2012 (KDD Cup 2011 Track 2).</li>
+ * <li>Jahrer and Toscher, Collaborative Filtering Ensemble for Ranking, JMLR,
+ * 2012 (KDD Cup 2011 Track 2).</li>
  * </ul>
  * </p>
  * 
@@ -179,20 +179,20 @@ public class PRankD extends RankALS {
 					}
 
 					double e = sj * (pui - puj - dij * (rui - ruj));
-					//double ye = lRate * e;
 
 					errs += e * e;
 					loss += e * e;
 
 					// update vectors
+					double ye = lRate * e;
 					for (int f = 0; f < numFactors; f++) {
 						double puf = P.get(u, f);
 						double qif = Q.get(i, f);
 						double qjf = Q.get(j, f);
 
-						P.add(u, f, -lRate * e * (qif - qjf));
-						Q.add(i, f, -lRate * e * puf);
-						Q.add(j, f, lRate * e * puf);
+						P.add(u, f, -ye * (qif - qjf));
+						Q.add(i, f, -ye * puf);
+						Q.add(j, f, ye * puf);
 					}
 				}
 			}
