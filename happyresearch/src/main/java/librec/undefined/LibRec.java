@@ -263,6 +263,8 @@ public class LibRec {
 			return new SLIM(trainMatrix, testMatrix, fold);
 		case "prankd":
 			return new PRankD(trainMatrix, testMatrix, fold);
+		case "ranksgd":
+			return new RankSGD(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
