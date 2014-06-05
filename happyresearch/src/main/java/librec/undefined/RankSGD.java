@@ -19,15 +19,11 @@
 package librec.undefined;
 
 import happy.coding.io.KeyValPair;
-import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.VectorEntry;
@@ -41,9 +37,6 @@ import librec.intf.IterativeRecommender;
  * 
  */
 public class RankSGD extends IterativeRecommender {
-
-	// item importance
-	protected DenseVector s;
 
 	// item sampling probabilities sorted ascendingly 
 	protected List<KeyValPair<Integer>> itemProbs;
@@ -62,33 +55,6 @@ public class RankSGD extends IterativeRecommender {
 		// pre-processing: binarize training data
 		// super.binary(trainMatrix);
 		// super.binary(testMatrix); 
-		numRates = trainMatrix.size();
-
-		// compute item sampling probability
-		Map<Integer, Double> itemProbsMap = new HashMap<>();
-		double maxUsers = 0;
-
-		s = new DenseVector(numItems);
-		for (int j = 0; j < numItems; j++) {
-			int users = trainMatrix.columnSize(j);
-
-			if (maxUsers < users)
-				maxUsers = users;
-
-			s.set(j, users);
-
-			// sample items based on popularity
-			double prob = (users + 0.0) / numRates;
-			if (prob > 0)
-				itemProbsMap.put(j, prob);
-		}
-		itemProbs = Lists.sortMap(itemProbsMap);
-
-		// compute item relative importance
-		for (int j = 0; j < numItems; j++) {
-			s.set(j, s.get(j) / maxUsers);
-		}
-
 	}
 
 	@Override

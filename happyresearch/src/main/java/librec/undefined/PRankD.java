@@ -19,7 +19,13 @@
 package librec.undefined;
 
 import happy.coding.io.KeyValPair;
+import happy.coding.io.Lists;
 import happy.coding.math.Randoms;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
@@ -42,6 +48,9 @@ import librec.data.VectorEntry;
  */
 public class PRankD extends RankSGD {
 
+	// item importance
+	private DenseVector s;
+
 	// item correlations
 	private SymmMatrix itemCorrs;
 
@@ -59,10 +68,30 @@ public class PRankD extends RankSGD {
 	protected void initModel() {
 		super.initModel();
 
-		// pre-processing: binarize training data
-		// super.binary(trainMatrix);
-		// super.binary(testMatrix); // TODO: testing 
-		numRates = trainMatrix.size();
+		// compute item sampling probability
+		Map<Integer, Double> itemProbsMap = new HashMap<>();
+		double maxUsers = 0;
+
+		s = new DenseVector(numItems);
+		for (int j = 0; j < numItems; j++) {
+			int users = trainMatrix.columnSize(j);
+
+			if (maxUsers < users)
+				maxUsers = users;
+
+			s.set(j, users);
+
+			// sample items based on popularity
+			double prob = (users + 0.0) / numRates;
+			if (prob > 0)
+				itemProbsMap.put(j, prob);
+		}
+		itemProbs = Lists.sortMap(itemProbsMap);
+
+		// compute item relative importance
+		for (int j = 0; j < numItems; j++) {
+			s.set(j, s.get(j) / maxUsers);
+		}
 
 		alpha = cf.getDouble("PRankD.alpha");
 
