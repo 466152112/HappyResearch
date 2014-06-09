@@ -31,15 +31,15 @@ import librec.intf.SocialRecommender;
  * @author guoguibing
  * 
  */
-public class TrustSVD extends SocialRecommender {
+public class TrustSVD2 extends SocialRecommender {
 
 	private DenseMatrix W, Y;
 	private DenseVector wlr_j, wlr_tc, wlr_tr;
 
-	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
+	public TrustSVD2(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "TrustSVD";
+		algoName = "TrustSVD++";
 
 		if (params.containsKey("val.reg")) {
 			double reg = RecUtils.getMKey(params, "val.reg");

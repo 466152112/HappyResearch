@@ -32,7 +32,7 @@ import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
 
 /**
- * Neil Hurley, <strong>Personalized Ranking with Diversity</strong>, RecSys
+ * Neil Hurley, <strong>Personalised ranking with diversity</strong>, RecSys
  * 2013.
  * 
  * <p>

@@ -265,6 +265,8 @@ public class LibRec {
 			return new PRankD(trainMatrix, testMatrix, fold);
 		case "ranksgd":
 			return new RankSGD(trainMatrix, testMatrix, fold);
+		case "trustsvd2":
+			return new TrustSVD2(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
