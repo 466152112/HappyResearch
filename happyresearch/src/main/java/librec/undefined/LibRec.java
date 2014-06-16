@@ -42,12 +42,14 @@ import librec.ext.AR;
 import librec.ext.Hybrid;
 import librec.ext.NMF;
 import librec.ext.PD;
+import librec.ext.PRankD;
 import librec.ext.SlopeOne;
 import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
 import librec.ranking.BPRMF;
 import librec.ranking.CLiMF;
 import librec.ranking.RankALS;
+import librec.ranking.RankSGD;
 import librec.ranking.WRMF;
 import librec.rating.BPMF;
 import librec.rating.BiasedMF;
@@ -261,10 +263,6 @@ public class LibRec {
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "slim":
 			return new SLIM(trainMatrix, testMatrix, fold);
-		case "prankd":
-			return new PRankD(trainMatrix, testMatrix, fold);
-		case "ranksgd":
-			return new RankSGD(trainMatrix, testMatrix, fold);
 		case "trustsvd2":
 			return new TrustSVD2(trainMatrix, testMatrix, fold);
 
@@ -314,6 +312,8 @@ public class LibRec {
 			return new SoRec(trainMatrix, testMatrix, fold);
 		case "soreg":
 			return new SoReg(trainMatrix, testMatrix, fold);
+		case "ranksgd":
+			return new RankSGD(trainMatrix, testMatrix, fold);
 
 			/* baselines */
 		case "globalavg":
@@ -340,6 +340,8 @@ public class LibRec {
 			return new PD(trainMatrix, testMatrix, fold);
 		case "ar":
 			return new AR(trainMatrix, testMatrix, fold);
+		case "prankd":
+			return new PRankD(trainMatrix, testMatrix, fold);
 
 		default:
 			throw new Exception("No recommender is specified!");
