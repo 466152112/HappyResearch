@@ -35,11 +35,12 @@ public class RBMF extends WRMF {
 		return sum;
 	}
 
-	protected Map<Integer, Double> ranking2(int u, Collection<Integer> candItems) {
+	protected Map<Integer, Double> ranking(int u, Collection<Integer> candItems) {
 		SparseVector Ru = trainMatrix.row(u);
 
 		// learn the core features
 		List<Integer> fs = new ArrayList<>();
+		SparseVector fMeans = new SparseVector(numFactors);
 		for (int f = 0; f < numFactors; f++) {
 			double[] fvals = new double[Ru.getCount()];
 			int i = 0;
@@ -50,17 +51,23 @@ public class RBMF extends WRMF {
 
 			double mean = Stats.mean(fvals);
 			double std = Stats.sd(fvals);
-			if (std < 0.5 || std > 2.5)
+			if (std < 0.5 || std > 2.5) {
 				fs.add(f);
+				fMeans.set(f, mean);
+			}
 		}
 
 		// find items with high core features
 		Map<Integer, Double> ranks = new HashMap<>();
 		for (int j : candItems) {
 			double rank = 0;
+			SparseVector jv = new SparseVector(numFactors);
 			for (int f : fs) {
-				rank += P.get(u, f) * Q.get(j, f);
+				// rank += P.get(u, f) * Q.get(j, f);
+				jv.set(f, Q.get(j, f));
 			}
+
+			rank = super.correlation(fMeans, jv, "pcc");
 			ranks.put(j, rank);
 		}
 
