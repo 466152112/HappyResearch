@@ -11,9 +11,9 @@ import java.util.Map;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.VectorEntry;
-import librec.ranking.WRMF;
+import librec.rating.RegSVD;
 
-public class RBMF extends WRMF {
+public class RBMF extends RegSVD {
 
 	public RBMF(SparseMatrix rm, SparseMatrix tm, int fold) {
 		super(rm, tm, fold);
@@ -24,18 +24,23 @@ public class RBMF extends WRMF {
 
 	protected double ranking(int u, int j) {
 
-		double sum = 0;
+		double sum = 0, sum_d = 0;
+		double theta = 0.05, alpha = 10;
+		
 		for (int f = 0; f < numFactors; f++) {
 			double puf = P.get(u, f);
 			double qjf = Q.get(j, f);
-			if (puf > 0)
-				sum += puf * puf * qjf;
+			
+			if (puf >= theta)
+				sum += puf * qjf;
+			else if (Math.abs(puf) < theta)
+				sum_d += puf * qjf;
 		}
 
-		return sum;
+		return sum + alpha * sum_d;
 	}
 
-	protected Map<Integer, Double> ranking(int u, Collection<Integer> candItems) {
+	protected Map<Integer, Double> ranking2(int u, Collection<Integer> candItems) {
 		SparseVector Ru = trainMatrix.row(u);
 
 		// learn the core features
