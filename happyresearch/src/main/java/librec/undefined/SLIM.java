@@ -32,6 +32,7 @@ import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
+import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 import com.google.common.collect.HashBasedTable;
@@ -117,7 +118,7 @@ public class SLIM extends IterativeRecommender {
 		for (int iter = 1; iter <= maxIters; iter++) {
 
 			if (verbose)
-				Logs.debug("{} [{}] is running at iteration = {}", algoName, fold, iter);
+				Logs.debug("{} [{}] runs at iteration {}", algoName, fold, iter);
 
 			// computing W_j for each item j
 			for (int j = 0; j < numItems; j++) {
@@ -132,15 +133,18 @@ public class SLIM extends IterativeRecommender {
 
 					SparseVector qi = trainMatrix.column(i);
 					double gradSum = 0;
-					for (int u : qi.getIndex()) {
+					int count = 0;
+					for (VectorEntry ve : qi) {
+						int u = ve.index();
 
 						double ruj = trainMatrix.get(u, j);
-						double indicator = ruj > 0 ? 1 : 0;
-
-						gradSum += indicator * (predict(u, j, i) - ruj);
+						if (ruj > 0) {
+							gradSum += predict(u, j, i) - ruj;
+							count++;
+						}
 					}
 
-					double gradient = gradSum / (numUsers + 1);
+					double gradient = gradSum / count;
 
 					if (regL1 < Math.abs(gradient)) {
 						if (gradient > 0) {
@@ -159,19 +163,17 @@ public class SLIM extends IterativeRecommender {
 	}
 
 	protected double predict(int u, int j, int excluded_item) {
-		double sum = 0, weights = 0;
+		double pred=0;
 
 		Map<Integer, Double> nns = nnsTable.row(j);
 		for (int i : nns.keySet()) {
 			double rui = trainMatrix.get(u, i);
 			if (rui > 0 && i != excluded_item) {
-				double weight = itemWeights.get(j, i);
-				sum += weight * rui;
-				weights += weight;
+				pred += itemWeights.get(j, i) * rui;
 			}
 		}
 
-		return sum / weights;
+		return pred;
 	}
 
 	@Override
@@ -191,7 +193,7 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	public String toString() {
 		return Strings.toString(
-				new Object[] { (float) regL1, (float) regL2, cf.getString("similarity"), knn, maxIters }, ",");
+				new Object[] { knn, (float) regL1, (float) regL2, cf.getString("similarity"), maxIters }, ",");
 	}
 
 }
