@@ -133,18 +133,14 @@ public class SLIM extends IterativeRecommender {
 
 					SparseVector qi = trainMatrix.column(i);
 					double gradSum = 0;
-					int count = 0;
 					for (VectorEntry ve : qi) {
 						int u = ve.index();
-
 						double ruj = trainMatrix.get(u, j);
-						if (ruj > 0) {
-							gradSum += predict(u, j, i) - ruj;
-							count++;
-						}
+
+						gradSum += ruj - predict(u, j, i);
 					}
 
-					double gradient = gradSum / count;
+					double gradient = gradSum / qi.getCount();
 
 					if (regL1 < Math.abs(gradient)) {
 						if (gradient > 0) {
@@ -163,7 +159,7 @@ public class SLIM extends IterativeRecommender {
 	}
 
 	protected double predict(int u, int j, int excluded_item) {
-		double pred=0;
+		double pred = 0;
 
 		Map<Integer, Double> nns = nnsTable.row(j);
 		for (int i : nns.keySet()) {
