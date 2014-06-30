@@ -22,7 +22,6 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
-import happy.coding.system.Debug;
 
 import java.util.List;
 import java.util.Map;
@@ -135,7 +134,7 @@ public class SLIM extends IterativeRecommender {
 					double gradSum = 0;
 					for (VectorEntry ve : qi) {
 						int u = ve.index();
-						double ruj = trainMatrix.get(u, j);
+						double ruj = ve.get();
 
 						gradSum += ruj - predict(u, j, i);
 					}
@@ -162,9 +161,12 @@ public class SLIM extends IterativeRecommender {
 		double pred = 0;
 
 		Map<Integer, Double> nns = nnsTable.row(j);
-		for (int i : nns.keySet()) {
-			double rui = trainMatrix.get(u, i);
-			if (rui > 0 && i != excluded_item) {
+		SparseVector Ru = trainMatrix.row(u);
+
+		for (VectorEntry ve : Ru) {
+			int i = ve.index();
+			double rui = ve.get();
+			if (nns.containsKey(i) && i != excluded_item) {
 				pred += itemWeights.get(j, i) * rui;
 			}
 		}
@@ -174,16 +176,7 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		if (Debug.ON)
-			return predict(u, j, -1);
-
-		SparseVector pu = trainMatrix.row(u);
-
-		double pred = 0;
-		for (int i : pu.getIndex())
-			pred += itemWeights.get(j, i);
-
-		return pred;
+		return predict(u, j, -1);
 	}
 
 	@Override
