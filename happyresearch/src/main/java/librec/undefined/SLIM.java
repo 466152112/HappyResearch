@@ -22,6 +22,7 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
+import happy.coding.system.Debug;
 
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,6 @@ public class SLIM extends IterativeRecommender {
 	public SLIM(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "SLIM";
 		isRankingPred = true;
 		knn = cf.getInt("num.neighbors");
 
@@ -135,10 +135,9 @@ public class SLIM extends IterativeRecommender {
 					for (int u : qi.getIndex()) {
 
 						double ruj = trainMatrix.get(u, j);
-						if (ruj > 0)
-							gradSum += 1;
+						double indicator = ruj > 0 ? 1 : 0;
 
-						gradSum -= predict(u, j, i);
+						gradSum += indicator * (predict(u, j, i) - ruj);
 					}
 
 					double gradient = gradSum / (numUsers + 1);
@@ -160,20 +159,26 @@ public class SLIM extends IterativeRecommender {
 	}
 
 	protected double predict(int u, int j, int excluded_item) {
-		double pred = 0;
+		double sum = 0, weights = 0;
 
 		Map<Integer, Double> nns = nnsTable.row(j);
 		for (int i : nns.keySet()) {
 			double rui = trainMatrix.get(u, i);
-			if (rui > 0 && i != excluded_item)
-				pred += itemWeights.get(j, i);
+			if (rui > 0 && i != excluded_item) {
+				double weight = itemWeights.get(j, i);
+				sum += weight * rui;
+				weights += weight;
+			}
 		}
 
-		return pred;
+		return sum / weights;
 	}
 
 	@Override
 	protected double predict(int u, int j) {
+		if (Debug.ON)
+			return predict(u, j, -1);
+
 		SparseVector pu = trainMatrix.row(u);
 
 		double pred = 0;

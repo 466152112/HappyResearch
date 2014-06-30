@@ -52,7 +52,6 @@ public class MMMF extends IterativeRecommender {
 	public MMMF(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "MMMF";
 		isRankingPred = true;
 	}
 

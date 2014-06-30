@@ -13,12 +13,16 @@ import librec.data.SparseVector;
 import librec.data.VectorEntry;
 import librec.rating.RegSVD;
 
+/**
+ * 
+ * @author guoguibing
+ *
+ */
 public class RBMF extends RegSVD {
 
 	public RBMF(SparseMatrix rm, SparseMatrix tm, int fold) {
 		super(rm, tm, fold);
 
-		algoName = "RBMF"; // ranking-based matrix factorization
 		isRankingPred = true;
 	}
 
@@ -40,7 +44,7 @@ public class RBMF extends RegSVD {
 		return sum + alpha * sum_d;
 	}
 
-	protected Map<Integer, Double> ranking2(int u, Collection<Integer> candItems) {
+	protected Map<Integer, Double> ranking(int u, Collection<Integer> candItems) {
 		SparseVector Ru = trainMatrix.row(u);
 
 		// learn the core features

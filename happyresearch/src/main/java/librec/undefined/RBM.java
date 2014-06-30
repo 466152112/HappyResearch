@@ -51,8 +51,6 @@ public class RBM extends IterativeRecommender {
 
 	public RBM(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
-
-		algoName = "RBM";
 	}
 
 }

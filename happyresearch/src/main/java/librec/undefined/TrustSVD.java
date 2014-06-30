@@ -39,8 +39,6 @@ public class TrustSVD extends SocialRecommender {
 	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
-		algoName = "TrustSVD";
-
 		if (params.containsKey("val.reg")) {
 			double reg = RecUtils.getMKey(params, "val.reg");
 
