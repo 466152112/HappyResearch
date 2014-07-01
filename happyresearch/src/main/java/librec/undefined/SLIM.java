@@ -23,6 +23,7 @@ import happy.coding.io.Lists;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,8 +35,8 @@ import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Xia Ning and George Karypis, <strong>SLIM: Sparse Linear Methods for Top-N
@@ -65,10 +66,13 @@ import com.google.common.collect.Table;
 public class SLIM extends IterativeRecommender {
 
 	private DenseMatrix itemWeights; // ~ W
-	private SymmMatrix itemCorrs;
 	private int knn;
 
-	private Table<Integer, Integer, Double> nnsTable;
+	// item's nearest neighbors for kNN > 0
+	private Multimap<Integer, Integer> itemNNs;
+
+	// item's nearest neighbors for kNN <=0, i.e., all other items
+	private List<Integer> allItems;
 
 	// regularization parameters for the L1 or L2 term 
 	private double regL1, regL2;
@@ -88,29 +92,37 @@ public class SLIM extends IterativeRecommender {
 		itemWeights = new DenseMatrix(numItems, numItems);
 		itemWeights.init();
 
-		// find the nearest neighbors for each item based on item similarity
-		itemCorrs = buildCorrs(false);
-		nnsTable = HashBasedTable.create();
+		if (knn > 0) {
+			// find the nearest neighbors for each item based on item similarity
+			SymmMatrix itemCorrs = buildCorrs(false);
+			itemNNs = HashMultimap.create();
 
-		for (int j = 0; j < numItems; j++) {
-			// set diagonal entries to 0
-			itemWeights.set(j, j, 0);
+			for (int j = 0; j < numItems; j++) {
+				// set diagonal entries to 0
+				itemWeights.set(j, j, 0);
 
-			// find the k-nearest neighbors for each item
-			Map<Integer, Double> nns = itemCorrs.row(j).toMap();
+				// find the k-nearest neighbors for each item
+				Map<Integer, Double> nns = itemCorrs.row(j).toMap();
 
-			// sort by values to retriev topN similar items
-			if (knn > 0 && knn < nns.size()) {
-				List<KeyValPair<Integer>> sorted = Lists.sortMap(nns, true);
-				List<KeyValPair<Integer>> subset = sorted.subList(0, knn);
-				nns.clear();
-				for (KeyValPair<Integer> kv : subset)
-					nns.put(kv.getKey(), kv.getValue());
+				// sort by values to retriev topN similar items
+				if (knn > 0 && knn < nns.size()) {
+					List<KeyValPair<Integer>> sorted = Lists.sortMap(nns, true);
+					List<KeyValPair<Integer>> subset = sorted.subList(0, knn);
+					nns.clear();
+					for (KeyValPair<Integer> kv : subset)
+						nns.put(kv.getKey(), kv.getValue());
+				}
+
+				// put into the nns table
+				for (Entry<Integer, Double> en : nns.entrySet())
+					itemNNs.put(j, en.getKey());
 			}
+		} else {
+			// all items are used
+			allItems = trainMatrix.columns();
 
-			// put into the nns table
-			for (Entry<Integer, Double> en : nns.entrySet())
-				nnsTable.put(j, en.getKey(), en.getValue());
+			for (int j = 0; j < numItems; j++)
+				itemWeights.set(j, j, 0.0);
 		}
 	}
 
@@ -125,10 +137,10 @@ public class SLIM extends IterativeRecommender {
 			for (int j = 0; j < numItems; j++) {
 
 				// find k-nearest neighbors
-				Map<Integer, Double> nns = nnsTable.row(j);
+				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
-				for (Integer i : nns.keySet()) {
+				for (Integer i : nns) {
 					if (j == i)
 						continue;
 
@@ -164,14 +176,14 @@ public class SLIM extends IterativeRecommender {
 
 	protected double predict(int u, int j, int excluded_item) {
 
-		Map<Integer, Double> nns = nnsTable.row(j);
+		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
 		double sum = 0, weights = 0;
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
 			double rui = ve.get();
-			if (nns.containsKey(i) && i != excluded_item) {
+			if (nns.contains(i) && i != excluded_item) {
 				double wij = itemWeights.get(i, j);
 				sum += rui * wij;
 				weights += Math.abs(wij);
@@ -188,12 +200,12 @@ public class SLIM extends IterativeRecommender {
 			return predict(u, j, -1);
 
 		double pred = 0;
-		Map<Integer, Double> nns = nnsTable.row(j);
+		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
-			if (nns.containsKey(i)) {
+			if (nns.contains(i)) {
 				pred += itemWeights.get(i, j);
 			}
 		}
