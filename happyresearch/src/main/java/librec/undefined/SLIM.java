@@ -172,8 +172,9 @@ public class SLIM extends IterativeRecommender {
 			int i = ve.index();
 			double rui = ve.get();
 			if (nns.containsKey(i) && i != excluded_item) {
-				sum += rui * itemWeights.get(i, j);
-				weights += rui;
+				double wij = itemWeights.get(i, j);
+				sum += rui * wij;
+				weights += Math.abs(wij);
 			}
 		}
 
