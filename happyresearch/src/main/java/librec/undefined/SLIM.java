@@ -147,13 +147,13 @@ public class SLIM extends IterativeRecommender {
 					if (regL1 < Math.abs(gradient)) {
 						if (gradient > 0) {
 							double update = (gradient - regL1) / (regL2 + 1.0);
-							itemWeights.set(j, i, update);
+							itemWeights.set(i, j, update);
 						} else {
 							double update = (gradient + regL1) / (regL2 + 1.0);
-							itemWeights.set(j, i, update);
+							itemWeights.set(i, j, update);
 						}
 					} else {
-						itemWeights.set(j, i, 0.0);
+						itemWeights.set(i, j, 0.0);
 					}
 				}
 			}
