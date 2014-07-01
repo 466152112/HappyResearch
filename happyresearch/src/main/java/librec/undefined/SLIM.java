@@ -161,20 +161,22 @@ public class SLIM extends IterativeRecommender {
 	}
 
 	protected double predict(int u, int j, int excluded_item) {
-		double pred = 0;
+		// double pred = 0;
 
 		Map<Integer, Double> nns = nnsTable.row(j);
 		SparseVector Ru = trainMatrix.row(u);
 
+		double sum = 0, weights = 0;
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
 			double rui = ve.get();
 			if (nns.containsKey(i) && i != excluded_item) {
-				pred += rui * itemWeights.get(i, j);
+				sum += rui * itemWeights.get(i, j);
+				weights += rui;
 			}
 		}
 
-		return pred;
+		return sum / weights;
 	}
 
 	@Override
