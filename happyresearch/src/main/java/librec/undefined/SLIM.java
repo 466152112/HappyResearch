@@ -178,7 +178,7 @@ public class SLIM extends IterativeRecommender {
 			}
 		}
 
-		return sum / weights;
+		return sum / weights; // TODO: test return sum only; 
 	}
 
 	@Override
