@@ -44,6 +44,10 @@ import com.google.common.collect.Table;
  * <p>
  * Related Work:
  * <ul>
+ * <li>Levy and Jack, Efficient Top-N Recommendation by Linear Regression, ISRS
+ * 2013. This paper reports experimental results on the MovieLens (100K, 10M)
+ * and Epinions datasets in terms of precision, MRR and HR@N. According to the
+ * results, the performance of SLIM works only slightly better than ItemKNN.</li>
  * <li>C++ Code: <a
  * href="http://www-users.cs.umn.edu/~xning/slim/html/index.html">Slim</a></li>
  * <li>Python Code: <a href=
@@ -52,8 +56,6 @@ import com.google.common.collect.Table;
  * <li>C# Code: <a href="">MyMediaLite: SLIM.cs</a></li>
  * <li>Friedman et al., Regularization Paths for Generalized Linear Models via
  * Coordinate Descent, Journal of Statistical Software, 2010.</li>
- * <li>Levy and Jack, Efficient Top-N Recommendation by Linear Regression,
- * RecSys 2013.</li>
  * </ul>
  * </p>
  * 
@@ -125,21 +127,22 @@ public class SLIM extends IterativeRecommender {
 				// find k-nearest neighbors
 				Map<Integer, Double> nns = nnsTable.row(j);
 
-				// update W_j by the coordinate descent update rule
+				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns.keySet()) {
 					if (j == i)
 						continue;
 
-					SparseVector qi = trainMatrix.column(i);
+					SparseVector Ri = trainMatrix.column(i);
 					double gradSum = 0;
-					for (VectorEntry ve : qi) {
+					for (VectorEntry ve : Ri) {
 						int u = ve.index();
-						double ruj = ve.get();
+						double rui = ve.get();
+						double ruj = trainMatrix.get(u, j);
 
-						gradSum += ruj - predict(u, j, i);
+						gradSum += rui * (ruj - predict(u, j, i));
 					}
 
-					double gradient = gradSum / qi.getCount();
+					double gradient = gradSum / Ri.getCount();
 
 					if (regL1 < Math.abs(gradient)) {
 						if (gradient > 0) {
@@ -167,7 +170,7 @@ public class SLIM extends IterativeRecommender {
 			int i = ve.index();
 			double rui = ve.get();
 			if (nns.containsKey(i) && i != excluded_item) {
-				pred += itemWeights.get(j, i) * rui;
+				pred += rui * itemWeights.get(i, j);
 			}
 		}
 
