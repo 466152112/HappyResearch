@@ -181,7 +181,19 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		return predict(u, j, -1);
+
+		double pred = 0;
+		Map<Integer, Double> nns = nnsTable.row(j);
+		SparseVector Ru = trainMatrix.row(u);
+
+		for (VectorEntry ve : Ru) {
+			int i = ve.index();
+			if (nns.containsKey(i)) {
+				pred += itemWeights.get(i, j);
+			}
+		}
+
+		return pred;
 	}
 
 	@Override
