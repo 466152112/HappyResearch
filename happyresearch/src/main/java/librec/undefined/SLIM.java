@@ -156,11 +156,11 @@ public class SLIM extends IterativeRecommender {
 						double ruj = trainMatrix.get(u, j);
 
 						gradSum += rui * (ruj - predict(u, j, i));
-						rateSum += rui * rui;
+						rateSum += rui * rui; // useful if data is not standardized
 					}
 
 					gradSum /= Ri.getCount();
-					rateSum /= Ri.getCount();
+					// rateSum /= Ri.getCount();
 
 					if (regL1 < Math.abs(gradSum)) {
 						if (gradSum > 0) {
@@ -185,8 +185,9 @@ public class SLIM extends IterativeRecommender {
 
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
-
-		double pred = 0;
+		SparseVector Rj = trainMatrix.column(j);
+		
+		double pred = Rj.getCount() > 0 ? Rj.mean() : globalMean; // beta_0
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
 			double rui = ve.get();
