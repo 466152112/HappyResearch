@@ -55,7 +55,7 @@ import com.google.common.collect.Multimap;
  * <li>Python Code: <a href=
  * "https://github.com/Mendeley/mrec/blob/master/mrec/item_similarity/slim.py"
  * >mrec: slim.py</a></li>
- * <li>C# Code: <a href="">MyMediaLite: SLIM.cs</a></li>
+ * <li>C# Code: MyMediaLite: SLIM.cs</li>
  * <li>Friedman et al., Regularization Paths for Generalized Linear Models via
  * Coordinate Descent, Journal of Statistical Software, 2010.</li>
  * </ul>
@@ -66,7 +66,7 @@ import com.google.common.collect.Multimap;
  */
 public class SLIM extends IterativeRecommender {
 
-	private DenseMatrix itemWeights; // ~ W
+	private DenseMatrix W; // ~ W
 	private int knn;
 
 	// item's nearest neighbors for kNN > 0
@@ -90,8 +90,8 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected void initModel() {
-		itemWeights = new DenseMatrix(numItems, numItems);
-		itemWeights.init();
+		W = new DenseMatrix(numItems, numItems);
+		W.init();
 
 		// standardize training matrix
 		trainMatrix.standardize(false);
@@ -103,7 +103,7 @@ public class SLIM extends IterativeRecommender {
 
 			for (int j = 0; j < numItems; j++) {
 				// set diagonal entries to 0
-				itemWeights.set(j, j, 0);
+				W.set(j, j, 0);
 
 				// find the k-nearest neighbors for each item
 				Map<Integer, Double> nns = itemCorrs.row(j).toMap();
@@ -117,7 +117,7 @@ public class SLIM extends IterativeRecommender {
 						nns.put(kv.getKey(), kv.getValue());
 				}
 
-				// put into the nns table
+				// put into the nns multimap
 				for (Entry<Integer, Double> en : nns.entrySet())
 					itemNNs.put(j, en.getKey());
 			}
@@ -126,7 +126,7 @@ public class SLIM extends IterativeRecommender {
 			allItems = trainMatrix.columns();
 
 			for (int j = 0; j < numItems; j++)
-				itemWeights.set(j, j, 0.0);
+				W.set(j, j, 0.0);
 		}
 	}
 
@@ -143,35 +143,39 @@ public class SLIM extends IterativeRecommender {
 				// find k-nearest neighbors
 				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 
+				// all entries rated on item j 
+				SparseVector Rj = trainMatrix.column(j);
+
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns) {
 					if (j == i)
 						continue;
 
-					SparseVector Ri = trainMatrix.column(i);
 					double gradSum = 0, rateSum = 0;
-					for (VectorEntry ve : Ri) {
-						int u = ve.index();
-						double rui = ve.get();
-						double ruj = trainMatrix.get(u, j);
+					for (VectorEntry ve : Rj) {
+						int u = ve.index(); // u should be all users who have rated item j
+						double ruj = ve.get();
+						double rui = trainMatrix.get(u, i);
 
-						gradSum += rui * (ruj - predict(u, j, i));
-						rateSum += rui * rui; // useful if data is not standardized
+						if (rui > 0) {
+							gradSum += rui * (ruj - predict(u, j, i));
+							rateSum += rui * rui; // useful if data is not standardized
+						}
 					}
 
-					gradSum /= Ri.getCount();
+					gradSum /= Rj.getCount();
 					// rateSum /= Ri.getCount();
 
 					if (regL1 < Math.abs(gradSum)) {
 						if (gradSum > 0) {
 							double update = (gradSum - regL1) / (regL2 + rateSum);
-							itemWeights.set(i, j, update);
+							W.set(i, j, update);
 						} else {
 							double update = (gradSum + regL1) / (regL2 + rateSum);
-							itemWeights.set(i, j, update);
+							W.set(i, j, update);
 						}
 					} else {
-						itemWeights.set(i, j, 0.0);
+						W.set(i, j, 0.0);
 					}
 				}
 			}
@@ -185,15 +189,12 @@ public class SLIM extends IterativeRecommender {
 
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
-		SparseVector Rj = trainMatrix.column(j);
-		
-		double pred = Rj.getCount() > 0 ? Rj.mean() : globalMean; // beta_0
-		for (VectorEntry ve : Ru) {
-			int i = ve.index();
-			double rui = ve.get();
-			if (nns.contains(i) && i != excluded_item) {
-				double wij = itemWeights.get(i, j);
-				pred += rui * wij;
+
+		double pred = 0;
+		for (int i : nns) {
+			if (Ru.contains(i) && i != excluded_item) {
+				double rui = Ru.get(i);
+				pred += rui * W.get(i, j);
 			}
 		}
 
@@ -206,14 +207,13 @@ public class SLIM extends IterativeRecommender {
 	}
 
 	protected double ranking_backup(int u, int j) {
-		double pred = 0;
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
-		for (VectorEntry ve : Ru) {
-			int i = ve.index();
-			if (nns.contains(i)) {
-				pred += itemWeights.get(i, j);
+		double pred = 0;
+		for (int i : nns) {
+			if (Ru.contains(i)) {
+				pred += W.get(i, j);
 			}
 		}
 
