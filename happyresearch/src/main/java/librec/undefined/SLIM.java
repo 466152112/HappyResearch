@@ -92,7 +92,7 @@ public class SLIM extends IterativeRecommender {
 		itemWeights = new DenseMatrix(numItems, numItems);
 		itemWeights.init();
 
-		// normalize training matrix
+		// standardize training matrix
 		trainMatrix.standardize(false);
 
 		if (knn > 0) {
@@ -219,7 +219,7 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	public String toString() {
 		return Strings.toString(
-				new Object[] { knn, (float) regL1, (float) regL2, cf.getString("similarity"), maxIters }, ",");
+				new Object[] { knn, (float) regL2, (float) regL1, cf.getString("similarity"), maxIters }, ",");
 	}
 
 }
