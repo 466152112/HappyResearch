@@ -47,8 +47,9 @@ import com.google.common.collect.Multimap;
  * <ul>
  * <li>Levy and Jack, Efficient Top-N Recommendation by Linear Regression, ISRS
  * 2013. This paper reports experimental results on the MovieLens (100K, 10M)
- * and Epinions datasets in terms of precision, MRR and HR@N. According to the
- * results, the performance of SLIM works only slightly better than ItemKNN.</li>
+ * and Epinions datasets in terms of precision, MRR and HR@N (i.e., Recall@N).
+ * According to the results, the performance of SLIM works only slightly better
+ * than ItemKNN.</li>
  * <li>C++ Code: <a
  * href="http://www-users.cs.umn.edu/~xning/slim/html/index.html">Slim</a></li>
  * <li>Python Code: <a href=
@@ -136,7 +137,7 @@ public class SLIM extends IterativeRecommender {
 			if (verbose)
 				Logs.debug("{} [{}] runs at iteration {}", algoName, fold, iter);
 
-			// computing W_j for each item j
+			// computing Wj for each item j
 			for (int j = 0; j < numItems; j++) {
 
 				// find k-nearest neighbors
@@ -177,31 +178,33 @@ public class SLIM extends IterativeRecommender {
 		}
 	}
 
+	/**
+	 * @return a prediction without the contribution of excludede_item
+	 */
 	protected double predict(int u, int j, int excluded_item) {
 
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
-		double sum = 0, weights = 0;
+		double pred = 0;
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
 			double rui = ve.get();
 			if (nns.contains(i) && i != excluded_item) {
 				double wij = itemWeights.get(i, j);
-				sum += rui * wij;
-				weights += Math.abs(wij);
+				pred += rui * wij;
 			}
 		}
 
-		return sum / weights; // TODO: test return sum only; 
+		return pred;
 	}
 
 	@Override
 	protected double predict(int u, int j) {
+		return predict(u, j, -1);
+	}
 
-		if (isRankingPred)
-			return predict(u, j, -1);
-
+	protected double ranking_backup(int u, int j) {
 		double pred = 0;
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
