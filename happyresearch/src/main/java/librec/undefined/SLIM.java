@@ -92,6 +92,9 @@ public class SLIM extends IterativeRecommender {
 		itemWeights = new DenseMatrix(numItems, numItems);
 		itemWeights.init();
 
+		// normalize training matrix
+		trainMatrix.standardize(false);
+
 		if (knn > 0) {
 			// find the nearest neighbors for each item based on item similarity
 			SymmMatrix itemCorrs = buildCorrs(false);
