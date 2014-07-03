@@ -131,13 +131,15 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected void buildModel() {
-		for (int iter = 1; iter <= maxIters; iter++) {
 
-			if (verbose)
-				Logs.debug("{} [{}] runs at iteration {}", algoName, fold, iter);
+		for (int j = 0; j < numItems; j++) {
 
 			// computing Wj for each item j
-			for (int j = 0; j < numItems; j++) {
+			for (int iter = 1; iter <= maxIters; iter++) {
+
+				if (verbose)
+					Logs.debug("{} [{}] runs item {}/{} at iteration {}/{}", algoName, fold, j, numItems, iter,
+							maxIters);
 
 				// find k-nearest neighbors
 				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
