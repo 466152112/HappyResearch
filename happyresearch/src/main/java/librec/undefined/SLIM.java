@@ -95,7 +95,7 @@ public class SLIM extends IterativeRecommender {
 		W.init();
 
 		// standardize training matrix
-		trainMatrix.standardize(false);
+		// trainMatrix.standardize(false);
 
 		if (knn > 0) {
 			// find the nearest neighbors for each item based on item similarity
@@ -137,8 +137,8 @@ public class SLIM extends IterativeRecommender {
 		// optimizing each coordinate
 		for (int j = 0; j < numItems; j++) {
 
-			if (verbose)
-				Logs.debug("{} [{}] runs at item {}/{} ", algoName, fold, j, numItems);
+			if (verbose && j % 10 == 0)
+				Logs.debug("{} [{}] runs at item {}/{} ", algoName, fold, j + 1, numItems);
 
 			// find k-nearest neighbors
 			Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
