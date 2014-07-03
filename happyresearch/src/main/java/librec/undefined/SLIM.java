@@ -22,6 +22,7 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
+import happy.coding.system.Debug;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,6 +33,7 @@ import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
+import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 import com.google.common.collect.HashMultimap;
@@ -132,37 +134,42 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void buildModel() {
 
+		// optimizing each coordinate
 		for (int j = 0; j < numItems; j++) {
+
+			if (verbose)
+				Logs.debug("{} [{}] runs at item {}/{} ", algoName, fold, j, numItems);
+
+			// find k-nearest neighbors
+			Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
+			nns.remove((Integer) j); // remove itself
 
 			// computing Wj for each item j
 			for (int iter = 1; iter <= maxIters; iter++) {
 
-				if (verbose)
-					Logs.debug("{} [{}] runs item {}/{} at iteration {}/{}", algoName, fold, j, numItems, iter,
-							maxIters);
-
-				// find k-nearest neighbors
-				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
-
-				// all entries rated on item j 
-				// SparseVector Rj = trainMatrix.column(j);
-
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns) {
-					if (j == i)
-						continue;
 
 					double gradSum = 0, rateSum = 0;
-					//for (VectorEntry ve : Rj) {
-					for (int u = 0; u < numUsers; u++) {
-						//int u = ve.index(); // u should be all users who have rated item j
-						//double ruj = ve.get();
-						double rui = trainMatrix.get(u, i);
-						double ruj = trainMatrix.get(u, j);
 
-						if (rui != 0) {
+					if (Debug.OFF) {
+						for (int u = 0; u < numUsers; u++) {
+							double rui = trainMatrix.get(u, i);
+							if (rui != 0) {
+								double ruj = trainMatrix.get(u, j);
+								gradSum += rui * (ruj - predict(u, j, i));
+								rateSum += rui * rui;
+							}
+						}
+					} else {
+						SparseVector Ri = trainMatrix.column(i);
+						for (VectorEntry ve : Ri) {
+							int u = ve.index();
+							double rui = ve.get();
+							double ruj = trainMatrix.get(u, j);
+
 							gradSum += rui * (ruj - predict(u, j, i));
-							rateSum += rui * rui; // useful if data is not standardized
+							rateSum += rui * rui;
 						}
 					}
 
