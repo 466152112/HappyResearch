@@ -142,13 +142,14 @@ public class SLIM extends IterativeRecommender {
 
 			// find k-nearest neighbors
 			Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
-			nns.remove((Integer) j); // remove itself
 
 			// computing Wj for each item j
 			for (int iter = 1; iter <= maxIters; iter++) {
 
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns) {
+					if (j == i)
+						continue;
 
 					double gradSum = 0, rateSum = 0;
 
@@ -167,9 +168,10 @@ public class SLIM extends IterativeRecommender {
 							int u = ve.index();
 							double rui = ve.get();
 							double ruj = trainMatrix.get(u, j);
-
-							gradSum += rui * (ruj - predict(u, j, i));
-							rateSum += rui * rui;
+							if (ruj != 0) {
+								gradSum += rui * (ruj - predict(u, j, i));
+								rateSum += rui * rui;
+							}
 						}
 					}
 
