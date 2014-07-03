@@ -143,7 +143,7 @@ public class SLIM extends IterativeRecommender {
 				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 
 				// all entries rated on item j 
-				SparseVector Rj = trainMatrix.column(j);
+				// SparseVector Rj = trainMatrix.column(j);
 
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns) {
@@ -155,17 +155,17 @@ public class SLIM extends IterativeRecommender {
 					for (int u = 0; u < numUsers; u++) {
 						//int u = ve.index(); // u should be all users who have rated item j
 						//double ruj = ve.get();
-						double ruj = trainMatrix.get(u, j);
 						double rui = trainMatrix.get(u, i);
+						double ruj = trainMatrix.get(u, j);
 
-						if (rui > 0) {
+						if (rui != 0) {
 							gradSum += rui * (ruj - predict(u, j, i));
 							rateSum += rui * rui; // useful if data is not standardized
 						}
 					}
 
-					gradSum /= Rj.getCount();
-					// rateSum /= Ri.getCount();
+					gradSum /= numUsers;
+					rateSum /= numUsers;
 
 					if (regL1 < Math.abs(gradSum)) {
 						if (gradSum > 0) {
@@ -192,10 +192,10 @@ public class SLIM extends IterativeRecommender {
 		SparseVector Ru = trainMatrix.row(u);
 
 		double pred = 0;
-		for (int i : nns) {
-			if (Ru.contains(i) && i != excluded_item) {
-				double rui = Ru.get(i);
-				pred += rui * W.get(i, j);
+		for (int k : nns) {
+			if (Ru.contains(k) && k != excluded_item) {
+				double ruk = Ru.get(k);
+				pred += ruk * W.get(k, j);
 			}
 		}
 
