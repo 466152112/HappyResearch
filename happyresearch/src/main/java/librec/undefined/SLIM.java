@@ -32,7 +32,6 @@ import librec.data.DenseMatrix;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
-import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 import com.google.common.collect.HashMultimap;
@@ -152,9 +151,11 @@ public class SLIM extends IterativeRecommender {
 						continue;
 
 					double gradSum = 0, rateSum = 0;
-					for (VectorEntry ve : Rj) {
-						int u = ve.index(); // u should be all users who have rated item j
-						double ruj = ve.get();
+					//for (VectorEntry ve : Rj) {
+					for (int u = 0; u < numUsers; u++) {
+						//int u = ve.index(); // u should be all users who have rated item j
+						//double ruj = ve.get();
+						double ruj = trainMatrix.get(u, j);
 						double rui = trainMatrix.get(u, i);
 
 						if (rui > 0) {
