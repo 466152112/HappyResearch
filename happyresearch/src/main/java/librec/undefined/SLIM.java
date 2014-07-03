@@ -92,7 +92,7 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void initModel() {
 		W = new DenseMatrix(numItems, numItems);
-		W.init(); // initial guesses
+		W.init(0.01); // initial guesses
 
 		// standardize training matrix
 		// trainMatrix.standardize(false);
@@ -133,11 +133,12 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected void buildModel() {
+		last_loss = 0;
 
 		// number of iteration cycles
 		for (int iter = 1; iter <= maxIters; iter++) {
 
-			errs = 0;
+			loss = 0;
 
 			// each cyclic iterates through coordinate direction
 			for (int j = 0; j < numItems; j++) {
@@ -150,7 +151,7 @@ public class SLIM extends IterativeRecommender {
 					if (j == i)
 						continue;
 
-					double gradSum = 0, rateSum = 0;
+					double gradSum = 0, rateSum = 0, errs = 0;
 
 					if (Debug.OFF) {
 						for (int u = 0; u < numUsers; u++) {
@@ -172,7 +173,7 @@ public class SLIM extends IterativeRecommender {
 							gradSum += rui * euj;
 							rateSum += rui * rui;
 
-							errs += euj * euj;
+							errs += (euj * euj) / numUsers;
 						}
 					}
 
@@ -180,7 +181,7 @@ public class SLIM extends IterativeRecommender {
 					rateSum /= numUsers;
 
 					double wij = W.get(i, j);
-					errs += 0.5 * regL2 * wij * wij + regL1 * wij;
+					loss += errs + 0.5 * regL2 * wij * wij + regL1 * wij;
 
 					if (regL1 < Math.abs(gradSum)) {
 						if (gradSum > 0) {
@@ -197,7 +198,10 @@ public class SLIM extends IterativeRecommender {
 			}
 
 			if (verbose)
-				Logs.debug("{} [{}] runs at iteration = {}, loss value = {}", algoName, fold, iter, errs);
+				Logs.debug("{} [{}] runs at iteration {}, loss = {}, delta_loss = {}", algoName, fold, iter, loss,
+						last_loss - loss);
+
+			last_loss = loss;
 		}
 	}
 
@@ -225,7 +229,7 @@ public class SLIM extends IterativeRecommender {
 		return predict(u, j, -1);
 	}
 
-	protected double ranking_backup(int u, int j) {
+	protected double ranking(int u, int j) {
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
