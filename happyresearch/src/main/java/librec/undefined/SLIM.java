@@ -92,7 +92,7 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void initModel() {
 		W = new DenseMatrix(numItems, numItems);
-		W.init();
+		W.init(); // initial guesses
 
 		// standardize training matrix
 		// trainMatrix.standardize(false);
@@ -134,17 +134,16 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void buildModel() {
 
-		// optimizing each coordinate
-		for (int j = 0; j < numItems; j++) {
+		// number of iteration cycles
+		for (int iter = 1; iter <= maxIters; iter++) {
 
-			if (verbose && j % 10 == 0)
-				Logs.debug("{} [{}] runs at item {}/{} ", algoName, fold, j + 1, numItems);
+			errs = 0;
 
-			// find k-nearest neighbors
-			Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
+			// each cyclic iterates through coordinate direction
+			for (int j = 0; j < numItems; j++) {
 
-			// computing Wj for each item j
-			for (int iter = 1; iter <= maxIters; iter++) {
+				// find k-nearest neighbors
+				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
 				for (Integer i : nns) {
@@ -168,15 +167,20 @@ public class SLIM extends IterativeRecommender {
 							int u = ve.index();
 							double rui = ve.get();
 							double ruj = trainMatrix.get(u, j);
-							if (ruj != 0) {
-								gradSum += rui * (ruj - predict(u, j, i));
-								rateSum += rui * rui;
-							}
+							double euj = ruj - predict(u, j, i);
+
+							gradSum += rui * euj;
+							rateSum += rui * rui;
+
+							errs += euj * euj;
 						}
 					}
 
 					gradSum /= numUsers;
 					rateSum /= numUsers;
+
+					double wij = W.get(i, j);
+					errs += 0.5 * regL2 * wij * wij + regL1 * wij;
 
 					if (regL1 < Math.abs(gradSum)) {
 						if (gradSum > 0) {
@@ -191,6 +195,9 @@ public class SLIM extends IterativeRecommender {
 					}
 				}
 			}
+
+			if (verbose)
+				Logs.debug("{} [{}] runs at iteration = {}, loss value = {}", algoName, fold, iter, errs);
 		}
 	}
 
