@@ -66,7 +66,7 @@ import com.google.common.collect.Multimap;
  */
 public class SLIM extends IterativeRecommender {
 
-	private DenseMatrix W; // ~ W
+	private DenseMatrix W; 
 	private int knn;
 
 	// item's nearest neighbors for kNN > 0
@@ -86,9 +86,6 @@ public class SLIM extends IterativeRecommender {
 
 		regL1 = cf.getDouble("SLIM.reg.l1");
 		regL2 = cf.getDouble("SLIM.reg.l2");
-
-		// cosine similarity
-		cf.setString("similarity", "cos-binary");
 	}
 
 	@Override
