@@ -40,7 +40,7 @@ public class DMF extends BaseMF {
 
 	@Override
 	protected void buildModel() {
-		for (int iter = 1; iter <= maxIters; iter++) {
+		for (int iter = 1; iter <= numIters; iter++) {
 
 			loss = 0;
 			errs = 0;

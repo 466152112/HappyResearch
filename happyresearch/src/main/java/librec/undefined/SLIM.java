@@ -50,14 +50,14 @@ import com.google.common.collect.Multimap;
  * and Epinions datasets in terms of precision, MRR and HR@N (i.e., Recall@N).
  * According to the results, the performance of SLIM works only slightly better
  * than ItemKNN.</li>
+ * <li>Friedman et al., Regularization Paths for Generalized Linear Models via
+ * Coordinate Descent, Journal of Statistical Software, 2010.</li>
  * <li>C++ Code: <a
  * href="http://www-users.cs.umn.edu/~xning/slim/html/index.html">Slim</a></li>
  * <li>Python Code: <a href=
  * "https://github.com/Mendeley/mrec/blob/master/mrec/item_similarity/slim.py"
  * >mrec: slim.py</a></li>
  * <li>C# Code: MyMediaLite: SLIM.cs</li>
- * <li>Friedman et al., Regularization Paths for Generalized Linear Models via
- * Coordinate Descent, Journal of Statistical Software, 2010.</li>
  * </ul>
  * </p>
  * 
@@ -91,10 +91,10 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void initModel() {
 		W = new DenseMatrix(numItems, numItems);
-		W.init(); // initial guesses
+		W.init(); // initial guesses: make smaller guesses (e.g., W.init(0.01)) to speed up training
 
-		// standardize training matrix
-		trainMatrix.standardize(false);
+		// optional: data standardization  
+		// trainMatrix.standardize(false);
 
 		if (knn > 0) {
 			// find the nearest neighbors for each item based on item similarity
@@ -135,11 +135,11 @@ public class SLIM extends IterativeRecommender {
 		last_loss = 0;
 
 		// number of iteration cycles
-		for (int iter = 1; iter <= maxIters; iter++) {
+		for (int iter = 1; iter <= numIters; iter++) {
 
 			loss = 0;
 
-			// each cyclic iterates through coordinate direction
+			// each cycle iterates through one coordinate direction
 			for (int j = 0; j < numItems; j++) {
 
 				// find k-nearest neighbors
@@ -218,19 +218,20 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected boolean isConverged(int iter) {
 		double delta_loss = last_loss - loss;
+		last_loss = loss;
 
-		if (verbose)
+		if (verbose) {
 			Logs.debug("{} [{}] runs at iteration {}, loss = {}, delta_loss = {}", algoName, fold, iter, loss,
 					delta_loss);
+		}
 
-		last_loss = loss;
 		return iter > 1 ? delta_loss < 1e-5 : false;
 	}
 
 	@Override
 	public String toString() {
 		return Strings.toString(
-				new Object[] { knn, (float) regL2, (float) regL1, cf.getString("similarity"), maxIters }, ",");
+				new Object[] { knn, (float) regL2, (float) regL1, cf.getString("similarity"), numIters }, ",");
 	}
 
 }
