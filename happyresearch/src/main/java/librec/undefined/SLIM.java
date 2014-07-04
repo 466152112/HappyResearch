@@ -66,7 +66,7 @@ import com.google.common.collect.Multimap;
  */
 public class SLIM extends IterativeRecommender {
 
-	private DenseMatrix W; 
+	private DenseMatrix W;
 	private int knn;
 
 	// item's nearest neighbors for kNN > 0
@@ -186,11 +186,8 @@ public class SLIM extends IterativeRecommender {
 				}
 			}
 
-			if (verbose)
-				Logs.debug("{} [{}] runs at iteration {}, loss = {}, delta_loss = {}", algoName, fold, iter, loss,
-						last_loss - loss);
-
-			last_loss = loss;
+			if (isConverged(iter))
+				break;
 		}
 	}
 
@@ -216,6 +213,19 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected double predict(int u, int j) {
 		return predict(u, j, -1);
+	}
+
+	@Override
+	protected boolean isConverged(int iter) {
+
+		double delta_loss = last_loss - loss;
+
+		if (verbose)
+			Logs.debug("{} [{}] runs at iteration {}, loss = {}, delta_loss = {}", algoName, fold, iter, loss,
+					delta_loss);
+
+		last_loss = loss;
+		return iter > 1 ? delta_loss < 1e-5 : false;
 	}
 
 	@Override
