@@ -217,7 +217,6 @@ public class SLIM extends IterativeRecommender {
 
 	@Override
 	protected boolean isConverged(int iter) {
-
 		double delta_loss = last_loss - loss;
 
 		if (verbose)
