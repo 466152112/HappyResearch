@@ -22,7 +22,6 @@ import happy.coding.io.KeyValPair;
 import happy.coding.io.Lists;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
-import happy.coding.system.Debug;
 
 import java.util.Collection;
 import java.util.List;
@@ -87,6 +86,9 @@ public class SLIM extends IterativeRecommender {
 
 		regL1 = cf.getDouble("SLIM.reg.l1");
 		regL2 = cf.getDouble("SLIM.reg.l2");
+
+		// cosine similarity
+		cf.setString("similarity", "cos-binary");
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class SLIM extends IterativeRecommender {
 		W.init(); // initial guesses
 
 		// standardize training matrix
-		// trainMatrix.standardize(false);
+		trainMatrix.standardize(false);
 
 		if (knn > 0) {
 			// find the nearest neighbors for each item based on item similarity
@@ -147,38 +149,27 @@ public class SLIM extends IterativeRecommender {
 				Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 
 				// for each nearest neighbor i, update wij by the coordinate descent update rule
+				// it is OK if i==j, since wjj = 0; 
 				for (Integer i : nns) {
-					if (j == i)
-						continue;
 
 					double gradSum = 0, rateSum = 0, errs = 0;
 
-					if (Debug.OFF) {
-						for (int u = 0; u < numUsers; u++) {
-							double rui = trainMatrix.get(u, i);
-							if (rui != 0) {
-								double ruj = trainMatrix.get(u, j);
-								gradSum += rui * (ruj - predict(u, j, i));
-								rateSum += rui * rui;
-							}
-						}
-					} else {
-						SparseVector Ri = trainMatrix.column(i);
-						for (VectorEntry ve : Ri) {
-							int u = ve.index();
-							double rui = ve.get();
-							double ruj = trainMatrix.get(u, j);
-							double euj = ruj - predict(u, j, i);
+					SparseVector Ri = trainMatrix.column(i);
+					int N = Ri.getCount();
+					for (VectorEntry ve : Ri) {
+						int u = ve.index();
+						double rui = ve.get();
+						double ruj = trainMatrix.get(u, j);
+						double euj = ruj - predict(u, j, i);
 
-							gradSum += rui * euj;
-							rateSum += rui * rui;
+						gradSum += rui * euj;
+						rateSum += rui * rui;
 
-							errs += (euj * euj) / numUsers;
-						}
+						errs += euj * euj;
 					}
-
-					gradSum /= numUsers;
-					rateSum /= numUsers;
+					gradSum /= N;
+					rateSum /= N;
+					errs /= N;
 
 					double wij = W.get(i, j);
 					loss += errs + 0.5 * regL2 * wij * wij + regL1 * wij;
@@ -188,6 +179,7 @@ public class SLIM extends IterativeRecommender {
 							double update = (gradSum - regL1) / (regL2 + rateSum);
 							W.set(i, j, update);
 						} else {
+							// Just one doubt: in this case, wij<0, however, the paper says wij>=0. How to gaurantee this?
 							double update = (gradSum + regL1) / (regL2 + rateSum);
 							W.set(i, j, update);
 						}
@@ -227,20 +219,6 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected double predict(int u, int j) {
 		return predict(u, j, -1);
-	}
-
-	protected double ranking_backup(int u, int j) {
-		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
-		SparseVector Ru = trainMatrix.row(u);
-
-		double pred = 0;
-		for (int i : nns) {
-			if (Ru.contains(i)) {
-				pred += W.get(i, j);
-			}
-		}
-
-		return pred;
 	}
 
 	@Override

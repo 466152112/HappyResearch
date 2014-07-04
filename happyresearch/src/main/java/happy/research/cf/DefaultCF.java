@@ -398,7 +398,7 @@ public abstract class DefaultCF extends AbstractCF {
 						}
 
 						double mean = Stats.mean(rs);
-						double deviation = Stats.sdp(rs, mean);
+						double deviation = Stats.sd(rs, mean);
 						double conf = 0;
 						Map<Double, Double> hist = new HashMap<>();
 
@@ -433,7 +433,7 @@ public abstract class DefaultCF extends AbstractCF {
 							}
 
 							mean = Stats.mean(ds);
-							deviation = Stats.sdp(ds, mean);
+							deviation = Stats.sd(ds, mean);
 
 							conf = 1.0 / (1.0 + Math.exp(-total / 2.0));
 							//conf = Maths.log(1 + total, 100);
