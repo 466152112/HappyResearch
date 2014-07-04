@@ -92,7 +92,7 @@ public class SLIM extends IterativeRecommender {
 	@Override
 	protected void initModel() {
 		W = new DenseMatrix(numItems, numItems);
-		W.init(0.01); // initial guesses
+		W.init(); // initial guesses
 
 		// standardize training matrix
 		// trainMatrix.standardize(false);
@@ -229,7 +229,7 @@ public class SLIM extends IterativeRecommender {
 		return predict(u, j, -1);
 	}
 
-	protected double ranking(int u, int j) {
+	protected double ranking_backup(int u, int j) {
 		Collection<Integer> nns = knn > 0 ? itemNNs.get(j) : allItems;
 		SparseVector Ru = trainMatrix.row(u);
 
