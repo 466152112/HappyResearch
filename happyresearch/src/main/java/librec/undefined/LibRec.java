@@ -50,6 +50,7 @@ import librec.ranking.BPRMF;
 import librec.ranking.CLiMF;
 import librec.ranking.RankALS;
 import librec.ranking.RankSGD;
+import librec.ranking.SLIM;
 import librec.ranking.WRMF;
 import librec.rating.BPMF;
 import librec.rating.BiasedMF;
@@ -261,8 +262,6 @@ public class LibRec {
 		/* ongoing */
 		case "trustsvd":
 			return new TrustSVD(trainMatrix, testMatrix, fold);
-		case "slim":
-			return new SLIM(trainMatrix, testMatrix, fold);
 		case "trustsvd2":
 			return new TrustSVD2(trainMatrix, testMatrix, fold);
 		case "rbmf":
@@ -288,6 +287,8 @@ public class LibRec {
 			return new BPRMF(trainMatrix, testMatrix, fold);
 		case "wrmf":
 			return new WRMF(trainMatrix, testMatrix, fold);
+		case "slim":
+			return new SLIM(trainMatrix, testMatrix, fold);
 
 			/* user ratings */
 		case "userknn":
