@@ -26,7 +26,9 @@ import librec.intf.IterativeRecommender;
  * 
  * <p>
  * This method aims to optimzie the NDCG measure. Original implementation in
- * Matlab: http://ttic.uchicago.edu/~nati/mmmf/code.html
+ * Matlab: <a
+ * href="http://ttic.uchicago.edu/~nati/mmmf/code.html">http://ttic.uchicago
+ * .edu/~nati/mmmf/code.html</a>
  * </p>
  * 
  * <p>
