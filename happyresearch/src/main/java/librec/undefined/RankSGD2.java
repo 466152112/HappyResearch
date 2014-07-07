@@ -23,6 +23,7 @@ import happy.coding.io.Lists;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,31 +83,41 @@ public class RankSGD2 extends IterativeRecommender {
 			for (int u : trainMatrix.rows()) {
 
 				SparseVector Ru = trainMatrix.row(u);
+
+				// Sample unrated items
+				List<Integer> unRatedItems = new ArrayList<>();
+				double ratio = 1.0;
+				int size = (int) (Ru.getCount() * ratio);
+				for (int n = 0; n < size; n++) {
+					int j = -1;
+					while (true) {
+						// draw an item j with probability proportional to popularity
+						double sum = 0, rand = Randoms.random();
+						for (KeyValPair<Integer> en : itemProbs) {
+							int k = en.getKey();
+							double prob = en.getValue();
+
+							sum += prob;
+							if (sum >= rand) {
+								j = k;
+								break;
+							}
+						}
+
+						// ensure that it is unrated by user u
+						if (!Ru.contains(j)) {
+							unRatedItems.add(j);
+							break;
+						}
+					}
+				}
+
 				for (VectorEntry ve : Ru) {
 					// each rated item i
 					int i = ve.index();
 					double rui = ve.get();
 
-					for (int n = 0; n < 5; n++) {
-						int j = -1;
-						while (true) {
-							// draw an item j with probability proportional to popularity
-							double sum = 0, rand = Randoms.random();
-							for (KeyValPair<Integer> en : itemProbs) {
-								int k = en.getKey();
-								double prob = en.getValue();
-
-								sum += prob;
-								if (sum >= rand) {
-									j = k;
-									break;
-								}
-							}
-
-							// ensure that it is unrated by user u
-							if (!Ru.contains(j))
-								break;
-						}
+					for (int j: unRatedItems) {
 						double ruj = 0;
 
 						// compute predictions
