@@ -18,6 +18,7 @@
 
 package librec.undefined;
 
+import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
 import java.util.List;
@@ -44,6 +45,8 @@ public class FISM extends IterativeRecommender {
 	private double rho, alpha;
 	private int nnz;
 
+	private double lambda, beta, gamma;
+
 	public FISM(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
@@ -65,6 +68,10 @@ public class FISM extends IterativeRecommender {
 		nnz = trainMatrix.size();
 		rho = cf.getDouble("FISM.rho");
 		alpha = cf.getDouble("FISM.alpha");
+
+		lambda = cf.getDouble("FISM.lambda");
+		beta = cf.getDouble("FISM.beta");
+		gamma = cf.getDouble("FISM.gamma");
 
 		// pre-processing: binarize training data
 		// super.binary(trainMatrix);
@@ -141,12 +148,12 @@ public class FISM extends IterativeRecommender {
 				loss += euj * euj;
 
 				// update bu
-				userBiases.add(u, -lRate * (euj + regU * bu));
+				userBiases.add(u, -lRate * (euj + lambda * bu));
 
 				// update bj
-				itemBiases.add(j, -lRate * (euj + regI * bj));
+				itemBiases.add(j, -lRate * (euj + gamma * bj));
 
-				loss += regU * bu * bu + regI * bj * bj;
+				loss += lambda * bu * bu + gamma * bj * bj;
 
 				// update qjf
 				for (int f = 0; f < numFactors; f++) {
@@ -160,10 +167,10 @@ public class FISM extends IterativeRecommender {
 						}
 					}
 
-					double delta = euj * wu * sum_i + regI * qjf;
+					double delta = euj * wu * sum_i + beta * qjf;
 					QS.add(j, f, -lRate * delta);
 
-					loss += regI * qjf * qjf;
+					loss += beta * qjf * qjf;
 				}
 
 				// update pif
@@ -172,10 +179,10 @@ public class FISM extends IterativeRecommender {
 					if (i != j) {
 						for (int f = 0; f < numFactors; f++) {
 							double pif = P.get(i, f);
-							double delta = euj * wu * Q.get(j, f) + regI * pif;
+							double delta = euj * wu * Q.get(j, f) + beta * pif;
 							PS.add(i, f, -lRate * delta);
 
-							loss += regI * pif * pif;
+							loss += beta * pif * pif;
 						}
 					}
 				}
@@ -210,6 +217,6 @@ public class FISM extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + "," + (float) rho + "," + (float) alpha;
+		return super.toString() + "," + Strings.toString(new Object[]{(float)rho, (float)alpha, (float)lambda, (float)beta, (float)gamma}, ",");
 	}
 }
