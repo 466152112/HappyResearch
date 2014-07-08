@@ -57,13 +57,13 @@ public class FISM extends IterativeRecommender {
 	protected void initModel() {
 		P = new DenseMatrix(numItems, numFactors);
 		Q = new DenseMatrix(numItems, numFactors);
-		P.init();
-		Q.init();
+		P.init(0.01);
+		Q.init(0.01);
 
 		userBiases = new DenseVector(numUsers);
 		itemBiases = new DenseVector(numItems);
-		userBiases.init();
-		itemBiases.init();
+		userBiases.init(0.01);
+		itemBiases.init(0.01);
 
 		nnz = trainMatrix.size();
 		rho = cf.getDouble("FISM.rho");
@@ -74,7 +74,7 @@ public class FISM extends IterativeRecommender {
 		gamma = cf.getDouble("FISM.gamma");
 
 		// pre-processing: binarize training data
-		// super.binary(trainMatrix);
+		super.binary(trainMatrix);
 	}
 
 	@Override
@@ -95,10 +95,10 @@ public class FISM extends IterativeRecommender {
 			// new training data by sampling negative values
 			Table<Integer, Integer, Double> R = trainMatrix.getDataTable();
 
-			// make a random sample of negative feedback 
+			// make a random sample of negative feedback (total - nnz)
 			List<Integer> indices = null;
 			try {
-				indices = Randoms.randInts(sampleSize, 0, totalSize - sampleSize);
+				indices = Randoms.randInts(sampleSize, 0, totalSize - nnz);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -217,6 +217,9 @@ public class FISM extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + "," + Strings.toString(new Object[]{(float)rho, (float)alpha, (float)lambda, (float)beta, (float)gamma}, ",");
+		return super.toString()
+				+ ","
+				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) lambda, (float) beta,
+						(float) gamma }, ",");
 	}
 }
