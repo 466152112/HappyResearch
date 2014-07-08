@@ -97,6 +97,7 @@ public class FISM extends IterativeRecommender {
 				e.printStackTrace();
 			}
 			int index = 0, count = 0;
+			boolean isDone = false;
 			for (int u = 0; u < numUsers; u++) {
 				for (int j = 0; j < numItems; j++) {
 					double ruj = trainMatrix.get(u, j);
@@ -106,8 +107,14 @@ public class FISM extends IterativeRecommender {
 					if (count++ == indices.get(index)) {
 						R.put(u, j, 0.0);
 						index++;
+						if (index >= indices.size()) {
+							isDone = true;
+							break;
+						}
 					}
 				}
+				if (isDone)
+					break;
 			}
 
 			// update throughout each user-item-rating (u, j, ruj) cell 
