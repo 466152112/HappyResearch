@@ -18,7 +18,6 @@
 
 package librec.undefined;
 
-import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 
 import java.util.List;
@@ -211,6 +210,6 @@ public class FISM extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + Strings.toString(new Object[] { (float) rho, (float) alpha }, ",");
+		return super.toString() + "," + (float) rho + "," + (float) alpha;
 	}
 }
