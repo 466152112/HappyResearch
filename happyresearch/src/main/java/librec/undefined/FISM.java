@@ -20,6 +20,9 @@ package librec.undefined;
 
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
+
+import java.util.List;
+
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
@@ -87,9 +90,9 @@ public class FISM extends IterativeRecommender {
 			Table<Integer, Integer, Double> R = trainMatrix.getDataTable();
 
 			// make a random sample of negative feedback 
-			int[] indices = null;
+			List<Integer> indices = null;
 			try {
-				indices = Randoms.nextNoRepeatIntArray(sampleSize, totalSize - sampleSize);
+				indices = Randoms.randInts(sampleSize, 0, totalSize - sampleSize);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -100,7 +103,7 @@ public class FISM extends IterativeRecommender {
 					if (ruj != 0)
 						continue; // rated items
 
-					if (count++ == indices[index]) {
+					if (count++ == indices.get(index)) {
 						R.put(u, j, 0.0);
 						index++;
 					}
@@ -133,7 +136,7 @@ public class FISM extends IterativeRecommender {
 
 				// update bu
 				userBiases.add(u, -lRate * (euj + regU * bu));
-				
+
 				// update bj
 				itemBiases.add(j, -lRate * (euj + regI * bj));
 
@@ -201,6 +204,6 @@ public class FISM extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binThold, (float) lRate, numIters }, ",");
+		return super.toString() + Strings.toString(new Object[] { (float) rho, (float) alpha }, ",");
 	}
 }
