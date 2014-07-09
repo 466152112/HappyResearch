@@ -106,7 +106,7 @@ public class FISMauc extends IterativeRecommender {
 					double wu = Math.pow(Ru.getCount() - 1, -alpha);
 					double[] x = new double[numFactors];
 
-					// for each unrated item
+					// update for each unrated item
 					for (int j : unratedItems) {
 
 						double sum_i = 0, sum_j = 0;
@@ -161,7 +161,7 @@ public class FISMauc extends IterativeRecommender {
 						}
 					}
 
-					// for each rated item 
+					// update for each rated item 
 					for (int j : ratedItems) {
 						if (j != i) {
 							for (int f = 0; f < numFactors; f++) {
