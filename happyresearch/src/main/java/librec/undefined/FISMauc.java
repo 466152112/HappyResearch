@@ -80,13 +80,14 @@ public class FISMauc extends IterativeRecommender {
 			// update throughout each user-item-rating (u, j, ruj) cell 
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
+				int[] ratedItems = Ru.getIndex();
 
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
 					double rui = ve.get();
 
 					// make a random sample of negative feedback (total - nnz)
-					List<Integer> indices = null, items = new ArrayList<>();
+					List<Integer> indices = null, unratedItems = new ArrayList<>();
 					try {
 						indices = Randoms.randInts(rho, 0, numItems - Ru.getCount());
 					} catch (Exception e) {
@@ -95,7 +96,7 @@ public class FISMauc extends IterativeRecommender {
 					int index = 0, count = 0;
 					for (int j = 0; j < numItems; j++) {
 						if (!Ru.contains(j) && count++ == indices.get(index)) {
-							items.add(j);
+							unratedItems.add(j);
 							index++;
 							if (index >= indices.size())
 								break;
@@ -104,20 +105,35 @@ public class FISMauc extends IterativeRecommender {
 
 					double wu = Math.pow(Ru.getCount() - 1, -alpha);
 					double[] x = new double[numFactors];
-					for (int j : items) {
 
-						double pui = predict(u, i), puj = predict(u, j), ruj = 0;
+					// for each unrated item
+					for (int j : unratedItems) {
+
+						double sum_i = 0, sum_j = 0;
+						for (int k : ratedItems) {
+							// for test, i and j will be always unequal as j is unrated
+							if (i != k)
+								sum_i += DenseMatrix.rowMult(P, k, Q, i);
+
+							sum_j += DenseMatrix.rowMult(P, k, Q, j);
+						}
+
+						double bi = itemBiases.get(i), bj = itemBiases.get(j);
+
+						double pui = bi + wu * sum_i;
+						double puj = bj + Math.pow(Ru.getCount(), -alpha) * sum_j;
+						double ruj = 0;
+
+						// double pui = predict(u, i), puj = predict(u, j), ruj = 0;
 						double eij = (rui - ruj) - (pui - puj);
 
 						errs += eij * eij;
 						loss += eij * eij;
 
 						// update bi
-						double bi = itemBiases.get(i);
 						itemBiases.add(i, lRate * (eij - regGamma * bi));
 
 						// update bj
-						double bj = itemBiases.get(j);
 						itemBiases.add(j, -lRate * (eij - regGamma * bj));
 
 						loss += regGamma * bi * bi + regGamma * bj * bj;
@@ -127,8 +143,7 @@ public class FISMauc extends IterativeRecommender {
 							double qif = Q.get(i, f), qjf = Q.get(j, f);
 
 							double sum_k = 0;
-							for (VectorEntry vk : Ru) {
-								int k = vk.index();
+							for (int k : ratedItems) {
 								if (k != i) {
 									sum_k += P.get(k, f);
 								}
@@ -146,8 +161,8 @@ public class FISMauc extends IterativeRecommender {
 						}
 					}
 
-					for (VectorEntry vk : Ru) {
-						int j = vk.index();
+					// for each rated item 
+					for (int j : ratedItems) {
 						if (j != i) {
 							for (int f = 0; f < numFactors; f++) {
 								double pjf = P.get(j, f);
