@@ -40,14 +40,14 @@ import com.google.common.collect.Table.Cell;
  * @author guoguibing
  * 
  */
-public class FISM extends IterativeRecommender {
+public class FISMrmse extends IterativeRecommender {
 
 	private double rho, alpha;
 	private int nnz;
 
 	private double regLambda, regBeta, regGamma;
 
-	public FISM(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
+	public FISMrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
 		isRankingPred = true;

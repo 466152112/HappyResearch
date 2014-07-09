@@ -94,11 +94,7 @@ public class FISMauc extends IterativeRecommender {
 					}
 					int index = 0, count = 0;
 					for (int j = 0; j < numItems; j++) {
-						double ruj = trainMatrix.get(u, j);
-						if (ruj != 0)
-							continue; // rated items
-
-						if (count++ == indices.get(index)) {
+						if (!Ru.contains(j) && count++ == indices.get(index)) {
 							items.add(j);
 							index++;
 							if (index >= indices.size())
@@ -142,7 +138,7 @@ public class FISMauc extends IterativeRecommender {
 							Q.add(i, f, lRate * delta_i);
 
 							double delta_j = eij * wu * sum_k - regBeta * qjf;
-							Q.add(j, f, lRate * delta_j);
+							Q.add(j, f, -lRate * delta_j);
 
 							x[f] += eij * (qif - qjf);
 
@@ -159,7 +155,7 @@ public class FISMauc extends IterativeRecommender {
 
 								P.add(j, f, lRate * delta);
 
-								loss += regBeta * pjf;
+								loss += regBeta * pjf * pjf;
 							}
 						}
 					}
