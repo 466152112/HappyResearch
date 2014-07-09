@@ -45,7 +45,7 @@ public class FISM extends IterativeRecommender {
 	private double rho, alpha;
 	private int nnz;
 
-	private double lambda, beta, gamma;
+	private double regLambda, regBeta, regGamma;
 
 	public FISM(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -69,9 +69,9 @@ public class FISM extends IterativeRecommender {
 		rho = cf.getDouble("FISM.rho");
 		alpha = cf.getDouble("FISM.alpha");
 
-		lambda = cf.getDouble("FISM.lambda");
-		beta = cf.getDouble("FISM.beta");
-		gamma = cf.getDouble("FISM.gamma");
+		regLambda = cf.getDouble("FISM.reg.lambda");
+		regBeta = cf.getDouble("FISM.reg.beta");
+		regGamma = cf.getDouble("FISM.reg.gamma");
 
 		// pre-processing: binarize training data
 		super.binary(trainMatrix);
@@ -133,14 +133,19 @@ public class FISM extends IterativeRecommender {
 				SparseVector Ru = trainMatrix.row(u);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
-				double pred = bu + bj, sum_ij = 0;
-				double wu = Math.pow(Ru.getCount() - 1, -alpha);
+				double sum_ij = 0;
+				int cnt = 0;
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
-					if (i != j)
+					// for training, i and j should be equal as j may be rated or unrated
+					if (i != j) {
 						sum_ij += DenseMatrix.rowMult(P, i, Q, j);
+						cnt++;
+					}
 				}
-				pred += wu * sum_ij;
+
+				double wu = Math.pow(cnt, -alpha);
+				double pred = bu + bj + wu * sum_ij;
 
 				double euj = pred - ruj;
 
@@ -148,12 +153,12 @@ public class FISM extends IterativeRecommender {
 				loss += euj * euj;
 
 				// update bu
-				userBiases.add(u, -lRate * (euj + lambda * bu));
+				userBiases.add(u, -lRate * (euj + regLambda * bu));
 
 				// update bj
-				itemBiases.add(j, -lRate * (euj + gamma * bj));
+				itemBiases.add(j, -lRate * (euj + regGamma * bj));
 
-				loss += lambda * bu * bu + gamma * bj * bj;
+				loss += regLambda * bu * bu + regGamma * bj * bj;
 
 				// update qjf
 				for (int f = 0; f < numFactors; f++) {
@@ -167,10 +172,10 @@ public class FISM extends IterativeRecommender {
 						}
 					}
 
-					double delta = euj * wu * sum_i + beta * qjf;
+					double delta = euj * wu * sum_i + regBeta * qjf;
 					QS.add(j, f, -lRate * delta);
 
-					loss += beta * qjf * qjf;
+					loss += regBeta * qjf * qjf;
 				}
 
 				// update pif
@@ -179,10 +184,10 @@ public class FISM extends IterativeRecommender {
 					if (i != j) {
 						for (int f = 0; f < numFactors; f++) {
 							double pif = P.get(i, f);
-							double delta = euj * wu * Q.get(j, f) + beta * pif;
+							double delta = euj * wu * Q.get(j, f) + regBeta * pif;
 							PS.add(i, f, -lRate * delta);
 
-							loss += beta * pif * pif;
+							loss += regBeta * pif * pif;
 						}
 					}
 				}
@@ -204,22 +209,26 @@ public class FISM extends IterativeRecommender {
 		double pred = userBiases.get(u) + itemBiases.get(j);
 
 		double sum = 0;
+		int count = 0;
+		
 		SparseVector Ru = trainMatrix.row(u);
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
+			// for test, i and j will be always unequal as j is unrated
 			if (i != j) {
 				sum += DenseMatrix.rowMult(P, i, Q, j);
+				count++;
 			}
 		}
 
-		return pred + Math.pow(Ru.getCount() - 1, -alpha) * sum;
+		return pred + Math.pow(count, -alpha) * sum;
 	}
 
 	@Override
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) lambda, (float) beta,
-						(float) gamma }, ",");
+				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) regLambda, (float) regBeta,
+						(float) regGamma }, ",");
 	}
 }

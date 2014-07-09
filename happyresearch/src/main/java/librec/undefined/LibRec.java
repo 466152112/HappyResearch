@@ -267,6 +267,8 @@ public class LibRec {
 			return new RBMF(trainMatrix, testMatrix, fold);
 		case "fism":
 			return new FISM(trainMatrix, testMatrix, fold);
+		case "fismauc":
+			return new FISMauc(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
