@@ -59,7 +59,7 @@ public class FISMauc extends IterativeRecommender {
 		itemBiases = new DenseVector(numItems);
 		itemBiases.init(0.01);
 
-		rho = (int) cf.getDouble("FISM.rho");
+		rho = cf.getInt("FISM.rho");
 		alpha = cf.getDouble("FISM.alpha");
 
 		regBeta = cf.getDouble("FISM.reg.beta");
