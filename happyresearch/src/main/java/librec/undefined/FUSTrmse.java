@@ -28,7 +28,7 @@ import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.VectorEntry;
-import librec.intf.IterativeRecommender;
+import librec.intf.SocialRecommender;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
@@ -39,14 +39,14 @@ import com.google.common.collect.Table.Cell;
  * @author guoguibing
  * 
  */
-public class FUSMrmse extends IterativeRecommender {
+public class FUSTrmse extends SocialRecommender {
 
-	private double rho, alpha;
+	private double rho, alpha, tau;
 	private int nnz;
 
 	private double regLambda, regBeta, regGamma;
 
-	public FUSMrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
+	public FUSTrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
 		isRankingPred = true;
@@ -67,6 +67,7 @@ public class FUSMrmse extends IterativeRecommender {
 		nnz = trainMatrix.size();
 		rho = cf.getDouble("FISM.rho");
 		alpha = cf.getDouble("FISM.alpha");
+		tau = cf.getDouble("FUST.trust.tau");
 
 		regLambda = cf.getDouble("FISM.reg.lambda");
 		regBeta = cf.getDouble("FISM.reg.beta");
@@ -132,18 +133,19 @@ public class FUSMrmse extends IterativeRecommender {
 				SparseVector Rj = trainMatrix.column(j);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
-				double sum_vu = 0;
-				int cnt = 0;
+				double sum_vu = 0, sum_t = 0;
 				for (VectorEntry ve : Rj) {
 					int v = ve.index();
 					// for training, i and j should be equal as j may be rated or unrated
 					if (v != u) {
-						sum_vu += DenseMatrix.rowMult(P, v, Q, u);
-						cnt++;
+						double tuv = Math.pow(1 + socialMatrix.get(u, v), tau);
+
+						sum_vu += tuv * DenseMatrix.rowMult(P, v, Q, u);
+						sum_t += tuv;
 					}
 				}
 
-				double wu = cnt > 0 ? Math.pow(cnt, -alpha) : 0;
+				double wu = sum_t > 0 ? Math.pow(sum_t, -alpha) : 0;
 				double pred = bu + bj + wu * sum_vu;
 
 				double euj = pred - ruj;
@@ -167,7 +169,8 @@ public class FUSMrmse extends IterativeRecommender {
 					for (VectorEntry ve : Rj) {
 						int v = ve.index();
 						if (v != u) {
-							sum_v += P.get(v, f);
+							double tuv = socialMatrix.get(u, v);
+							sum_v += Math.pow(1 + tuv, tau) * P.get(v, f);
 						}
 					}
 
@@ -183,7 +186,8 @@ public class FUSMrmse extends IterativeRecommender {
 					if (v != u) {
 						for (int f = 0; f < numFactors; f++) {
 							double pvf = P.get(v, f);
-							double delta = euj * wu * Q.get(u, f) + regBeta * pvf;
+							double tuv = socialMatrix.get(u, v);
+							double delta = euj * wu * Math.pow(1 + tuv, tau) * Q.get(u, f) + regBeta * pvf;
 							PS.add(v, f, -lRate * delta);
 
 							loss += regBeta * pvf * pvf;
@@ -207,27 +211,27 @@ public class FUSMrmse extends IterativeRecommender {
 	protected double predict(int u, int j) {
 		double pred = userBiases.get(u) + itemBiases.get(j);
 
-		double sum = 0;
-		int count = 0;
+		double sum = 0, sum_t = 0;
 
 		SparseVector Rj = trainMatrix.column(j);
 		for (VectorEntry ve : Rj) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
 			if (v != u) {
-				sum += DenseMatrix.rowMult(P, v, Q, u);
-				count++;
+				double tuv = Math.pow(socialMatrix.get(u, v) + 1, tau);
+				sum += tuv * DenseMatrix.rowMult(P, v, Q, u);
+				sum_t += tuv;
 			}
 		}
 
-		return pred + Math.pow(count, -alpha) * sum;
+		return pred + Math.pow(sum_t, -alpha) * sum;
 	}
 
 	@Override
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) regLambda, (float) regBeta,
-						(float) regGamma }, ",");
+				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) tau, (float) regLambda,
+						(float) regBeta, (float) regGamma }, ",");
 	}
 }
