@@ -28,7 +28,7 @@ import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.VectorEntry;
-import librec.intf.IterativeRecommender;
+import librec.intf.SocialRecommender;
 
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
@@ -39,9 +39,9 @@ import com.google.common.collect.Table.Cell;
  * @author guoguibing
  * 
  */
-public class FUSMrmse extends IterativeRecommender {
+public class FUSMrmse extends SocialRecommender {
 
-	private double rho, alpha;
+	private double rho, alpha, tau;
 	private int nnz;
 
 	private double regLambda, regBeta, regGamma;
@@ -67,6 +67,7 @@ public class FUSMrmse extends IterativeRecommender {
 		nnz = trainMatrix.size();
 		rho = cf.getDouble("FISM.rho");
 		alpha = cf.getDouble("FISM.alpha");
+		tau = cf.getDouble("FUSM.trust.tau");
 
 		regLambda = cf.getDouble("FISM.reg.lambda");
 		regBeta = cf.getDouble("FISM.reg.beta");
@@ -80,7 +81,7 @@ public class FUSMrmse extends IterativeRecommender {
 	protected void buildModel() {
 
 		int sampleSize = (int) (rho * nnz);
-		int totalSize = numUsers * numItems;
+		int totalSize = trainMatrix.numRows() * numItems;
 
 		for (int iter = 1; iter <= numIters; iter++) {
 
@@ -103,7 +104,7 @@ public class FUSMrmse extends IterativeRecommender {
 			}
 			int index = 0, count = 0;
 			boolean isDone = false;
-			for (int u = 0; u < numUsers; u++) {
+			for (int u = 0; u < trainMatrix.numRows(); u++) {
 				for (int j = 0; j < numItems; j++) {
 					double ruj = trainMatrix.get(u, j);
 					if (ruj != 0)
@@ -138,12 +139,13 @@ public class FUSMrmse extends IterativeRecommender {
 					int v = ve.index();
 					// for training, i and j should be equal as j may be rated or unrated
 					if (v != u) {
-						sum_vu += DenseMatrix.rowMult(P, v, Q, u);
+						double tuv = socialMatrix.get(u, v);
+						sum_vu += Math.pow(1 + tuv, tau) * DenseMatrix.rowMult(P, v, Q, u);
 						cnt++;
 					}
 				}
 
-				double wu = Math.pow(cnt, -alpha);
+				double wu = cnt > 0 ? Math.pow(cnt, -alpha) : 0;
 				double pred = bu + bj + wu * sum_vu;
 
 				double euj = pred - ruj;
@@ -167,7 +169,8 @@ public class FUSMrmse extends IterativeRecommender {
 					for (VectorEntry ve : Rj) {
 						int v = ve.index();
 						if (v != u) {
-							sum_v += P.get(v, f);
+							double tuv = socialMatrix.get(u, v);
+							sum_v += Math.pow(1 + tuv, tau) * P.get(v, f);
 						}
 					}
 
@@ -183,7 +186,8 @@ public class FUSMrmse extends IterativeRecommender {
 					if (v != u) {
 						for (int f = 0; f < numFactors; f++) {
 							double pvf = P.get(v, f);
-							double delta = euj * wu * Q.get(u, f) + regBeta * pvf;
+							double tuv = socialMatrix.get(u, v);
+							double delta = euj * wu * Math.pow(1 + tuv, tau) * Q.get(u, f) + regBeta * pvf;
 							PS.add(v, f, -lRate * delta);
 
 							loss += regBeta * pvf * pvf;
@@ -227,7 +231,7 @@ public class FUSMrmse extends IterativeRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) regLambda, (float) regBeta,
-						(float) regGamma }, ",");
+				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) tau, (float) regLambda,
+						(float) regBeta, (float) regGamma }, ",");
 	}
 }
