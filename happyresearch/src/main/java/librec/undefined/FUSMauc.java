@@ -76,10 +76,12 @@ public class FUSMauc extends IterativeRecommender {
 			errs = 0;
 			loss = 0;
 
+			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numUsers, numFactors);
+
 			// update throughout each user-item-rating (u, j, ruj) cell 
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
-				int[] ratedItems = Ru.getIndex();
 
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
@@ -104,29 +106,31 @@ public class FUSMauc extends IterativeRecommender {
 						}
 					}
 
-					double wu = Math.pow(Ru.getCount() - 1, -alpha);
-					double[] x = new double[numFactors];
+					double wi = Math.pow(Ri.getCount() - 1, -alpha);
 
 					// update for each unrated item
 					for (int j : unratedItems) {
 
-						double sum_i = 0, sum_j = 0;
+						double sum_i = 0;
 						for (VectorEntry vk : Ri) {
 							// for test, i and j will be always unequal as j is unrated
 							int k = vk.index();
 							if (u != k)
 								sum_i += DenseMatrix.rowMult(P, k, Q, u);
-
-							sum_j += DenseMatrix.rowMult(P, k, Q, u);
 						}
 
+						SparseVector Rj = trainMatrix.column(j);
+						double sum_j = 0;
+						for (VectorEntry vk : Rj) {
+							int k = vk.index();
+							sum_j += DenseMatrix.rowMult(P, k, Q, u);
+						}
+						double wj = Math.pow(Rj.getCount(), -alpha);
+
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
-
-						double pui = bi + wu * sum_i;
-						double puj = bj + Math.pow(Ru.getCount(), -alpha) * sum_j;
+						double pui = bi + wi * sum_i;
+						double puj = bj + wj * sum_j;
 						double ruj = 0;
-
-						// double pui = predict(u, i), puj = predict(u, j), ruj = 0;
 						double eij = (rui - ruj) - (pui - puj);
 
 						errs += eij * eij;
@@ -140,45 +144,61 @@ public class FUSMauc extends IterativeRecommender {
 
 						loss += regGamma * bi * bi + regGamma * bj * bj;
 
-						// update qif, qjf
+						// update quf
 						for (int f = 0; f < numFactors; f++) {
-							double qif = Q.get(i, f), qjf = Q.get(j, f);
+							double quf = Q.get(u, f);
 
-							double sum_k = 0;
-							for (int k : ratedItems) {
-								if (k != i) {
-									sum_k += P.get(k, f);
+							double sum_if = 0;
+							for (VectorEntry vk : Ri) {
+								int v = vk.index();
+								if (v != u)
+									sum_if += P.get(v, f);
+							}
+
+							double sum_jf = 0;
+							for (VectorEntry vk : Rj) {
+								int v = vk.index();
+								sum_jf += P.get(v, f);
+							}
+
+							double delta = eij * (wj * sum_jf - wi * sum_if) + regBeta * quf;
+							QS.add(i, f, -lRate * delta);
+
+							loss += regBeta * quf * quf;
+						}
+
+						// update pvf for v in Ri, and v in Rj
+						for (VectorEntry vk : Ri) {
+							int v = vk.index();
+							if (v != u) {
+								for (int f = 0; f < numFactors; f++) {
+									double pvf = P.get(v, f);
+									double delta = eij * wi * Q.get(u, f) - regBeta * pvf;
+									PS.add(v, f, lRate * delta);
+
+									loss += regBeta * pvf * pvf;
 								}
 							}
-
-							double delta_i = eij * wu * sum_k - regBeta * qif;
-							Q.add(i, f, lRate * delta_i);
-
-							double delta_j = eij * wu * sum_k - regBeta * qjf;
-							Q.add(j, f, -lRate * delta_j);
-
-							x[f] += eij * (qif - qjf);
-
-							loss += regBeta * qif * qif + regBeta * qjf * qjf;
 						}
-					}
 
-					// update for each rated item 
-					for (int j : ratedItems) {
-						if (j != i) {
+						for (VectorEntry vk : Rj) {
+							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
-								double pjf = P.get(j, f);
-								double delta = wu * x[f] / rho - regBeta * pjf;
+								double pvf = P.get(v, f);
+								double delta = eij * wj * Q.get(u, f) - regBeta * pvf;
+								PS.add(v, f, -lRate * delta);
 
-								P.add(j, f, lRate * delta);
-
-								loss += regBeta * pjf * pjf;
+								loss += regBeta * pvf * pvf;
 							}
 						}
 					}
+
 				}
 
 			}
+
+			P = P.add(PS);
+			Q = Q.add(QS);
 
 			errs *= 0.5;
 			loss *= 0.5;

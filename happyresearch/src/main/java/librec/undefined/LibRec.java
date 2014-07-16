@@ -271,6 +271,8 @@ public class LibRec {
 			return new FISMauc(trainMatrix, testMatrix, fold);
 		case "fusm":
 			return new FUSMrmse(trainMatrix, testMatrix, fold);
+		case "fusmauc":
+			return new FUSMauc(trainMatrix, testMatrix, fold);
 		case "fust":
 			return new FUSTrmse(trainMatrix, testMatrix, fold);
 
