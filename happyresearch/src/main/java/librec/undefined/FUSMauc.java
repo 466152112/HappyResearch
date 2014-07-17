@@ -215,12 +215,12 @@ public class FUSMauc extends IterativeRecommender {
 		double sum = 0;
 		int count = 0;
 
-		SparseVector Ru = trainMatrix.row(u);
-		for (VectorEntry ve : Ru) {
-			int j = ve.index();
+		SparseVector Ri = trainMatrix.column(i);
+		for (VectorEntry ve : Ri) {
+			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
-			if (i != j) {
-				sum += DenseMatrix.rowMult(P, j, Q, i);
+			if (v != u) {
+				sum += DenseMatrix.rowMult(P, v, Q, u);
 				count++;
 			}
 		}
