@@ -106,26 +106,34 @@ public class FUSMauc extends IterativeRecommender {
 						}
 					}
 
-					double wi = Math.pow(Ri.getCount() - 1, -alpha);
+					double wi = Ri.getCount() - 1 > 0 ? Math.pow(Ri.getCount() - 1, -alpha) : 0;
+					double sum_i = 0;
+					for (VectorEntry vk : Ri) {
+						// for test, i and j will be always unequal as j is unrated
+						int v = vk.index();
+						if (u != v)
+							sum_i += DenseMatrix.rowMult(P, v, Q, u);
+					}
+
+					double[] sum_if = new double[numFactors];
+					for (int f = 0; f < numFactors; f++) {
+						for (VectorEntry vk : Ri) {
+							int v = vk.index();
+							if (v != u)
+								sum_if[f] += P.get(v, f);
+						}
+					}
 
 					// update for each unrated item
 					for (int j : unratedItems) {
 
-						double sum_i = 0;
-						for (VectorEntry vk : Ri) {
-							// for test, i and j will be always unequal as j is unrated
-							int k = vk.index();
-							if (u != k)
-								sum_i += DenseMatrix.rowMult(P, k, Q, u);
-						}
-
 						SparseVector Rj = trainMatrix.column(j);
 						double sum_j = 0;
 						for (VectorEntry vk : Rj) {
-							int k = vk.index();
-							sum_j += DenseMatrix.rowMult(P, k, Q, u);
+							int v = vk.index();
+							sum_j += DenseMatrix.rowMult(P, v, Q, u);
 						}
-						double wj = Math.pow(Rj.getCount(), -alpha);
+						double wj = Rj.getCount() > 0 ? Math.pow(Rj.getCount(), -alpha) : 0;
 
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 						double pui = bi + wi * sum_i;
@@ -148,21 +156,14 @@ public class FUSMauc extends IterativeRecommender {
 						for (int f = 0; f < numFactors; f++) {
 							double quf = Q.get(u, f);
 
-							double sum_if = 0;
-							for (VectorEntry vk : Ri) {
-								int v = vk.index();
-								if (v != u)
-									sum_if += P.get(v, f);
-							}
-
 							double sum_jf = 0;
 							for (VectorEntry vk : Rj) {
 								int v = vk.index();
 								sum_jf += P.get(v, f);
 							}
 
-							double delta = eij * (wj * sum_jf - wi * sum_if) + regBeta * quf;
-							QS.add(i, f, -lRate * delta);
+							double delta = eij * (wj * sum_jf - wi * sum_if[f]) + regBeta * quf;
+							QS.add(u, f, -lRate * delta);
 
 							loss += regBeta * quf * quf;
 						}
