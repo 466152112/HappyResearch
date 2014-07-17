@@ -144,10 +144,10 @@ public class FISMrmse extends IterativeRecommender {
 					}
 				}
 
-				double wu = Math.pow(cnt, -alpha);
-				double pred = bu + bj + wu * sum_ij;
+				double wu = cnt > 0 ? Math.pow(cnt, -alpha) : 0;
+				double puj = bu + bj + wu * sum_ij;
 
-				double euj = pred - ruj;
+				double euj = puj - ruj;
 
 				errs += euj * euj;
 				loss += euj * euj;
@@ -210,7 +210,7 @@ public class FISMrmse extends IterativeRecommender {
 
 		double sum = 0;
 		int count = 0;
-		
+
 		SparseVector Ru = trainMatrix.row(u);
 		for (VectorEntry ve : Ru) {
 			int i = ve.index();
@@ -221,7 +221,9 @@ public class FISMrmse extends IterativeRecommender {
 			}
 		}
 
-		return pred + Math.pow(count, -alpha) * sum;
+		double wu = count > 0 ? Math.pow(count, -alpha) : 0;
+		
+		return pred + wu * sum;
 	}
 
 	@Override

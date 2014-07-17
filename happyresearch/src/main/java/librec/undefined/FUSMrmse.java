@@ -144,9 +144,9 @@ public class FUSMrmse extends IterativeRecommender {
 				}
 
 				double wu = cnt > 0 ? Math.pow(cnt, -alpha) : 0;
-				double pred = bu + bj + wu * sum_vu;
+				double puj = bu + bj + wu * sum_vu;
 
-				double euj = pred - ruj;
+				double euj = puj - ruj;
 
 				errs += euj * euj;
 				loss += euj * euj;
@@ -205,8 +205,6 @@ public class FUSMrmse extends IterativeRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		double pred = userBiases.get(u) + itemBiases.get(j);
-
 		double sum = 0;
 		int count = 0;
 
@@ -220,7 +218,9 @@ public class FUSMrmse extends IterativeRecommender {
 			}
 		}
 
-		return pred + Math.pow(count, -alpha) * sum;
+		double wj = count > 0 ? Math.pow(count, -alpha) : 0;
+
+		return userBiases.get(u) + itemBiases.get(j) + wj * sum;
 	}
 
 	@Override
