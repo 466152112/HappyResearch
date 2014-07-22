@@ -103,7 +103,7 @@ public class FISMauc extends IterativeRecommender {
 						}
 					}
 
-					double wu = Math.pow(Ru.getCount() - 1, -alpha);
+					double wu = Ru.getCount() - 1 > 0 ? Math.pow(Ru.getCount() - 1, -alpha) : 0;
 					double[] x = new double[numFactors];
 
 					// update for each unrated item
@@ -202,7 +202,9 @@ public class FISMauc extends IterativeRecommender {
 			}
 		}
 
-		return itemBiases.get(i) + Math.pow(count, -alpha) * sum;
+		double wu = count > 0 ? Math.pow(count, -alpha) : 0;
+
+		return itemBiases.get(i) + wu * sum;
 	}
 
 	@Override
