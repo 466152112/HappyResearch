@@ -87,7 +87,7 @@ public class FUSMauc extends IterativeRecommender {
 					int i = ve.index();
 					double rui = ve.get();
 
-					SparseVector Ri = trainMatrix.column(i);
+					SparseVector Ci = trainMatrix.column(i);
 
 					// make a random sample of negative feedback (total - nnz)
 					List<Integer> indices = null, unratedItems = new ArrayList<>();
@@ -106,9 +106,9 @@ public class FUSMauc extends IterativeRecommender {
 						}
 					}
 
-					double wi = Ri.getCount() - 1 > 0 ? Math.pow(Ri.getCount() - 1, -alpha) : 0;
+					double wi = Ci.getCount() - 1 > 0 ? Math.pow(Ci.getCount() - 1, -alpha) : 0;
 					double sum_i = 0;
-					for (VectorEntry vk : Ri) {
+					for (VectorEntry vk : Ci) {
 						// for test, i and j will be always unequal as j is unrated
 						int v = vk.index();
 						if (u != v)
@@ -117,7 +117,7 @@ public class FUSMauc extends IterativeRecommender {
 
 					double[] sum_if = new double[numFactors];
 					for (int f = 0; f < numFactors; f++) {
-						for (VectorEntry vk : Ri) {
+						for (VectorEntry vk : Ci) {
 							int v = vk.index();
 							if (v != u)
 								sum_if[f] += P.get(v, f);
@@ -127,13 +127,13 @@ public class FUSMauc extends IterativeRecommender {
 					// update for each unrated item
 					for (int j : unratedItems) {
 
-						SparseVector Rj = trainMatrix.column(j);
+						SparseVector Cj = trainMatrix.column(j);
 						double sum_j = 0;
-						for (VectorEntry vk : Rj) {
+						for (VectorEntry vk : Cj) {
 							int v = vk.index();
 							sum_j += DenseMatrix.rowMult(P, v, Q, u);
 						}
-						double wj = Rj.getCount() > 0 ? Math.pow(Rj.getCount(), -alpha) : 0;
+						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(), -alpha) : 0;
 
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 						double pui = bi + wi * sum_i;
@@ -157,7 +157,7 @@ public class FUSMauc extends IterativeRecommender {
 							double quf = Q.get(u, f);
 
 							double sum_jf = 0;
-							for (VectorEntry vk : Rj) {
+							for (VectorEntry vk : Cj) {
 								int v = vk.index();
 								sum_jf += P.get(v, f);
 							}
@@ -168,8 +168,8 @@ public class FUSMauc extends IterativeRecommender {
 							loss += regBeta * quf * quf;
 						}
 
-						// update pvf for v in Ri, and v in Rj
-						for (VectorEntry vk : Ri) {
+						// update pvf for v in Ci, and v in Cj
+						for (VectorEntry vk : Ci) {
 							int v = vk.index();
 							if (v != u) {
 								for (int f = 0; f < numFactors; f++) {
@@ -182,7 +182,7 @@ public class FUSMauc extends IterativeRecommender {
 							}
 						}
 
-						for (VectorEntry vk : Rj) {
+						for (VectorEntry vk : Cj) {
 							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
@@ -215,8 +215,8 @@ public class FUSMauc extends IterativeRecommender {
 		double sum = 0;
 		int count = 0;
 
-		SparseVector Ri = trainMatrix.column(i);
-		for (VectorEntry ve : Ri) {
+		SparseVector Ci = trainMatrix.column(i);
+		for (VectorEntry ve : Ci) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
 			if (v != u) {
@@ -224,8 +224,9 @@ public class FUSMauc extends IterativeRecommender {
 				count++;
 			}
 		}
+		double wi = count > 0 ? Math.pow(count, -alpha) : 0;
 
-		return itemBiases.get(i) + Math.pow(count, -alpha) * sum;
+		return itemBiases.get(i) + wi * sum;
 	}
 
 	@Override

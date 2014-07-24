@@ -34,7 +34,8 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
- * FUSM: Factored User Similarity Models for Top-N Recommender Systems
+ * FUST: Factored User Similarity Models with Trust for Top-N Recommender
+ * Systems
  * 
  * @author guoguibing
  * 
@@ -130,11 +131,11 @@ public class FUSTrmse extends SocialRecommender {
 				double ruj = cell.getValue();
 
 				// for efficiency, use the below code to predict ruj instead of simply using "predict(u,j)"
-				SparseVector Rj = trainMatrix.column(j);
+				SparseVector Cj = trainMatrix.column(j);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
 				double sum_vu = 0, sum_t = 0;
-				for (VectorEntry ve : Rj) {
+				for (VectorEntry ve : Cj) {
 					int v = ve.index();
 					// for training, i and j should be equal as j may be rated or unrated
 					if (v != u) {
@@ -165,23 +166,23 @@ public class FUSTrmse extends SocialRecommender {
 				for (int f = 0; f < numFactors; f++) {
 					double quf = Q.get(u, f);
 
-					double sum_v = 0;
-					for (VectorEntry ve : Rj) {
+					double sum_vf = 0;
+					for (VectorEntry ve : Cj) {
 						int v = ve.index();
 						if (v != u) {
 							double tuv = socialMatrix.get(u, v);
-							sum_v += Math.pow(1 + tuv, tau) * P.get(v, f);
+							sum_vf += Math.pow(1 + tuv, tau) * P.get(v, f);
 						}
 					}
 
-					double delta = euj * wu * sum_v + regBeta * quf;
+					double delta = euj * wu * sum_vf + regBeta * quf;
 					QS.add(u, f, -lRate * delta);
 
 					loss += regBeta * quf * quf;
 				}
 
 				// update pvf
-				for (VectorEntry ve : Rj) {
+				for (VectorEntry ve : Cj) {
 					int v = ve.index();
 					if (v != u) {
 						for (int f = 0; f < numFactors; f++) {
@@ -209,12 +210,11 @@ public class FUSTrmse extends SocialRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		double pred = userBiases.get(u) + itemBiases.get(j);
 
 		double sum = 0, sum_t = 0;
 
-		SparseVector Rj = trainMatrix.column(j);
-		for (VectorEntry ve : Rj) {
+		SparseVector Cj = trainMatrix.column(j);
+		for (VectorEntry ve : Cj) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
 			if (v != u) {
@@ -224,7 +224,9 @@ public class FUSTrmse extends SocialRecommender {
 			}
 		}
 
-		return pred + Math.pow(sum_t, -alpha) * sum;
+		double kappa = sum_t > 0 ? Math.pow(sum_t, -alpha) : 0;
+
+		return userBiases.get(u) + itemBiases.get(j) + kappa * sum;
 	}
 
 	@Override
