@@ -157,7 +157,7 @@ public class FISMauc extends IterativeRecommender {
 
 							x[f] += eij * (qif - qjf);
 
-							loss += regBeta * qif * qif + regBeta * qjf * qjf;
+							loss += regBeta * qif * qif - regBeta * qjf * qjf;
 						}
 					}
 

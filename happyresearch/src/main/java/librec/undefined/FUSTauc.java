@@ -186,7 +186,7 @@ public class FUSTauc extends SocialRecommender {
 									double delta = eij * wi * Q.get(u, f) - regBeta * pvf;
 									PS.add(v, f, lRate * delta);
 
-									loss += regBeta * pvf * pvf;
+									loss -= regBeta * pvf * pvf;
 								}
 							}
 						}
