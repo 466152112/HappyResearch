@@ -233,7 +233,7 @@ public class FUSTrmse extends SocialRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) tau, (float) regLambda,
+				+ Strings.toString(new Object[] { (float) tau, (float) rho, (float) alpha,  (float) regLambda,
 						(float) regBeta, (float) regGamma }, ",");
 	}
 }

@@ -240,7 +240,9 @@ public class FUSTauc extends SocialRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + ","
-				+ Strings.toString(new Object[] { rho, (float) alpha, (float) regBeta, (float) regGamma }, ",");
+		return super.toString()
+				+ ","
+				+ Strings.toString(new Object[] { (float) tau, rho, (float) alpha, (float) regBeta, (float) regGamma },
+						",");
 	}
 }
