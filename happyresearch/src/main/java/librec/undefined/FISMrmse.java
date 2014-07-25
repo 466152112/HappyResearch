@@ -222,7 +222,7 @@ public class FISMrmse extends IterativeRecommender {
 		}
 
 		double wu = count > 0 ? Math.pow(count, -alpha) : 0;
-		
+
 		return pred + wu * sum;
 	}
 
