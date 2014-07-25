@@ -95,11 +95,13 @@ public class FISMauc extends IterativeRecommender {
 					}
 					int index = 0, count = 0;
 					for (int j = 0; j < numItems; j++) {
-						if (!Ru.contains(j) && count++ == indices.get(index)) {
-							unratedItems.add(j);
-							index++;
-							if (index >= indices.size())
-								break;
+						if (!Ru.contains(j)) {
+							if (count++ == indices.get(index)) {
+								unratedItems.add(j);
+								index++;
+								if (index >= indices.size())
+									break;
+							}
 						}
 					}
 
