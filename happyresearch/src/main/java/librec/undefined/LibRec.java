@@ -275,6 +275,8 @@ public class LibRec {
 			return new FUSMauc(trainMatrix, testMatrix, fold);
 		case "fust":
 			return new FUSTrmse(trainMatrix, testMatrix, fold);
+		case "fustauc":
+			return new FUSTauc(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
