@@ -182,7 +182,7 @@ public class FUSMauc2 extends IterativeRecommender {
 										delta -= eij * wj * quf;
 
 									PS.add(v, f, lRate * delta);
-									loss -= regBeta * pvf * pvf;
+									loss += regBeta * pvf * pvf;
 								}
 							}
 						}
@@ -198,7 +198,7 @@ public class FUSMauc2 extends IterativeRecommender {
 
 								PS.add(v, f, -lRate * delta);
 
-								loss += regBeta * pvf * pvf;
+								loss -= regBeta * pvf * pvf;
 							}
 						}
 					}
