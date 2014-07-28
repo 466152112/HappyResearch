@@ -66,6 +66,8 @@ public class FUSMauc2 extends IterativeRecommender {
 
 		// pre-processing: binarize training data
 		super.binary(trainMatrix);
+
+		
 	}
 
 	@Override
