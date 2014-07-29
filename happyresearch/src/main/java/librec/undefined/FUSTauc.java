@@ -34,7 +34,7 @@ import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
- * FUSM: Factored User Similarity Models for Top-N Recommender Systems
+ * FUST: Factored User Similarity Models with Trust for Top-N Recommender Systems
  * 
  * @author guoguibing
  * 
