@@ -73,8 +73,11 @@ public class FUSTauc extends SocialRecommender {
 		super.binary(trainMatrix);
 
 		flag = Debug.ON;
-		users = trainMatrix.numRows();
+		numUsers = trainMatrix.numRows();
 		userCorr = flag ? buildCorrs(true) : null;
+
+		users = numUsers;
+		numUsers = socialMatrix.numRows();
 	}
 
 	@Override
@@ -139,7 +142,7 @@ public class FUSTauc extends SocialRecommender {
 						}
 					}
 
-					// update for each unrated item
+					// update for each  item j unrated by user u
 					for (int j : unratedItems) {
 
 						SparseVector Cj = trainMatrix.column(j);
@@ -191,7 +194,7 @@ public class FUSTauc extends SocialRecommender {
 							if (v != u) {
 								for (int f = 0; f < numFactors; f++) {
 									double pvf = P.get(v, f);
-									double delta = eij * wi * Q.get(u, f) - regBeta * pvf;
+									double delta = eij * wi * Q.get(u, f) * Math.pow(1 + t(u, v), tau) - regBeta * pvf;
 									PS.add(v, f, lRate * delta);
 
 									loss -= regBeta * pvf * pvf;
@@ -203,7 +206,7 @@ public class FUSTauc extends SocialRecommender {
 							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
-								double delta = eij * wj * Q.get(u, f) - regBeta * pvf;
+								double delta = eij * wj * Q.get(u, f) * Math.pow(1 + t(u, v), tau) - regBeta * pvf;
 								PS.add(v, f, -lRate * delta);
 
 								loss += regBeta * pvf * pvf;
