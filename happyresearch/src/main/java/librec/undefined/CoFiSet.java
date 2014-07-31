@@ -23,7 +23,7 @@ public class CoFiSet extends IterativeRecommender {
 	}
 
 	@Override
-	protected void initModel() {
+	protected void initModel() throws Exception {
 		super.initModel();
 
 		itemBiases = new DenseVector(numItems);
@@ -31,7 +31,7 @@ public class CoFiSet extends IterativeRecommender {
 	}
 
 	@Override
-	protected void buildModel() {
+	protected void buildModel() throws Exception {
 		// outer loop
 		for (int iter = 1; iter < numIters; iter++) {
 			// inner loop

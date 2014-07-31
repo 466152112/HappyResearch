@@ -54,7 +54,7 @@ public class TrustSVD2 extends SocialRecommender {
 	}
 
 	@Override
-	protected void initModel() {
+	protected void initModel() throws Exception {
 		super.initModel();
 
 		userBiases = new DenseVector(numUsers);
@@ -94,7 +94,7 @@ public class TrustSVD2 extends SocialRecommender {
 		}
 	}
 
-	protected void buildModel() {
+	protected void buildModel() throws Exception {
 		for (int iter = 1; iter <= numIters; iter++) {
 			loss = 0;
 			errs = 0;

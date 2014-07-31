@@ -2,14 +2,18 @@ package librec.undefined;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.Logs;
-import happy.coding.io.Strings;
 import happy.coding.system.Debug;
+import happy.coding.system.Systems;
 
 import java.io.BufferedReader;
 
 import librec.data.DataConvertor;
 import librec.data.DataDAO;
+import librec.data.DenseMatrix;
+import librec.data.DenseVector;
 import librec.data.SparseMatrix;
+import librec.data.SparseVector;
+import librec.data.SymmMatrix;
 
 import org.junit.Test;
 
@@ -20,6 +24,33 @@ import com.google.common.collect.Table;
 public class UnitTests {
 
 	@Test
+	public void testSerialization() throws Exception {
+		String filePath = Systems.getDesktop() + "vec.dat";
+
+		DenseVector vec = new DenseVector(11);
+		for (int i = 10, j = 0; i >= 0; i--, j++)
+			vec.set(j, i);
+
+		FileIO.serialize(vec, filePath);
+
+		DenseVector v2 = (DenseVector) FileIO.deserialize(filePath);
+		Logs.debug(v2.toString());
+
+		DenseMatrix mat = new DenseMatrix(3, 4);
+		for (int i = 0; i < 3; i++)
+			for (int j = 0; j < 4; j++)
+				mat.set(i, j, i + j);
+		Logs.debug(mat);
+
+		String matPath = Systems.getDesktop() + "mat.dat";
+		FileIO.serialize(mat, matPath);
+
+		DenseMatrix mat2 = (DenseMatrix) FileIO.deserialize(matPath);
+		Logs.debug(mat2);
+
+	}
+
+	@Test
 	public void testCvtFirstLines() throws Exception {
 		String dirPath = "D:\\Research\\Datasets\\KDD Cup 2011\\Yahoo! Music Dataset\\track2\\";
 		String sourcePath = dirPath + "trainIdx2.firstLines.txt";
@@ -28,10 +59,10 @@ public class UnitTests {
 		// train data set
 		DataConvertor dc = new DataConvertor(sourcePath, targetPath);
 		dc.cvtFirstLines("\\|", "\t");
-		
+
 		// test data set
-		dc.setSourcePath(dirPath+"testIdx2.firstLines.txt");
-		dc.setTargetPath(dirPath+"test.txt");
+		dc.setSourcePath(dirPath + "testIdx2.firstLines.txt");
+		dc.setTargetPath(dirPath + "test.txt");
 		dc.cvtFirstLines("\\|", "\t");
 	}
 
@@ -61,8 +92,31 @@ public class UnitTests {
 		SparseMatrix A = new SparseMatrix(6, 6, vals);
 		Logs.debug(A);
 
-		Logs.debug(Strings.toString(A.rows()));
-		Logs.debug(Strings.toString(A.columns()));
+		String dirPath = FileIO.desktop;
+		FileIO.serialize(A, dirPath + "A.mat");
+
+		SparseMatrix A2 = (SparseMatrix) FileIO.deserialize(dirPath + "A.mat");
+		Logs.debug(A2);
+
+		SparseVector v = new SparseVector(10);
+		v.set(2, 5);
+		v.set(9, 10);
+		Logs.debug(v);
+
+		FileIO.serialize(v, dirPath + "v.vec");
+		SparseVector v2 = (SparseVector) FileIO.deserialize(dirPath + "v.vec");
+		Logs.debug(v2);
+
+		SymmMatrix mm = new SymmMatrix(5);
+		mm.set(0, 1, 0.5);
+		mm.set(2, 3, 0.3);
+		mm.set(4, 2, 0.8);
+		Logs.debug(mm);
+
+		FileIO.serialize(mm, dirPath + "mm.mat");
+		SymmMatrix mm2 = (SymmMatrix) FileIO.deserialize(dirPath + "mm.mat");
+		Logs.debug(mm2);
+
 	}
 
 	public static void main(String[] args) throws Exception {

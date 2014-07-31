@@ -87,7 +87,7 @@ public class LibRec {
 	private static DataDAO rateDao;
 
 	// rating matrix
-	private static SparseMatrix rateMatrix = null;
+	public static SparseMatrix rateMatrix = null;
 
 	public static void main(String[] args) throws Exception {
 		// Logs.debug(LibRec.readme());
@@ -139,6 +139,9 @@ public class LibRec {
 	 */
 	private static void runAlgorithm() throws Exception {
 		String testPath = cf.getPath("dataset.testing");
+
+		if (cf.getString("recommender").equals("tp"))
+			TrustPredictor.update();
 
 		if (!testPath.equals("-1"))
 			runTestFile(testPath);
@@ -279,6 +282,8 @@ public class LibRec {
 			return new FUSTrmse(trainMatrix, testMatrix, fold);
 		case "fustauc":
 			return new FUSTauc(trainMatrix, testMatrix, fold);
+		case "tp":
+			return new TrustPredictor(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);

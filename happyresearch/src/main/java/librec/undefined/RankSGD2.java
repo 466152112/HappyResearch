@@ -52,7 +52,7 @@ public class RankSGD2 extends IterativeRecommender {
 	}
 
 	@Override
-	protected void initModel() {
+	protected void initModel() throws Exception {
 		super.initModel();
 
 		// pre-processing: binarize training data

@@ -18,6 +18,7 @@
 
 package librec.undefined;
 
+import happy.coding.io.FileIO;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 import happy.coding.system.Debug;
@@ -34,7 +35,8 @@ import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
- * FUST: Factored User Similarity Models with Trust for Top-N Recommender Systems
+ * FUST: Factored User Similarity Models with Trust for Top-N Recommender
+ * Systems
  * 
  * @author guoguibing
  * 
@@ -46,6 +48,8 @@ public class FUSTauc extends SocialRecommender {
 	private SymmMatrix userCorr;
 	private boolean flag;
 
+	private DenseMatrix uFactors, vFactors;
+
 	public FUSTauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
 
@@ -53,7 +57,7 @@ public class FUSTauc extends SocialRecommender {
 	}
 
 	@Override
-	protected void initModel() {
+	protected void initModel() throws Exception {
 		P = new DenseMatrix(numUsers, numFactors);
 		Q = new DenseMatrix(numUsers, numFactors);
 		P.init(0.01);
@@ -78,10 +82,14 @@ public class FUSTauc extends SocialRecommender {
 
 		users = numUsers;
 		numUsers = socialMatrix.numRows();
+
+		String dirPath = "Results\\TrustPredictor\\";
+		uFactors = (DenseMatrix) FileIO.deserialize(dirPath + "userFactors.bin");
+		vFactors = (DenseMatrix) FileIO.deserialize(dirPath + "itemFactors.bin");
 	}
 
 	@Override
-	protected void buildModel() {
+	protected void buildModel() throws Exception {
 
 		for (int iter = 1; iter <= numIters; iter++) {
 
@@ -241,6 +249,9 @@ public class FUSTauc extends SocialRecommender {
 
 		if (u >= users || v >= users)
 			return 0.0;
+
+		if (Debug.ON)
+			return DenseMatrix.rowMult(uFactors, u, vFactors, v);
 
 		return userCorr.get(u, v);
 	}
