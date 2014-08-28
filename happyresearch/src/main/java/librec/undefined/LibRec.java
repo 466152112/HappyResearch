@@ -294,7 +294,7 @@ public class LibRec {
 		props.setProperty("mail.to", cf.getString("mail.to"));
 
 		props.setProperty("mail.subject", FileIO.getCurrentFolder() + "."
-				+ algorithm + "[" + Systems.getIP() + "]");
+				+ algorithm + " [" + Systems.getIP() + "]");
 		props.setProperty("mail.text", "Program was finished @" + Dates.now());
 
 		String msg = "Program [" + algorithm + "] has been finished !";
