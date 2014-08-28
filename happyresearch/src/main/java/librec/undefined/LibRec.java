@@ -32,10 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import javax.mail.Authenticator;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-
 import librec.baseline.ConstantGuess;
 import librec.baseline.GlobalAverage;
 import librec.baseline.ItemAverage;
@@ -278,12 +274,16 @@ public class LibRec {
 		Properties props = notifier.getProps();
 
 		props.setProperty("mail.debug", "false");
-		props.setProperty("mail.smtp.host", cf.getString("mail.smtp.host"));
-		props.setProperty("mail.smtp.port", cf.getString("mail.smtp.port"));
+
+		String host = cf.getString("mail.smtp.host");
+		String port = cf.getString("mail.smtp.port");
+		props.setProperty("mail.smtp.host", host);
+		props.setProperty("mail.smtp.port", port);
 		props.setProperty("mail.smtp.auth", cf.getString("mail.smtp.auth"));
-		
-		props.put("mail.smtp.socketFactory.port", "465");
-		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+
+		props.put("mail.smtp.socketFactory.port", port);
+		props.put("mail.smtp.socketFactory.class",
+				"javax.net.ssl.SSLSocketFactory");
 
 		final String user = cf.getString("mail.smtp.user");
 		final String pwd = cf.getString("mail.smtp.password");
@@ -294,7 +294,7 @@ public class LibRec {
 		props.setProperty("mail.to", cf.getString("mail.to"));
 
 		props.setProperty("mail.subject", FileIO.getCurrentFolder() + "."
-				+ algorithm + "@" + Systems.getIP());
+				+ algorithm + "[" + Systems.getIP() + "]");
 		props.setProperty("mail.text", "Program was finished @" + Dates.now());
 
 		String msg = "Program [" + algorithm + "] has been finished !";
