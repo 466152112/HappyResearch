@@ -79,7 +79,7 @@ public class CiaoTest {
 	@Test
 	public void specs() throws Exception {
 		String dir = "D:\\Java\\Datasets\\Ciao\\V2\\";
-		DataDAO dao = new DataDAO(dir + "ratings.txt");
+		DataDAO dao = new DataDAO(dir + "trust.txt");
 		dao.printSpecs();
 	}
 

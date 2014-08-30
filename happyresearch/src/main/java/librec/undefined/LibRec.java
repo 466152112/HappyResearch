@@ -84,7 +84,7 @@ public class LibRec {
 
 	// params for multiple runs at once
 	public static int paramIdx;
-	public static boolean isMultRun = false;
+	public static boolean isMultRun = true;
 
 	// rate DAO object
 	private static DataDAO rateDao;
