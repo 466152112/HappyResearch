@@ -215,7 +215,7 @@ public class TrustSVD extends SocialRecommender {
 				int u = me.row();
 				int v = me.column();
 				double tuv = me.get();
-				if (tuv <= 0)
+				if (tuv == 0)
 					continue;
 
 				double pred = DenseMatrix.rowMult(P, u, W, v);
