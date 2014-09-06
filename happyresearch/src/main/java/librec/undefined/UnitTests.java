@@ -2,10 +2,15 @@ package librec.undefined;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.Logs;
+import happy.coding.math.Randoms;
 import happy.coding.system.Debug;
 import happy.coding.system.Systems;
 
 import java.io.BufferedReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import librec.data.DataConvertor;
 import librec.data.DataDAO;
@@ -165,5 +170,138 @@ public class UnitTests {
 
 			Logs.debug("Total users: {}", userIds.size());
 		}
+	}
+
+	@Test
+	public void testSample() throws Exception {
+		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
+		String dirDest = dir + "Distrust v1\\";
+
+		// read trust data to get all users
+		Set<Long> users = new HashSet<>();
+		BufferedReader br = FileIO.getReader(dirDest + "trust.txt");
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			String[] data = line.split("\t");
+			long trustor = Long.parseLong(data[0]);
+			long trustee = Long.parseLong(data[1]);
+
+			users.add(trustor);
+			users.add(trustee);
+		}
+		br.close();
+
+		// retrieve ratings given by the above users;
+		br = FileIO.getReader(dir + "rating.txt");
+		line = null;
+		List<String> lines = new ArrayList<>(1500);
+		String file = dirDest + "ratings.txt";
+		FileIO.deleteFile(file);
+
+		while ((line = br.readLine()) != null) {
+			String[] data = line.split("[ \t,]");
+
+			String item = data[0];
+			long user = Long.parseLong(data[1]);
+			String rate = data[2];
+
+			if (users.contains(user)) {
+				lines.add(user + "\t" + item + "\t" + rate);
+
+				if (lines.size() >= 1000) {
+					FileIO.writeList(file, lines, true);
+					lines.clear();
+				}
+			}
+		}
+
+		if (lines.size() > 0)
+			FileIO.writeList(file, lines, true);
+
+		Logs.debug("Done!");
+	}
+
+	@Test
+	public void testSample2() throws Exception {
+		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
+		String dirDest = dir + "Distrust v3\\";
+		
+		FileIO.makeDirectory(dirDest);
+
+		// read trust data to get all users
+		Set<Long> allUsers = new HashSet<>();
+		BufferedReader br = FileIO.getReader(dir + "user_rating.txt");
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			String[] data = line.split("\t");
+			long trustor = Long.parseLong(data[0]);
+			long trustee = Long.parseLong(data[1]);
+
+			allUsers.add(trustor);
+			allUsers.add(trustee);
+		}
+		br.close();
+
+		// sample 2000 users from all users;
+		List<Long> users = new ArrayList<>(allUsers);
+		List<Long> sample = new ArrayList<>();
+		for (int idx : Randoms.randInts(20_000, 0, users.size()))
+			sample.add(users.get(idx));
+
+		// retrieve trusts containing trustors, trustees in sample
+		br = FileIO.getReader(dir + "user_rating.txt");
+		line = null;
+		List<String> lines = new ArrayList<>(1500);
+		String file = dirDest + "trust.txt";
+		FileIO.deleteFile(file);
+
+		while ((line = br.readLine()) != null) {
+			String[] data = line.split("[ \t,]");
+
+			long trustor = Long.parseLong(data[0]);
+			long trustee = Long.parseLong(data[1]);
+			String rate = data[2];
+
+			if (sample.contains(trustor) && sample.contains(trustee)) {
+				lines.add(trustor + "\t" + trustee + "\t" + rate);
+
+				if (lines.size() >= 1000) {
+					FileIO.writeList(file, lines, true);
+					lines.clear();
+				}
+			}
+		}
+
+		if (lines.size() > 0)
+			FileIO.writeList(file, lines, true);
+
+		// retrieve ratings given by the above users;
+		br = FileIO.getReader(dir + "rating.txt");
+		line = null;
+		lines.clear();
+		file = dirDest + "ratings.txt";
+		FileIO.deleteFile(file);
+
+		while ((line = br.readLine()) != null) {
+			String[] data = line.split("[ \t,]");
+
+			String item = data[0];
+			long user = Long.parseLong(data[1]);
+			String rate = data[2];
+
+			if (sample.contains(user)) {
+				lines.add(user + "\t" + item + "\t" + rate);
+
+				if (lines.size() >= 1000) {
+					FileIO.writeList(file, lines, true);
+					lines.clear();
+				}
+			}
+		}
+
+		if (lines.size() > 0)
+			FileIO.writeList(file, lines, true);
+
+		Logs.debug("Done!");
 	}
 }
