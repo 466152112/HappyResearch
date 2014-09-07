@@ -224,8 +224,8 @@ public class UnitTests {
 	@Test
 	public void testSample2() throws Exception {
 		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
-		String dirDest = dir + "Distrust v3\\";
-		
+		String dirDest = dir + "Distrust_v5\\";
+
 		FileIO.makeDirectory(dirDest);
 
 		// read trust data to get all users
@@ -242,10 +242,10 @@ public class UnitTests {
 		}
 		br.close();
 
-		// sample 2000 users from all users;
+		// sample 20_000 users from all users;
 		List<Long> users = new ArrayList<>(allUsers);
 		List<Long> sample = new ArrayList<>();
-		for (int idx : Randoms.randInts(20_000, 0, users.size()))
+		for (int idx : Randoms.randInts(4_000, 0, users.size()))
 			sample.add(users.get(idx));
 
 		// retrieve trusts containing trustors, trustees in sample
@@ -287,7 +287,8 @@ public class UnitTests {
 
 			String item = data[0];
 			long user = Long.parseLong(data[1]);
-			String rate = data[2];
+			double rate = Double.parseDouble(data[2]);
+			rate = rate > 5 ? 5.0 : rate;
 
 			if (sample.contains(user)) {
 				lines.add(user + "\t" + item + "\t" + rate);
