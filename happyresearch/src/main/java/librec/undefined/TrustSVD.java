@@ -61,6 +61,8 @@ public class TrustSVD extends SocialRecommender {
 			regS = RecUtils.getMKey(params, "val.reg.social");
 		}
 
+		algoName = cf.isOn("TrustSVD.distrust") ? "TrustSVD*" : "TrustSVD";
+
 	}
 
 	@Override
