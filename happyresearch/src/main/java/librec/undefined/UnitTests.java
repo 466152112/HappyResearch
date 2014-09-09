@@ -16,6 +16,7 @@ import librec.data.DataConvertor;
 import librec.data.DataDAO;
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
+import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
 import librec.data.SymmMatrix;
@@ -224,11 +225,24 @@ public class UnitTests {
 	@Test
 	public void testSample2() throws Exception {
 		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
-		String dirDest = dir + "Distrust_v5\\";
+		String dirDest = dir + "Distrust_v7\\";
+		int userAmount = 2_000;
 
 		FileIO.makeDirectory(dirDest);
 
-		// read trust data to get all users
+		// read ratings
+		DataDAO rateDao = new DataDAO(dir + "rating.txt");
+		SparseMatrix rateMatrix = rateDao
+				.readData(new int[] { 1, 0, 2 }, false);
+		BiMap<String, Integer> ids = rateDao.getUserIds();
+
+		for (MatrixEntry me : rateMatrix) {
+			double rate = me.get();
+			if (rate > 5)
+				me.set(5.0);
+		}
+
+		// read trust data to get all users; who have both ratings and trust
 		Set<Long> allUsers = new HashSet<>();
 		BufferedReader br = FileIO.getReader(dir + "user_rating.txt");
 		String line = null;
@@ -237,15 +251,17 @@ public class UnitTests {
 			long trustor = Long.parseLong(data[0]);
 			long trustee = Long.parseLong(data[1]);
 
-			allUsers.add(trustor);
-			allUsers.add(trustee);
+			if (ids.containsKey(data[0]) && ids.containsKey(data[1])) {
+				allUsers.add(trustor);
+				allUsers.add(trustee);
+			}
 		}
 		br.close();
 
 		// sample 20_000 users from all users;
 		List<Long> users = new ArrayList<>(allUsers);
 		List<Long> sample = new ArrayList<>();
-		for (int idx : Randoms.randInts(4_000, 0, users.size()))
+		for (int idx : Randoms.randInts(userAmount, 0, users.size()))
 			sample.add(users.get(idx));
 
 		// retrieve trusts containing trustors, trustees in sample
@@ -302,6 +318,70 @@ public class UnitTests {
 
 		if (lines.size() > 0)
 			FileIO.writeList(file, lines, true);
+
+		Logs.debug("Done!");
+	}
+
+	@Test
+	public void testSampleSet() throws Exception {
+		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\"
+				+ "Distrust_v7\\";
+
+		// ratings
+		DataDAO rateDao = new DataDAO(dir + "ratings-2.txt");
+		SparseMatrix rateMatrix = rateDao.readData();
+		Logs.debug("Total rate size = {}", rateMatrix.size());
+
+		if (Debug.OFF) {
+			// remove items with less than 20 ratings
+			int threshold = 5;
+			List<Integer> badIds = new ArrayList<>();
+			for (int j = 0; j < rateMatrix.numColumns(); j++) {
+				int size = rateMatrix.columnSize(j);
+				if (size < threshold)
+					badIds.add(j);
+			}
+
+			List<String> lines = new ArrayList<>(1500);
+			String file = dir + "ratings-2.txt";
+			FileIO.deleteFile(file);
+			for (MatrixEntry me : rateMatrix) {
+				int user = me.row();
+				int item = me.column();
+				double rate = me.get();
+				if (rate != 0 && !badIds.contains(item)) {
+					String line = rateDao.getUserId(user) + "\t"
+							+ rateDao.getItemId(item) + "\t" + rate;
+					lines.add(line);
+
+					if (lines.size() >= 1000) {
+						FileIO.writeList(file, lines, true);
+						lines.clear();
+					}
+				}
+			}
+			if (lines.size() > 0)
+				FileIO.writeList(file, lines, true);
+			Logs.debug(
+					"Resample a subset with items receiving at least {} ratings",
+					threshold);
+		}
+
+		// trust
+		DataDAO trustDao = new DataDAO(dir + "trust.txt", rateDao.getUserIds());
+		SparseMatrix trustMatrix = trustDao.readData();
+		Logs.debug("Total trust size = {}", trustMatrix.size());
+
+		// distrust amount
+		int cntT = 0, cntDT = 0;
+		for (MatrixEntry me : trustMatrix) {
+			double t = me.get();
+			if (t == 1)
+				cntT++;
+			else if (t == -1)
+				cntDT++;
+		}
+		Logs.debug("Trust = {}, Distrust = {}", cntT, cntDT);
 
 		Logs.debug("Done!");
 	}

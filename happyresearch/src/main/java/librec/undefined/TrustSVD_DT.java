@@ -31,12 +31,32 @@ import librec.intf.SocialRecommender;
  * @author guoguibing
  * 
  */
-public class TrustSVD extends SocialRecommender {
+public class TrustSVD_DT extends SocialRecommender {
 
 	private DenseMatrix W, Y;
 	private DenseVector wlr_j, wlr_tc, wlr_tr;
 
-	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
+	private static SparseMatrix T, DT;
+
+	static {
+		T = socialMatrix.clone();
+		DT = socialMatrix.clone();
+
+		for (MatrixEntry me : T) {
+			double trust = me.get();
+			if (trust < 0)
+				me.set(0.0);
+		}
+		
+		for (MatrixEntry me : DT) {
+			double distrust = me.get();
+			if (distrust > 0)
+				me.set(0.0);
+		}
+	}
+
+	public TrustSVD_DT(SparseMatrix trainMatrix, SparseMatrix testMatrix,
+			int fold) {
 		super(trainMatrix, testMatrix, fold);
 
 		if (params.containsKey("val.reg")) {
@@ -48,7 +68,6 @@ public class TrustSVD extends SocialRecommender {
 		} else {
 			regS = RecUtils.getMKey(params, "val.reg.social");
 		}
-
 	}
 
 	@Override
@@ -79,10 +98,10 @@ public class TrustSVD extends SocialRecommender {
 		wlr_j = new DenseVector(numItems);
 
 		for (int u = 0; u < numUsers; u++) {
-			int count = socialMatrix.columnSize(u);
+			int count = T.columnSize(u);
 			wlr_tc.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 
-			count = socialMatrix.rowSize(u);
+			count = T.rowSize(u);
 			wlr_tr.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 		}
 
@@ -128,7 +147,7 @@ public class TrustSVD extends SocialRecommender {
 				}
 
 				// W
-				SparseVector tr = socialMatrix.row(u);
+				SparseVector tr = T.row(u);
 				int[] tu = tr.getIndex();
 				if (tr.getCount() > 0) {
 					double sum = 0.0;
@@ -213,7 +232,7 @@ public class TrustSVD extends SocialRecommender {
 				}
 			}
 
-			for (MatrixEntry me : socialMatrix) {
+			for (MatrixEntry me : T) {
 				int u = me.row();
 				int v = me.column();
 				double tuv = me.get();
@@ -267,7 +286,7 @@ public class TrustSVD extends SocialRecommender {
 		}
 
 		// W
-		SparseVector tr = socialMatrix.row(u);
+		SparseVector tr = T.row(u);
 		if (tr.getCount() > 0) {
 			double sum = 0.0;
 			for (int v : tr.getIndex())
