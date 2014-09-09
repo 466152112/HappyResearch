@@ -47,7 +47,7 @@ public class TrustSVD_DT extends SocialRecommender {
 			if (trust < 0)
 				me.set(0.0);
 		}
-		
+
 		for (MatrixEntry me : DT) {
 			double distrust = me.get();
 			if (distrust > 0)
@@ -147,7 +147,7 @@ public class TrustSVD_DT extends SocialRecommender {
 				}
 
 				// W
-				SparseVector tr = T.row(u);
+				SparseVector tr = socialMatrix.row(u);
 				int[] tu = tr.getIndex();
 				if (tr.getCount() > 0) {
 					double sum = 0.0;
@@ -161,6 +161,9 @@ public class TrustSVD_DT extends SocialRecommender {
 
 				errs += euj * euj;
 				loss += euj * euj;
+
+				// new tu for only trusted neighbors
+				tu = T.row(u).getIndex();
 
 				double w_nu = Math.sqrt(nu.length);
 				double w_tu = Math.sqrt(tu.length);
