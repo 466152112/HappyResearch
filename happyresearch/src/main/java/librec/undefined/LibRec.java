@@ -317,6 +317,8 @@ public class LibRec {
 			return new TrustSVD(trainMatrix, testMatrix, fold);
 		case "trustsvd2":
 			return new TrustSVD2(trainMatrix, testMatrix, fold);
+		case "trustsvd_dt":
+			return new TrustSVD_DT(trainMatrix, testMatrix, fold);
 		case "rbmf":
 			return new RBMF(trainMatrix, testMatrix, fold);
 		case "fism":
