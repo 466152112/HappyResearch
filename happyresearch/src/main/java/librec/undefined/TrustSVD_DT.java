@@ -147,7 +147,7 @@ public class TrustSVD_DT extends SocialRecommender {
 				}
 
 				// W
-				SparseVector tr = socialMatrix.row(u);
+				SparseVector tr = T.row(u);
 				int[] tu = tr.getIndex();
 				if (tr.getCount() > 0) {
 					double sum = 0.0;
@@ -161,9 +161,6 @@ public class TrustSVD_DT extends SocialRecommender {
 
 				errs += euj * euj;
 				loss += euj * euj;
-
-				// new tu for only trusted neighbors
-				tu = T.row(u).getIndex();
 
 				double w_nu = Math.sqrt(nu.length);
 				double w_tu = Math.sqrt(tu.length);
@@ -235,7 +232,7 @@ public class TrustSVD_DT extends SocialRecommender {
 				}
 			}
 
-			for (MatrixEntry me : T) {
+			for (MatrixEntry me : socialMatrix) {
 				int u = me.row();
 				int v = me.column();
 				double tuv = me.get();
@@ -243,11 +240,11 @@ public class TrustSVD_DT extends SocialRecommender {
 					continue;
 
 				double pred = DenseMatrix.rowMult(P, u, W, v);
-				double eut = pred - tuv;
+				double euv = pred - tuv;
 
-				loss += regS * eut * eut;
+				loss += regS * euv * euv;
 
-				double csgd = regS * eut;
+				double csgd = regS * euv;
 				double reg_u = wlr_tr.get(u);
 
 				for (int f = 0; f < numFactors; f++) {
