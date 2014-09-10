@@ -18,6 +18,7 @@
 
 package librec.undefined;
 
+import happy.coding.system.Debug;
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.MatrixEntry;
@@ -35,6 +36,16 @@ public class TrustSVD extends SocialRecommender {
 
 	private DenseMatrix W, Y;
 	private DenseVector wlr_j, wlr_tc, wlr_tr;
+
+	static {
+		if (Debug.ON) {
+			for (MatrixEntry me : socialMatrix) {
+				double val = me.get();
+				if (val < 0)
+					me.set(0.0);
+			}
+		}
+	}
 
 	public TrustSVD(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
