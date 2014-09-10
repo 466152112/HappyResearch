@@ -33,8 +33,8 @@ import librec.intf.SocialRecommender;
  */
 public class TrustSVD_DT extends SocialRecommender {
 
-	private DenseMatrix W, Y;
-	private DenseVector wlr_j, wlr_tc, wlr_tr;
+	private DenseMatrix W, Y, F;
+	private DenseVector wlr_j, wlr_tc, wlr_tr, wlr_dtc, wlr_dtr;
 
 	private static SparseMatrix T, DT;
 
@@ -52,6 +52,8 @@ public class TrustSVD_DT extends SocialRecommender {
 			double distrust = me.get();
 			if (distrust > 0)
 				me.set(0.0);
+			else
+				me.set(-distrust);
 		}
 	}
 
@@ -78,23 +80,30 @@ public class TrustSVD_DT extends SocialRecommender {
 		itemBiases = new DenseVector(numItems);
 
 		W = new DenseMatrix(numUsers, numFactors);
+		F = new DenseMatrix(numUsers, numFactors);
 		Y = new DenseMatrix(numItems, numFactors);
 
 		if (initByNorm) {
 			userBiases.init(initMean, initStd);
 			itemBiases.init(initMean, initStd);
 			W.init(initMean, initStd);
+			F.init(initMean, initStd);
 			Y.init(initMean, initStd);
 
 		} else {
 			userBiases.init();
 			itemBiases.init();
 			W.init();
+			F.init();
 			Y.init();
 		}
 
 		wlr_tc = new DenseVector(numUsers);
 		wlr_tr = new DenseVector(numUsers);
+
+		wlr_dtc = new DenseVector(numUsers);
+		wlr_dtr = new DenseVector(numUsers);
+
 		wlr_j = new DenseVector(numItems);
 
 		for (int u = 0; u < numUsers; u++) {
@@ -103,6 +112,12 @@ public class TrustSVD_DT extends SocialRecommender {
 
 			count = T.rowSize(u);
 			wlr_tr.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
+
+			count = DT.columnSize(u);
+			wlr_dtc.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
+
+			count = DT.rowSize(u);
+			wlr_dtr.set(u, count > 0 ? 1.0 / Math.sqrt(count) : 1.0);
 		}
 
 		for (int j = 0; j < numItems; j++) {
@@ -118,6 +133,7 @@ public class TrustSVD_DT extends SocialRecommender {
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix WS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix FS = new DenseMatrix(numUsers, numFactors);
 
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row(); // user
@@ -146,7 +162,7 @@ public class TrustSVD_DT extends SocialRecommender {
 					pred += sum / Math.sqrt(uv.getCount());
 				}
 
-				// W
+				// T
 				SparseVector tr = T.row(u);
 				int[] tu = tr.getIndex();
 				if (tr.getCount() > 0) {
@@ -157,6 +173,17 @@ public class TrustSVD_DT extends SocialRecommender {
 					pred += sum / Math.sqrt(tr.getCount());
 				}
 
+				// DT
+				SparseVector dtr = DT.row(u);
+				int[] dtu = dtr.getIndex();
+				if (dtr.getCount() > 0) {
+					double sum = 0.0;
+					for (int k : dtu)
+						sum += DenseMatrix.rowMult(F, k, Q, j);
+
+					pred += sum / Math.sqrt(dtr.getCount());
+				}
+
 				double euj = pred - ruj;
 
 				errs += euj * euj;
@@ -164,6 +191,7 @@ public class TrustSVD_DT extends SocialRecommender {
 
 				double w_nu = Math.sqrt(nu.length);
 				double w_tu = Math.sqrt(tu.length);
+				double w_dtu = Math.sqrt(dtu.length);
 
 				// update factors
 				double reg_u = 1.0 / w_nu;
@@ -196,12 +224,22 @@ public class TrustSVD_DT extends SocialRecommender {
 					sum_ts[f] = w_tu > 0 ? sum / w_tu : sum;
 				}
 
+				double[] sum_dts = new double[numFactors];
+				for (int f = 0; f < numFactors; f++) {
+					double sum = 0;
+					for (int v : dtu)
+						sum += F.get(v, f);
+
+					sum_dts[f] = w_dtu > 0 ? sum / w_dtu : sum;
+				}
+
 				for (int f = 0; f < numFactors; f++) {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
 					double delta_u = euj * qjf + regU * reg_u * puf;
-					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) + regI
+					double delta_j = euj
+							* (puf + sum_ys[f] + sum_ts[f] + sum_dts[f]) + regI
 							* reg_j * qjf;
 
 					PS.add(u, f, delta_u);
@@ -219,7 +257,7 @@ public class TrustSVD_DT extends SocialRecommender {
 						loss += regI * reg_yi * yif * yif;
 					}
 
-					// update wvf
+					// update Wvf
 					for (int v : tu) {
 						double tvf = W.get(v, f);
 
@@ -229,10 +267,21 @@ public class TrustSVD_DT extends SocialRecommender {
 
 						loss += regU * reg_v * tvf * tvf;
 					}
+					
+					// update Fkf
+					for (int k : dtu) {
+						double tkf = F.get(k, f);
+
+						double reg_k = wlr_dtc.get(k);
+						double delta_t = euj * qjf / w_dtu + regU * reg_k * tkf;
+						FS.add(k, f, delta_t);
+
+						loss += regU * reg_k * tkf * tkf;
+					}
 				}
 			}
 
-			for (MatrixEntry me : socialMatrix) {
+			for (MatrixEntry me : T) {
 				int u = me.row();
 				int v = me.column();
 				double tuv = me.get();
@@ -257,9 +306,36 @@ public class TrustSVD_DT extends SocialRecommender {
 					loss += regS * reg_u * puf * puf;
 				}
 			}
+			
+			for (MatrixEntry me : DT) {
+				int u = me.row();
+				int k = me.column();
+				double duk = me.get();
+				if (duk == 0)
+					continue;
+				
+				double pred = DenseMatrix.rowMult(P, u, F, k);
+				double euk = pred - duk;
+				
+				loss += regS * euk * euk;
+				
+				double csgd = regS * euk;
+				double reg_u = wlr_dtr.get(u);
+				
+				for (int f = 0; f < numFactors; f++) {
+					double puf = P.get(u, f);
+					double fkf = F.get(k, f);
+					
+					PS.add(u, f, csgd * fkf + regS * reg_u * puf);
+					FS.add(k, f, csgd * puf);
+					
+					loss += regS * reg_u * puf * puf;
+				}
+			}
 
 			P = P.add(PS.scale(-lRate));
 			W = W.add(WS.scale(-lRate));
+			F = F.add(FS.scale(-lRate));
 
 			errs *= 0.5;
 			loss *= 0.5;
@@ -285,7 +361,7 @@ public class TrustSVD_DT extends SocialRecommender {
 			pred += sum / Math.sqrt(uv.getCount());
 		}
 
-		// W
+		// T
 		SparseVector tr = T.row(u);
 		if (tr.getCount() > 0) {
 			double sum = 0.0;
@@ -293,6 +369,16 @@ public class TrustSVD_DT extends SocialRecommender {
 				sum += DenseMatrix.rowMult(W, v, Q, j);
 
 			pred += sum / Math.sqrt(tr.getCount());
+		}
+
+		// DT
+		SparseVector dtr = DT.row(u);
+		if (dtr.getCount() > 0) {
+			double sum = 0.0;
+			for (int k : dtr.getIndex())
+				sum += DenseMatrix.rowMult(F, k, Q, j);
+
+			pred += sum / Math.sqrt(dtr.getCount());
 		}
 
 		return pred;
