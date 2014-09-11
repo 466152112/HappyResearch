@@ -40,6 +40,7 @@ public class RecUtils {
 		// regularization
 		addMKey(cf, params, "val.reg");
 		addMKey(cf, params, "val.reg.social");
+		addMKey(cf, params, "val.reg.distrust");
 
 		return params;
 	}

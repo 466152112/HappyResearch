@@ -35,12 +35,12 @@ public class TrustSVD_DT extends SocialRecommender {
 
 	private DenseMatrix W, Y, F;
 	private DenseVector wlr_j, wlr_tc, wlr_tr, wlr_dtc, wlr_dtr;
-	private static double reg_dt = 0, neg = 0.8;
+	private static double reg_dt = 0, neg = 0.05;
 
 	private static SparseMatrix T, DT;
 
 	static {
-		reg_dt = cf.getDouble("val.reg.distrust");
+		//reg_dt = cf.getDouble("val.reg.distrust");
 
 		T = socialMatrix.clone();
 		DT = socialMatrix.clone();
@@ -71,7 +71,8 @@ public class TrustSVD_DT extends SocialRecommender {
 			regI = reg;
 			regS = reg;
 		} else {
-			regS = RecUtils.getMKey(params, "val.reg.social");
+			reg_dt = RecUtils.getMKey(params, "val.reg.distrust");
+			regS = cf.getDouble("val.reg.social");
 		}
 	}
 
