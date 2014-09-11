@@ -273,7 +273,8 @@ public class TrustSVD_DT extends SocialRecommender {
 						double tkf = F.get(k, f);
 
 						double reg_k = wlr_dtc.get(k);
-						double delta_t = euj * qjf / w_dtu + regU * reg_k * tkf;
+						double delta_t = neg * euj * qjf / w_dtu + regU * reg_k
+								* tkf;
 						FS.add(k, f, delta_t);
 
 						loss += regU * reg_k * tkf * tkf;
@@ -319,7 +320,7 @@ public class TrustSVD_DT extends SocialRecommender {
 
 				loss += reg_dt * euk * euk;
 
-				double csgd = neg * reg_dt * euk;
+				double csgd = reg_dt * euk;
 				double reg_u = wlr_dtr.get(u);
 
 				for (int f = 0; f < numFactors; f++) {
@@ -378,7 +379,7 @@ public class TrustSVD_DT extends SocialRecommender {
 			for (int k : dtr.getIndex())
 				sum += DenseMatrix.rowMult(F, k, Q, j);
 
-			pred += sum / Math.sqrt(dtr.getCount());
+			pred += sum / Math.sqrt(dtr.getCount()) * neg;
 		}
 
 		return pred;
