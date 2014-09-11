@@ -40,8 +40,6 @@ public class TrustSVD_DT extends SocialRecommender {
 	private static SparseMatrix T, DT;
 
 	static {
-		//reg_dt = cf.getDouble("val.reg.distrust");
-
 		T = socialMatrix.clone();
 		DT = socialMatrix.clone();
 
@@ -71,7 +69,8 @@ public class TrustSVD_DT extends SocialRecommender {
 			regI = reg;
 			regS = reg;
 		} else {
-			reg_dt = RecUtils.getMKey(params, "val.reg.distrust");
+			neg = RecUtils.getMKey(params, "val.reg.neg");
+			reg_dt = cf.getDouble("val.reg.distrust");
 			regS = cf.getDouble("val.reg.social");
 		}
 	}
@@ -383,5 +382,10 @@ public class TrustSVD_DT extends SocialRecommender {
 		}
 
 		return pred;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "," + reg_dt + "," + neg;
 	}
 }
