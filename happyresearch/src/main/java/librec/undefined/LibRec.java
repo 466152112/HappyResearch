@@ -321,10 +321,6 @@ public class LibRec {
 			return new TrustSVD_DT(trainMatrix, testMatrix, fold);
 		case "rbmf":
 			return new RBMF(trainMatrix, testMatrix, fold);
-		case "fism":
-			return new FISMrmse(trainMatrix, testMatrix, fold);
-		case "fismauc":
-			return new FISMauc(trainMatrix, testMatrix, fold);
 		case "fusm":
 			return new FUSMrmse(trainMatrix, testMatrix, fold);
 		case "fusmauc":
@@ -337,6 +333,8 @@ public class LibRec {
 			return new FUSTauc(trainMatrix, testMatrix, fold);
 		case "tp":
 			return new TrustPredictor(trainMatrix, testMatrix, fold);
+		case "sbpr":
+			return new SBPR(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
@@ -362,6 +360,10 @@ public class LibRec {
 			return new WRMF(trainMatrix, testMatrix, fold);
 		case "slim":
 			return new SLIM(trainMatrix, testMatrix, fold);
+		case "fism":
+			return new FISMrmse(trainMatrix, testMatrix, fold);
+		case "fismauc":
+			return new FISMauc(trainMatrix, testMatrix, fold);
 
 			/* user ratings */
 		case "userknn":
