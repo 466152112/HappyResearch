@@ -140,7 +140,19 @@ public class SBPR extends SocialRecommender {
 					int k = SPu.get(Randoms.uniform(SPu.size()));
 					double xuk = predict(u, k);
 
-					double suk = 1;
+					// double suk = 1; // simple way: constant
+
+					// better way: count the number of neighbors who rated item
+					// k that user u did not rate
+					SparseVector Tu = socialMatrix.row(u);
+					double suk = 0;
+					for (VectorEntry ve : Tu) {
+						int v = ve.index();
+						double rvk = trainMatrix.get(v, k);
+						if (rvk > 0)
+							suk += 1;
+					}
+
 					double xuik = (xui - xuk) / (1 + suk);
 					double xukj = xuk - xuj;
 
