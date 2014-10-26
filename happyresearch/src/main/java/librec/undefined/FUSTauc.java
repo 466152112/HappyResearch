@@ -18,10 +18,8 @@
 
 package librec.undefined;
 
-import happy.coding.io.FileIO;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
-import happy.coding.system.Debug;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +28,6 @@ import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.data.SymmMatrix;
 import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
@@ -43,12 +40,10 @@ import librec.intf.SocialRecommender;
  */
 public class FUSTauc extends SocialRecommender {
 
-	private int rho, users;
+	private int rho;
 	private double alpha, tau, regBeta, regGamma;
-	private SymmMatrix userCorr;
-	private boolean flag;
 
-	private DenseMatrix uFactors, vFactors;
+	private DenseMatrix Y;
 
 	public FUSTauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -59,8 +54,11 @@ public class FUSTauc extends SocialRecommender {
 	@Override
 	protected void initModel() throws Exception {
 		P = new DenseMatrix(numUsers, numFactors);
+		Y = new DenseMatrix(numUsers, numFactors);
 		Q = new DenseMatrix(numUsers, numFactors);
+
 		P.init(0.01);
+		Y.init(0.01);
 		Q.init(0.01);
 
 		itemBiases = new DenseVector(numItems);
@@ -75,17 +73,6 @@ public class FUSTauc extends SocialRecommender {
 
 		// pre-processing: binarize training data
 		super.binary(trainMatrix);
-
-		flag = Debug.ON;
-		numUsers = trainMatrix.numRows();
-		userCorr = flag ? buildCorrs(true) : null;
-
-		users = numUsers;
-		numUsers = socialMatrix.numRows();
-
-		String dirPath = "Results\\TrustPredictor\\";
-		uFactors = (DenseMatrix) FileIO.deserialize(dirPath + "userFactors.bin");
-		vFactors = (DenseMatrix) FileIO.deserialize(dirPath + "itemFactors.bin");
 	}
 
 	@Override
@@ -97,11 +84,13 @@ public class FUSTauc extends SocialRecommender {
 			loss = 0;
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix YS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix QS = new DenseMatrix(numUsers, numFactors);
 
-			// update throughout each user-item-rating (u, j, ruj) cell 
+			// update throughout each user-item-rating (u, j, ruj) cell
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
+				SparseVector Tu = socialMatrix.row(u);
 
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
@@ -112,7 +101,8 @@ public class FUSTauc extends SocialRecommender {
 					// make a random sample of negative feedback (total - nnz)
 					List<Integer> indices = null, unratedItems = new ArrayList<>();
 					try {
-						indices = Randoms.randInts(rho, 0, numItems - Ru.getCount());
+						indices = Randoms.randInts(rho, 0,
+								numItems - Ru.getCount());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -128,55 +118,61 @@ public class FUSTauc extends SocialRecommender {
 						}
 					}
 
-					double sum_i = 0, sum_t = 0;
+					double sum_i = 0;
+					int cnt_i = 0;
 					for (VectorEntry vk : Ci) {
-						// for test, i and j will be always unequal as j is unrated
+						// for test, i and j will be always unequal as j is
+						// unrated
 						int v = vk.index();
 						if (u != v) {
-							double wt = Math.pow(1 + t(u, v), tau);
-							sum_i += wt * DenseMatrix.rowMult(P, v, Q, u);
-							sum_t += wt;
+							sum_i += DenseMatrix.rowMult(P, v, Q, u);
+							cnt_i++;
+
+							if (Tu.contains(v))
+								sum_i += DenseMatrix.rowMult(Y, v, Q, u);
 						}
 					}
-					double wi = sum_t > 0 ? Math.pow(sum_t, -alpha) : 0;
+					double wi = cnt_i > 0 ? Math.pow(cnt_i, -alpha) : 0;
 
 					double[] sum_if = new double[numFactors];
 					for (int f = 0; f < numFactors; f++) {
 						for (VectorEntry vk : Ci) {
 							int v = vk.index();
 							if (v != u) {
-								sum_if[f] += P.get(v, f) * Math.pow(1 + t(u, v), tau);
+								sum_if[f] += P.get(v, f);
+								if (Tu.contains(v))
+									sum_if[f] += Y.get(v, f);
 							}
 						}
 					}
 
-					// update for each  item j unrated by user u
+					// update for each item j unrated by user u
 					for (int j : unratedItems) {
 
 						SparseVector Cj = trainMatrix.column(j);
-						double sum_j = 0, sum_tj = 0;
+						double sum_j = 0;
+						int cnt_j = 0;
 						for (VectorEntry vk : Cj) {
 							int v = vk.index();
-							double wt = Math.pow(1 + t(u, v), tau);
-							sum_j += wt * DenseMatrix.rowMult(P, v, Q, u);
-							sum_tj += wt;
+							sum_j += DenseMatrix.rowMult(P, v, Q, u);
+							cnt_j++;
 						}
-						double wj = sum_tj > 0 ? Math.pow(sum_tj, -alpha) : 0;
+						double wj = cnt_j > 0 ? Math.pow(cnt_j, -alpha) : 0;
 
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 						double pui = bi + wi * sum_i;
 						double puj = bj + wj * sum_j;
 						double ruj = 0;
-						double eij = (rui - ruj) - (pui - puj);
+						double eij = (pui - puj) - (rui - ruj);
 
 						errs += eij * eij;
 						loss += eij * eij;
 
 						// update bi
-						itemBiases.add(i, lRate * (eij - regGamma * bi));
+						itemBiases.add(i, -lRate * (eij + regGamma * bi));
 
 						// update bj
-						itemBiases.add(j, -lRate * (eij - regGamma * bj));
+						itemBiases.add(j, -lRate * (-eij - regGamma * bj));
 
 						loss += regGamma * bi * bi + regGamma * bj * bj;
 
@@ -187,10 +183,13 @@ public class FUSTauc extends SocialRecommender {
 							double sum_jf = 0;
 							for (VectorEntry vk : Cj) {
 								int v = vk.index();
-								sum_jf += P.get(v, f) * Math.pow(1 + t(u, v), tau);
+								sum_jf += P.get(v, f);
+								if (Tu.contains(v))
+									sum_jf += Y.get(v, f);
 							}
 
-							double delta = eij * (wj * sum_jf - wi * sum_if[f]) + regBeta * quf;
+							double delta = eij * (wi * sum_if[f] - wj * sum_jf)
+									+ regBeta * quf;
 							QS.add(u, f, -lRate * delta);
 
 							loss += regBeta * quf * quf;
@@ -202,10 +201,20 @@ public class FUSTauc extends SocialRecommender {
 							if (v != u) {
 								for (int f = 0; f < numFactors; f++) {
 									double pvf = P.get(v, f);
-									double delta = eij * wi * Q.get(u, f) * Math.pow(1 + t(u, v), tau) - regBeta * pvf;
-									PS.add(v, f, lRate * delta);
+									double delta = eij * wi * Q.get(u, f)
+											+ regBeta * pvf;
+									PS.add(v, f, -lRate * delta);
 
-									loss -= regBeta * pvf * pvf;
+									loss += regBeta * pvf * pvf;
+
+									if (Tu.contains(v)) {
+										double yvf = Y.get(v, f);
+										delta = eij * wi * Q.get(u, f)
+												+ regBeta * yvf;
+										YS.add(v, f, -lRate * delta);
+
+										loss += regBeta * yvf * yvf;
+									}
 								}
 							}
 						}
@@ -214,10 +223,20 @@ public class FUSTauc extends SocialRecommender {
 							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
-								double delta = eij * wj * Q.get(u, f) * Math.pow(1 + t(u, v), tau) - regBeta * pvf;
+								double delta = eij * (-wj) * Q.get(u, f)
+										+ regBeta * pvf;
 								PS.add(v, f, -lRate * delta);
 
-								loss += regBeta * pvf * pvf;
+								loss -= regBeta * pvf * pvf;
+
+								if (Tu.contains(v)) {
+									double yvf = Y.get(v, f);
+									delta = eij * (-wj) * Q.get(u, f) + regBeta
+											* yvf;
+									YS.add(v, f, -lRate * delta);
+
+									loss -= regBeta * yvf * yvf;
+								}
 							}
 						}
 					}
@@ -227,6 +246,7 @@ public class FUSTauc extends SocialRecommender {
 			}
 
 			P = P.add(PS);
+			Y = Y.add(YS);
 			Q = Q.add(QS);
 
 			errs *= 0.5;
@@ -237,41 +257,26 @@ public class FUSTauc extends SocialRecommender {
 		}
 	}
 
-	/**
-	 * retrive the trust value of user v w.r.t user u
-	 * 
-	 * @return trust value tuv
-	 */
-	private double t(int u, int v) {
-
-		if (!flag)
-			return socialMatrix.get(u, v);
-
-		if (u >= users || v >= users)
-			return 0.0;
-
-		if (Debug.ON)
-			return DenseMatrix.rowMult(uFactors, u, vFactors, v);
-
-		return userCorr.get(u, v);
-	}
-
 	@Override
 	protected double predict(int u, int i) {
 
-		double sum = 0, sum_t = 0;
+		double sum = 0;
+		int count = 0;
 
 		SparseVector Ci = trainMatrix.column(i);
+		SparseVector Tu = socialMatrix.row(u);
 		for (VectorEntry ve : Ci) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
 			if (v != u) {
-				double wt = Math.pow(1 + t(u, v), tau);
-				sum += wt * DenseMatrix.rowMult(P, v, Q, u);
-				sum_t += wt;
+				sum += DenseMatrix.rowMult(P, v, Q, u);
+				count++;
+
+				if (Tu.contains(v))
+					sum += DenseMatrix.rowMult(Y, v, Q, u);
 			}
 		}
-		double wi = sum_t > 0 ? Math.pow(sum_t, -alpha) : 0;
+		double wi = count > 0 ? Math.pow(count, -alpha) : 0;
 
 		return itemBiases.get(i) + wi * sum;
 	}
@@ -280,7 +285,9 @@ public class FUSTauc extends SocialRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) tau, rho, (float) alpha, (float) regBeta, (float) regGamma },
-						",");
+				+ Strings
+						.toString(new Object[] { (float) tau, rho,
+								(float) alpha, (float) regBeta,
+								(float) regGamma }, ",");
 	}
 }
