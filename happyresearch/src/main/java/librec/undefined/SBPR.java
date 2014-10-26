@@ -148,9 +148,11 @@ public class SBPR extends SocialRecommender {
 					double suk = 0;
 					for (VectorEntry ve : Tu) {
 						int v = ve.index();
-						double rvk = trainMatrix.get(v, k);
-						if (rvk > 0)
-							suk += 1;
+						if (v < trainMatrix.numRows()) {
+							double rvk = trainMatrix.get(v, k);
+							if (rvk > 0)
+								suk += 1;
+						}
 					}
 
 					double xuik = (xui - xuk) / (1 + suk);
