@@ -32,8 +32,8 @@ import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 /**
- * Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender
- * Systems, KDD 2013.
+ * Kabbur et al., <strong>FISM: Factored Item Similarity Models for Top-N Recommender
+ * Systems</strong>, KDD 2013.
  * 
  * @author guoguibing
  * 
@@ -64,9 +64,6 @@ public class FISMauc extends IterativeRecommender {
 
 		regBeta = cf.getDouble("FISM.reg.beta");
 		regGamma = cf.getDouble("FISM.reg.gamma");
-
-		// pre-processing: binarize training data
-		super.binary(trainMatrix);
 	}
 
 	@Override

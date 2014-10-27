@@ -336,7 +336,7 @@ public class DatasetUtils {
 
 		String reviewPath = dirPath + "user-reviews.txt";
 		DataDAO reviewDao = new DataDAO(reviewPath, rateDao.getUserIds(), rateDao.getItemIds());
-		SparseMatrix reviewMatrix = reviewDao.readData(new int[] { 0, 1 }, true);
+		SparseMatrix reviewMatrix = reviewDao.readData(new int[] { 0, 1 }, true, -1);
 
 		String trustPath = dirPath + "trusts.txt";
 		DataDAO dao = new DataDAO(trustPath);

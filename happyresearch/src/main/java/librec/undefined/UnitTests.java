@@ -225,15 +225,15 @@ public class UnitTests {
 	@Test
 	public void testSample2() throws Exception {
 		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
-		String dirDest = dir + "Distrust_v7\\";
-		int userAmount = 2_000;
+		String dirDest = dir + "Distrust_v8\\";
+		int userAmount = 4_000;
 
 		FileIO.makeDirectory(dirDest);
 
 		// read ratings
 		DataDAO rateDao = new DataDAO(dir + "rating.txt");
 		SparseMatrix rateMatrix = rateDao
-				.readData(new int[] { 1, 0, 2 }, false);
+				.readData(new int[] { 1, 0, 2 }, false, -1);
 		BiMap<String, Integer> ids = rateDao.getUserIds();
 
 		for (MatrixEntry me : rateMatrix) {
@@ -258,7 +258,7 @@ public class UnitTests {
 		}
 		br.close();
 
-		// sample 20_000 users from all users;
+		// sample users from all candidate users;
 		List<Long> users = new ArrayList<>(allUsers);
 		List<Long> sample = new ArrayList<>();
 		for (int idx : Randoms.randInts(userAmount, 0, users.size()))
@@ -325,12 +325,12 @@ public class UnitTests {
 	@Test
 	public void testSampleSet() throws Exception {
 		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\"
-				+ "Distrust_v7\\";
+				+ "Distrust_v8\\";
 
 		// ratings
 		DataDAO rateDao = new DataDAO(dir + "ratings-2.txt");
 		SparseMatrix rateMatrix = rateDao.readData();
-		Logs.debug("Total rate size = {}", rateMatrix.size());
+		Logs.debug("Total rate size = {}", rateMatrix.size()); 
 
 		if (Debug.OFF) {
 			// remove items with less than 20 ratings

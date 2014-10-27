@@ -72,9 +72,6 @@ public class FISMrmse extends IterativeRecommender {
 		regLambda = cf.getDouble("FISM.reg.lambda");
 		regBeta = cf.getDouble("FISM.reg.beta");
 		regGamma = cf.getDouble("FISM.reg.gamma");
-
-		// pre-processing: binarize training data
-		super.binary(trainMatrix);
 	}
 
 	@Override
