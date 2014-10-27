@@ -52,6 +52,7 @@ import librec.intf.Recommender.Measure;
 import librec.ranking.BPRMF;
 import librec.ranking.CLiMF;
 import librec.ranking.RankALS;
+import librec.ranking.RankSGD;
 import librec.ranking.SLIM;
 import librec.ranking.WRMF;
 import librec.rating.BPMF;
@@ -103,7 +104,7 @@ public class LibRec {
 
 		// prepare data
 		rateDao = new DataDAO(cf.getPath("dataset.training"));
-		rateMatrix = rateDao.readData();
+		rateMatrix = rateDao.readData(cf.getDouble("val.binary.threshold"));
 
 		// config general recommender
 		Recommender.cf = cf;
@@ -349,7 +350,7 @@ public class LibRec {
 		case "rankals":
 			return new RankALS(trainMatrix, testMatrix, fold);
 		case "ranksgd":
-			return new RankSGD2(trainMatrix, testMatrix, fold);
+			return new RankSGD(trainMatrix, testMatrix, fold);
 		case "climf":
 			return new CLiMF(trainMatrix, testMatrix, fold);
 		case "bprmf":

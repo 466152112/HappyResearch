@@ -32,8 +32,7 @@ import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
- * FUST: Factored User Similarity Models with Trust for Top-N Recommender
- * Systems
+ * FUST: Factored User Similarity Models with Trust for Item Recommendation
  * 
  * @author guoguibing
  * 
@@ -41,7 +40,7 @@ import librec.intf.SocialRecommender;
 public class FUSTauc extends SocialRecommender {
 
 	private int rho;
-	private double alpha, tau, regBeta, regGamma;
+	private double alpha, regBeta, regGamma;
 
 	private DenseMatrix Y;
 
@@ -69,10 +68,7 @@ public class FUSTauc extends SocialRecommender {
 
 		regBeta = cf.getDouble("FISM.reg.beta");
 		regGamma = cf.getDouble("FISM.reg.gamma");
-		tau = cf.getDouble("FUST.trust.tau");
 
-		// pre-processing: binarize training data
-		super.binary(trainMatrix);
 	}
 
 	@Override
@@ -285,9 +281,7 @@ public class FUSTauc extends SocialRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings
-						.toString(new Object[] { (float) tau, rho,
-								(float) alpha, (float) regBeta,
-								(float) regGamma }, ",");
+				+ Strings.toString(new Object[] { rho, (float) alpha,
+						(float) regBeta, (float) regGamma }, ",");
 	}
 }

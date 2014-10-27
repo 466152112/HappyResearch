@@ -113,7 +113,8 @@ public class SBPR extends SocialRecommender {
 		for (int iter = 1; iter <= numIters; iter++) {
 
 			if (verbose)
-				Logs.debug("Fold {} runs at iteration = {}", fold, iter);
+				Logs.debug("{}{} runs at iteration = {}", algoName, foldInfo,
+						iter);
 
 			for (int s = 0, smax = numUsers * 100; s < smax; s++) {
 
