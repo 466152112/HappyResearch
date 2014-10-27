@@ -215,7 +215,7 @@ public class FISMauc extends IterativeRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(
-						new Object[] { rho, alpha, regBeta, regGamma }, ",");
+				+ Strings.toString(new Object[] { binThold, rho, alpha,
+						regBeta, regGamma }, ",");
 	}
 }
