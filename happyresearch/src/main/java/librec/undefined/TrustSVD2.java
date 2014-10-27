@@ -44,8 +44,8 @@ public class TrustSVD2 extends SocialRecommender {
 		if (params.containsKey("val.reg")) {
 			double reg = RecUtils.getMKey(params, "val.reg");
 
-			regU = reg;
-			regI = reg;
+			regU = (float) reg;
+			regI = (float) reg;
 			regS = reg;
 		} else {
 			regS = RecUtils.getMKey(params, "val.reg.social");

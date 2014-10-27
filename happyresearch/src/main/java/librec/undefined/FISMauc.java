@@ -32,8 +32,8 @@ import librec.data.VectorEntry;
 import librec.intf.IterativeRecommender;
 
 /**
- * Kabbur et al., <strong>FISM: Factored Item Similarity Models for Top-N Recommender
- * Systems</strong>, KDD 2013.
+ * Kabbur et al., <strong>FISM: Factored Item Similarity Models for Top-N
+ * Recommender Systems</strong>, KDD 2013.
  * 
  * @author guoguibing
  * 
@@ -41,7 +41,7 @@ import librec.intf.IterativeRecommender;
 public class FISMauc extends IterativeRecommender {
 
 	private int rho;
-	private double alpha, regBeta, regGamma;
+	private float alpha, regBeta, regGamma;
 
 	public FISMauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -60,10 +60,10 @@ public class FISMauc extends IterativeRecommender {
 		itemBiases.init(0.01);
 
 		rho = cf.getInt("FISM.rho");
-		alpha = cf.getDouble("FISM.alpha");
+		alpha = cf.getFloat("FISM.alpha");
 
-		regBeta = cf.getDouble("FISM.reg.beta");
-		regGamma = cf.getDouble("FISM.reg.gamma");
+		regBeta = cf.getFloat("FISM.reg.beta");
+		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class FISMauc extends IterativeRecommender {
 			errs = 0;
 			loss = 0;
 
-			// update throughout each user-item-rating (u, j, ruj) cell 
+			// update throughout each user-item-rating (u, j, ruj) cell
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
 				int[] ratedItems = Ru.getIndex();
@@ -86,7 +86,8 @@ public class FISMauc extends IterativeRecommender {
 					// make a random sample of negative feedback (total - nnz)
 					List<Integer> indices = null, unratedItems = new ArrayList<>();
 					try {
-						indices = Randoms.randInts(rho, 0, numItems - Ru.getCount());
+						indices = Randoms.randInts(rho, 0,
+								numItems - Ru.getCount());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -102,7 +103,8 @@ public class FISMauc extends IterativeRecommender {
 						}
 					}
 
-					double wu = Ru.getCount() - 1 > 0 ? Math.pow(Ru.getCount() - 1, -alpha) : 0;
+					double wu = Ru.getCount() - 1 > 0 ? Math.pow(
+							Ru.getCount() - 1, -alpha) : 0;
 					double[] x = new double[numFactors];
 
 					// update for each unrated item
@@ -110,7 +112,8 @@ public class FISMauc extends IterativeRecommender {
 
 						double sum_i = 0, sum_j = 0;
 						for (int k : ratedItems) {
-							// for test, i and j will be always unequal as j is unrated
+							// for test, i and j will be always unequal as j is
+							// unrated
 							if (i != k)
 								sum_i += DenseMatrix.rowMult(P, k, Q, i);
 
@@ -120,10 +123,12 @@ public class FISMauc extends IterativeRecommender {
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 
 						double pui = bi + wu * sum_i;
-						double puj = bj + Math.pow(Ru.getCount(), -alpha) * sum_j;
+						double puj = bj + Math.pow(Ru.getCount(), -alpha)
+								* sum_j;
 						double ruj = 0;
 
-						// double pui = predict(u, i), puj = predict(u, j), ruj = 0;
+						// double pui = predict(u, i), puj = predict(u, j), ruj
+						// = 0;
 						double eij = (rui - ruj) - (pui - puj);
 
 						errs += eij * eij;
@@ -160,7 +165,7 @@ public class FISMauc extends IterativeRecommender {
 						}
 					}
 
-					// update for each rated item 
+					// update for each rated item
 					for (int j : ratedItems) {
 						if (j != i) {
 							for (int f = 0; f < numFactors; f++) {
@@ -208,7 +213,9 @@ public class FISMauc extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + ","
-				+ Strings.toString(new Object[] { rho, (float) alpha, (float) regBeta, (float) regGamma }, ",");
+		return super.toString()
+				+ ","
+				+ Strings.toString(
+						new Object[] { rho, alpha, regBeta, regGamma }, ",");
 	}
 }

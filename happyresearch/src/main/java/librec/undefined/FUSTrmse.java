@@ -42,10 +42,10 @@ import com.google.common.collect.Table.Cell;
  */
 public class FUSTrmse extends SocialRecommender {
 
-	private double rho, alpha, tau;
+	private float rho, alpha, tau;
 	private int nnz;
 
-	private double regLambda, regBeta, regGamma;
+	private float regLambda, regBeta, regGamma;
 
 	public FUSTrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -66,13 +66,13 @@ public class FUSTrmse extends SocialRecommender {
 		itemBiases.init(0.01);
 
 		nnz = trainMatrix.size();
-		rho = cf.getDouble("FISM.rho");
-		alpha = cf.getDouble("FISM.alpha");
-		tau = cf.getDouble("FUST.trust.tau");
+		rho = cf.getFloat("FISM.rho");
+		alpha = cf.getFloat("FISM.alpha");
+		tau = cf.getFloat("FUST.trust.tau");
 
-		regLambda = cf.getDouble("FISM.reg.lambda");
-		regBeta = cf.getDouble("FISM.reg.beta");
-		regGamma = cf.getDouble("FISM.reg.gamma");
+		regLambda = cf.getFloat("FISM.reg.lambda");
+		regBeta = cf.getFloat("FISM.reg.beta");
+		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
@@ -121,20 +121,22 @@ public class FUSTrmse extends SocialRecommender {
 					break;
 			}
 
-			// update throughout each user-item-rating (u, j, ruj) cell 
+			// update throughout each user-item-rating (u, j, ruj) cell
 			for (Cell<Integer, Integer, Double> cell : R.cellSet()) {
 				int u = cell.getRowKey();
 				int j = cell.getColumnKey();
 				double ruj = cell.getValue();
 
-				// for efficiency, use the below code to predict ruj instead of simply using "predict(u,j)"
+				// for efficiency, use the below code to predict ruj instead of
+				// simply using "predict(u,j)"
 				SparseVector Cj = trainMatrix.column(j);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
 				double sum_vu = 0, sum_t = 0;
 				for (VectorEntry ve : Cj) {
 					int v = ve.index();
-					// for training, i and j should be equal as j may be rated or unrated
+					// for training, i and j should be equal as j may be rated
+					// or unrated
 					if (v != u) {
 						double tuv = Math.pow(1 + socialMatrix.get(u, v), tau);
 
@@ -185,7 +187,8 @@ public class FUSTrmse extends SocialRecommender {
 						for (int f = 0; f < numFactors; f++) {
 							double pvf = P.get(v, f);
 							double tuv = socialMatrix.get(u, v);
-							double delta = euj * wu * Math.pow(1 + tuv, tau) * Q.get(u, f) + regBeta * pvf;
+							double delta = euj * wu * Math.pow(1 + tuv, tau)
+									* Q.get(u, f) + regBeta * pvf;
 							PS.add(v, f, -lRate * delta);
 
 							loss += regBeta * pvf * pvf;
@@ -230,7 +233,7 @@ public class FUSTrmse extends SocialRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) tau, (float) rho, (float) alpha,  (float) regLambda,
-						(float) regBeta, (float) regGamma }, ",");
+				+ Strings.toString(new Object[] { tau, rho, alpha, regLambda,
+						regBeta, regGamma }, ",");
 	}
 }

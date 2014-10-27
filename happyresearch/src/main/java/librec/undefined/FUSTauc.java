@@ -40,7 +40,7 @@ import librec.intf.SocialRecommender;
 public class FUSTauc extends SocialRecommender {
 
 	private int rho;
-	private double alpha, regBeta, regGamma;
+	private float alpha, regBeta, regGamma;
 
 	private DenseMatrix Y;
 
@@ -64,10 +64,10 @@ public class FUSTauc extends SocialRecommender {
 		itemBiases.init(0.01);
 
 		rho = cf.getInt("FISM.rho");
-		alpha = cf.getDouble("FISM.alpha");
+		alpha = cf.getFloat("FISM.alpha");
 
-		regBeta = cf.getDouble("FISM.reg.beta");
-		regGamma = cf.getDouble("FISM.reg.gamma");
+		regBeta = cf.getFloat("FISM.reg.beta");
+		regGamma = cf.getFloat("FISM.reg.gamma");
 
 	}
 
@@ -281,7 +281,7 @@ public class FUSTauc extends SocialRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { rho, (float) alpha,
-						(float) regBeta, (float) regGamma }, ",");
+				+ Strings.toString(
+						new Object[] { rho, alpha, regBeta, regGamma }, ",");
 	}
 }

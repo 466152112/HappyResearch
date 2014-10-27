@@ -42,10 +42,10 @@ import com.google.common.collect.Table.Cell;
  */
 public class FISMrmse extends IterativeRecommender {
 
-	private double rho, alpha;
+	private float rho, alpha;
 	private int nnz;
 
-	private double regLambda, regBeta, regGamma;
+	private float regLambda, regBeta, regGamma;
 
 	public FISMrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -66,12 +66,12 @@ public class FISMrmse extends IterativeRecommender {
 		itemBiases.init(0.01);
 
 		nnz = trainMatrix.size();
-		rho = cf.getDouble("FISM.rho");
-		alpha = cf.getDouble("FISM.alpha");
+		rho = cf.getFloat("FISM.rho");
+		alpha = cf.getFloat("FISM.alpha");
 
-		regLambda = cf.getDouble("FISM.reg.lambda");
-		regBeta = cf.getDouble("FISM.reg.beta");
-		regGamma = cf.getDouble("FISM.reg.gamma");
+		regLambda = cf.getFloat("FISM.reg.lambda");
+		regBeta = cf.getFloat("FISM.reg.beta");
+		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
@@ -120,13 +120,14 @@ public class FISMrmse extends IterativeRecommender {
 					break;
 			}
 
-			// update throughout each user-item-rating (u, j, ruj) cell 
+			// update throughout each user-item-rating (u, j, ruj) cell
 			for (Cell<Integer, Integer, Double> cell : R.cellSet()) {
 				int u = cell.getRowKey();
 				int j = cell.getColumnKey();
 				double ruj = cell.getValue();
 
-				// for efficiency, use the below code to predict ruj instead of simply using "predict(u,j)"
+				// for efficiency, use the below code to predict ruj instead of
+				// simply using "predict(u,j)"
 				SparseVector Ru = trainMatrix.row(u);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
@@ -134,7 +135,8 @@ public class FISMrmse extends IterativeRecommender {
 				int cnt = 0;
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
-					// for training, i and j should be equal as j may be rated or unrated
+					// for training, i and j should be equal as j may be rated
+					// or unrated
 					if (i != j) {
 						sum_ij += DenseMatrix.rowMult(P, i, Q, j);
 						cnt++;
@@ -181,7 +183,8 @@ public class FISMrmse extends IterativeRecommender {
 					if (i != j) {
 						for (int f = 0; f < numFactors; f++) {
 							double pif = P.get(i, f);
-							double delta = euj * wu * Q.get(j, f) + regBeta * pif;
+							double delta = euj * wu * Q.get(j, f) + regBeta
+									* pif;
 							PS.add(i, f, -lRate * delta);
 
 							loss += regBeta * pif * pif;
@@ -227,7 +230,7 @@ public class FISMrmse extends IterativeRecommender {
 	public String toString() {
 		return super.toString()
 				+ ","
-				+ Strings.toString(new Object[] { (float) rho, (float) alpha, (float) regLambda, (float) regBeta,
-						(float) regGamma }, ",");
+				+ Strings.toString(new Object[] { binThold, rho, alpha,
+						regLambda, regBeta, regGamma }, ",");
 	}
 }

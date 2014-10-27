@@ -40,7 +40,7 @@ import librec.intf.IterativeRecommender;
 public class FUSMauc extends IterativeRecommender {
 
 	private int rho;
-	private double alpha, regBeta, regGamma;
+	private float alpha, regBeta, regGamma;
 
 	public FUSMauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -59,10 +59,10 @@ public class FUSMauc extends IterativeRecommender {
 		itemBiases.init(0.01);
 
 		rho = cf.getInt("FISM.rho");
-		alpha = cf.getDouble("FISM.alpha");
+		alpha = cf.getFloat("FISM.alpha");
 
-		regBeta = cf.getDouble("FISM.reg.beta");
-		regGamma = cf.getDouble("FISM.reg.gamma");
+		regBeta = cf.getFloat("FISM.reg.beta");
+		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class FUSMauc extends IterativeRecommender {
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
 			DenseMatrix QS = new DenseMatrix(numUsers, numFactors);
 
-			// update throughout each user-item-rating (u, j, ruj) cell 
+			// update throughout each user-item-rating (u, j, ruj) cell
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
 
@@ -89,7 +89,8 @@ public class FUSMauc extends IterativeRecommender {
 					// make a random sample of negative feedback (total - nnz)
 					List<Integer> indices = null, unratedItems = new ArrayList<>();
 					try {
-						indices = Randoms.randInts(rho, 0, numItems - Ru.getCount());
+						indices = Randoms.randInts(rho, 0,
+								numItems - Ru.getCount());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -105,10 +106,12 @@ public class FUSMauc extends IterativeRecommender {
 						}
 					}
 
-					double wi = Ci.getCount() - 1 > 0 ? Math.pow(Ci.getCount() - 1, -alpha) : 0;
+					double wi = Ci.getCount() - 1 > 0 ? Math.pow(
+							Ci.getCount() - 1, -alpha) : 0;
 					double sum_i = 0;
 					for (VectorEntry vk : Ci) {
-						// for test, i and j will be always unequal as j is unrated
+						// for test, i and j will be always unequal as j is
+						// unrated
 						int v = vk.index();
 						if (u != v)
 							sum_i += DenseMatrix.rowMult(P, v, Q, u);
@@ -132,7 +135,8 @@ public class FUSMauc extends IterativeRecommender {
 							int v = vk.index();
 							sum_j += DenseMatrix.rowMult(P, v, Q, u);
 						}
-						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(), -alpha) : 0;
+						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(),
+								-alpha) : 0;
 
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 						double pui = bi + wi * sum_i;
@@ -161,7 +165,8 @@ public class FUSMauc extends IterativeRecommender {
 								sum_jf += P.get(v, f);
 							}
 
-							double delta = eij * (wj * sum_jf - wi * sum_if[f]) + regBeta * quf;
+							double delta = eij * (wj * sum_jf - wi * sum_if[f])
+									+ regBeta * quf;
 							QS.add(u, f, -lRate * delta);
 
 							loss += regBeta * quf * quf;
@@ -173,7 +178,8 @@ public class FUSMauc extends IterativeRecommender {
 							if (v != u) {
 								for (int f = 0; f < numFactors; f++) {
 									double pvf = P.get(v, f);
-									double delta = eij * wi * Q.get(u, f) - regBeta * pvf;
+									double delta = eij * wi * Q.get(u, f)
+											- regBeta * pvf;
 									PS.add(v, f, lRate * delta);
 
 									loss -= regBeta * pvf * pvf;
@@ -185,7 +191,8 @@ public class FUSMauc extends IterativeRecommender {
 							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
-								double delta = eij * wj * Q.get(u, f) - regBeta * pvf;
+								double delta = eij * wj * Q.get(u, f) - regBeta
+										* pvf;
 								PS.add(v, f, -lRate * delta);
 
 								loss += regBeta * pvf * pvf;
@@ -230,7 +237,9 @@ public class FUSMauc extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + ","
-				+ Strings.toString(new Object[] { rho, (float) alpha, (float) regBeta, (float) regGamma }, ",");
+		return super.toString()
+				+ ","
+				+ Strings.toString(
+						new Object[] { rho, alpha, regBeta, regGamma }, ",");
 	}
 }
