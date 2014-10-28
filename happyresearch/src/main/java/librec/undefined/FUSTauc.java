@@ -43,6 +43,7 @@ public class FUSTauc extends SocialRecommender {
 	private float alpha, regBeta, regGamma;
 
 	private DenseMatrix Y;
+	private SparseMatrix S;
 
 	public FUSTauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -69,6 +70,21 @@ public class FUSTauc extends SocialRecommender {
 		regBeta = cf.getFloat("FISM.reg.beta");
 		regGamma = cf.getFloat("FISM.reg.gamma");
 
+		// new social matrix S with trust propagation, i.e., friends of friends
+		S = socialMatrix.clone();
+
+		for (int u = 0; u < numUsers; u++) {
+			SparseVector Tu = socialMatrix.row(u);
+
+			for (VectorEntry ve : Tu) {
+				int v = ve.index(); // v as a trusted neighbor
+				SparseVector Tv = socialMatrix.row(v); // v's trusted neighbors
+				for (VectorEntry ve2 : Tv) {
+					int k = ve2.index();
+					S.set(u, k, 1.0); // add as a trusted neighbor of user u
+				}
+			}
+		}
 	}
 
 	@Override
@@ -86,7 +102,7 @@ public class FUSTauc extends SocialRecommender {
 			// update throughout each user-item-rating (u, j, ruj) cell
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
-				SparseVector Tu = socialMatrix.row(u);
+				SparseVector Tu = S.row(u);
 
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
@@ -260,7 +276,7 @@ public class FUSTauc extends SocialRecommender {
 		int count = 0;
 
 		SparseVector Ci = trainMatrix.column(i);
-		SparseVector Tu = socialMatrix.row(u);
+		SparseVector Tu = S.row(u);
 		for (VectorEntry ve : Ci) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
