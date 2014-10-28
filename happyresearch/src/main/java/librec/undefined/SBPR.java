@@ -218,7 +218,7 @@ public class SBPR extends SocialRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { numFactors, lRate, regU, regI,
+		return Strings.toString(new Object[] { numFactors, initLRate, regU, regI,
 				numIters }, ",");
 	}
 

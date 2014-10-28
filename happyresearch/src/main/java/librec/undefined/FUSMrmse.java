@@ -128,12 +128,12 @@ public class FUSMrmse extends IterativeRecommender {
 
 				// for efficiency, use the below code to predict ruj instead of
 				// simply using "predict(u,j)"
-				SparseVector Rj = trainMatrix.column(j);
+				SparseVector Cj = trainMatrix.column(j);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
 				double sum_vu = 0;
 				int cnt = 0;
-				for (VectorEntry ve : Rj) {
+				for (VectorEntry ve : Cj) {
 					int v = ve.index();
 					// for training, i and j should be equal as j may be rated
 					// or unrated
@@ -164,7 +164,7 @@ public class FUSMrmse extends IterativeRecommender {
 					double quf = Q.get(u, f);
 
 					double sum_v = 0;
-					for (VectorEntry ve : Rj) {
+					for (VectorEntry ve : Cj) {
 						int v = ve.index();
 						if (v != u) {
 							sum_v += P.get(v, f);
@@ -178,7 +178,7 @@ public class FUSMrmse extends IterativeRecommender {
 				}
 
 				// update pvf
-				for (VectorEntry ve : Rj) {
+				for (VectorEntry ve : Cj) {
 					int v = ve.index();
 					if (v != u) {
 						for (int f = 0; f < numFactors; f++) {
@@ -209,8 +209,8 @@ public class FUSMrmse extends IterativeRecommender {
 		double sum = 0;
 		int count = 0;
 
-		SparseVector Rj = trainMatrix.column(j);
-		for (VectorEntry ve : Rj) {
+		SparseVector Cj = trainMatrix.column(j);
+		for (VectorEntry ve : Cj) {
 			int v = ve.index();
 			// for test, i and j will be always unequal as j is unrated
 			if (v != u) {
