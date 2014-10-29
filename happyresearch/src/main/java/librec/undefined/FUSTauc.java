@@ -83,11 +83,13 @@ public class FUSTauc extends SocialRecommender {
 				SparseVector Tv = socialMatrix.row(v); // v's trusted neighbors
 				for (VectorEntry ve2 : Tv) {
 					int k = ve2.index();
-					data.put(u, k, 1.0); // add as a trusted neighbor of user u
+					if (!Tu.contains(k))
+						data.put(u, k, 0.5); // add as a trusted neighbor of
+												// user u
 				}
 			}
 		}
-		
+
 		S = new SparseMatrix(numUsers, numUsers, data);
 	}
 
@@ -145,7 +147,8 @@ public class FUSTauc extends SocialRecommender {
 							cnt_i++;
 
 							if (Tu.contains(v))
-								sum_i += DenseMatrix.rowMult(Y, v, Q, u);
+								sum_i += t(u, v)
+										* DenseMatrix.rowMult(Y, v, Q, u);
 						}
 					}
 					double wi = cnt_i > 0 ? Math.pow(cnt_i, -alpha) : 0;
@@ -157,7 +160,7 @@ public class FUSTauc extends SocialRecommender {
 							if (v != u) {
 								sum_if[f] += P.get(v, f);
 								if (Tu.contains(v))
-									sum_if[f] += Y.get(v, f);
+									sum_if[f] += t(u, v) * Y.get(v, f);
 							}
 						}
 					}
@@ -201,7 +204,7 @@ public class FUSTauc extends SocialRecommender {
 								int v = vk.index();
 								sum_jf += P.get(v, f);
 								if (Tu.contains(v))
-									sum_jf += Y.get(v, f);
+									sum_jf += t(u, v) * Y.get(v, f);
 							}
 
 							double delta = eij * (wi * sum_if[f] - wj * sum_jf)
@@ -215,6 +218,7 @@ public class FUSTauc extends SocialRecommender {
 						for (VectorEntry vk : Ci) {
 							int v = vk.index();
 							if (v != u) {
+								double tuv = t(u, v);
 								for (int f = 0; f < numFactors; f++) {
 									double pvf = P.get(v, f);
 									double delta = eij * wi * Q.get(u, f)
@@ -225,7 +229,7 @@ public class FUSTauc extends SocialRecommender {
 
 									if (Tu.contains(v)) {
 										double yvf = Y.get(v, f);
-										delta = eij * wi * Q.get(u, f)
+										delta = eij * wi * Q.get(u, f) * tuv
 												+ regBeta * yvf;
 										YS.add(v, f, -lRate * delta);
 
@@ -237,6 +241,7 @@ public class FUSTauc extends SocialRecommender {
 
 						for (VectorEntry vk : Cj) {
 							int v = vk.index();
+							double tuv = t(u, v);
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
 								double delta = eij * (-wj) * Q.get(u, f)
@@ -247,8 +252,8 @@ public class FUSTauc extends SocialRecommender {
 
 								if (Tu.contains(v)) {
 									double yvf = Y.get(v, f);
-									delta = eij * (-wj) * Q.get(u, f) + regBeta
-											* yvf;
+									delta = eij * (-wj) * Q.get(u, f) * tuv
+											+ regBeta * yvf;
 									YS.add(v, f, -lRate * delta);
 
 									loss -= regBeta * yvf * yvf;
@@ -271,6 +276,10 @@ public class FUSTauc extends SocialRecommender {
 			if (isConverged(iter))
 				break;
 		}
+	}
+
+	private double t(int u, int v) {
+		return S.get(u, v);
 	}
 
 	@Override
