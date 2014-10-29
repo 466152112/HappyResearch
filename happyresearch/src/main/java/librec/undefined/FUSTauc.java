@@ -24,6 +24,8 @@ import happy.coding.math.Randoms;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Table;
+
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
@@ -71,7 +73,7 @@ public class FUSTauc extends SocialRecommender {
 		regGamma = cf.getFloat("FISM.reg.gamma");
 
 		// new social matrix S with trust propagation, i.e., friends of friends
-		S = socialMatrix.clone();
+		Table<Integer, Integer, Double> data = socialMatrix.getDataTable();
 
 		for (int u = 0; u < numUsers; u++) {
 			SparseVector Tu = socialMatrix.row(u);
@@ -81,10 +83,12 @@ public class FUSTauc extends SocialRecommender {
 				SparseVector Tv = socialMatrix.row(v); // v's trusted neighbors
 				for (VectorEntry ve2 : Tv) {
 					int k = ve2.index();
-					S.set(u, k, 1.0); // add as a trusted neighbor of user u
+					data.put(u, k, 1.0); // add as a trusted neighbor of user u
 				}
 			}
 		}
+		
+		S = new SparseMatrix(numUsers, numUsers, data);
 	}
 
 	@Override
