@@ -69,7 +69,6 @@ public class SBPR extends SocialRecommender {
 		// split all items into positive, social positive, negative categories
 		M = HashMultimap.create();
 		SP = HashMultimap.create();
-		// N = HashMultimap.create();
 
 		for (int u = 0, um = trainMatrix.numRows(); u < um; u++) {
 			// Pu
@@ -99,11 +98,6 @@ public class SBPR extends SocialRecommender {
 			}
 
 			// Nu: it is memory-consuming due to large number of un-rated items
-			// for (int k = 0; k < numItems; k++) {
-			// if (Ru.contains(k) || SPu.contains(k))
-			// continue;
-			// N.put(u, k);
-			// }
 		}
 	}
 
@@ -133,8 +127,6 @@ public class SBPR extends SocialRecommender {
 				List<Integer> SPu = new ArrayList<>(SP.get(u));
 
 				// Nu
-				// List<Integer> Nu = new ArrayList<>(N.get(u));
-				// int j = Nu.get(Randoms.uniform(Nu.size()));
 				int j = -1;
 				while (true) {
 					j = Randoms.uniform(numItems);
