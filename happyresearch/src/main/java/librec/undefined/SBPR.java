@@ -19,14 +19,11 @@
 package librec.undefined;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
-import happy.coding.io.Logs;
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 import librec.data.DenseMatrix;
@@ -37,7 +34,7 @@ import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
- * Social Bayesian Personalized Ranking
+ * Social Bayesian Personalized Ranking (SBPR)
  * 
  * <p>
  * Zhao et al., <strong>Leveraing Social Connections to Improve Personalized
@@ -49,7 +46,7 @@ import librec.intf.SocialRecommender;
  */
 public class SBPR extends SocialRecommender {
 
-	private Multimap<Integer, Integer> M, SP;
+	private Multimap<Integer, Integer> SP;
 
 	public SBPR(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -66,20 +63,15 @@ public class SBPR extends SocialRecommender {
 		itemBiases = new DenseVector(numItems);
 		itemBiases.init();
 
-		// split all items into positive, social positive, negative categories
-		M = HashMultimap.create();
+		// find items rated by trusted neighbors only
 		SP = HashMultimap.create();
 
 		for (int u = 0, um = trainMatrix.numRows(); u < um; u++) {
-			// Pu
 			SparseVector Ru = trainMatrix.row(u);
 			if (Ru.getCount() == 0)
 				continue; // no rated items
-			for (VectorEntry ve : Ru)
-				M.put(u, ve.index());
 
 			// SPu
-			Set<Integer> SPu = new HashSet<>();
 			SparseVector Tu = socialMatrix.row(u);
 			for (VectorEntry ve : Tu) {
 				int v = ve.index(); // friend v
@@ -90,14 +82,10 @@ public class SBPR extends SocialRecommender {
 				for (VectorEntry ve2 : Rv) {
 					int j = ve2.index(); // v's rated items
 					if (!Ru.contains(j)) // if not rated by user u
-					{
 						SP.put(u, j);
-						SPu.add(j);
-					}
 				}
 			}
 
-			// Nu: it is memory-consuming due to large number of un-rated items
 		}
 	}
 
@@ -106,35 +94,34 @@ public class SBPR extends SocialRecommender {
 
 		for (int iter = 1; iter <= numIters; iter++) {
 
-			if (verbose)
-				Logs.debug("{}{} runs at iteration = {}", algoName, foldInfo,
-						iter);
-
+			loss = 0;
+			errs = 0;
 			for (int s = 0, smax = numUsers * 100; s < smax; s++) {
 
 				// uniformly draw (u, i, k, j)
-				int u = Randoms.uniform(trainMatrix.numRows());
+				int u = 0, i = 0, j = 0;
 
-				// Pu
-				List<Integer> Pu = new ArrayList<>(M.get(u));
-				if (Pu.size() == 0)
-					continue; // no rated item
+				// u
+				SparseVector pu = null;
+				do {
+					u = Randoms.uniform(trainMatrix.numRows());
+					pu = trainMatrix.row(u);
+				} while (pu.getCount() == 0);
 
-				int i = Pu.get(Randoms.uniform(Pu.size()));
+				// i
+				int[] is = pu.getIndex();
+				i = is[Randoms.uniform(is.length)];
+
 				double xui = predict(u, i);
 
 				// SPu
 				List<Integer> SPu = new ArrayList<>(SP.get(u));
 
-				// Nu
-				int j = -1;
-				while (true) {
+				// j
+				do {
 					j = Randoms.uniform(numItems);
-					if (Pu.contains(j) || SPu.contains(j))
-						continue;
-					else
-						break;
-				}
+				} while (pu.contains(j) || SPu.contains(j));
+
 				double xuj = predict(u, j);
 
 				if (SPu.size() > 0) {
@@ -142,10 +129,6 @@ public class SBPR extends SocialRecommender {
 					int k = SPu.get(Randoms.uniform(SPu.size()));
 					double xuk = predict(u, k);
 
-					// double suk = 1; // simple way: constant
-
-					// better way: count the number of neighbors who rated item
-					// k that user u did not rate
 					SparseVector Tu = socialMatrix.row(u);
 					double suk = 0;
 					for (VectorEntry ve : Tu) {
@@ -160,19 +143,25 @@ public class SBPR extends SocialRecommender {
 					double xuik = (xui - xuk) / (1 + suk);
 					double xukj = xuk - xuj;
 
-					double cik = 1.0 / (1 + Math.exp(xuik));
-					double ckj = 1.0 / (1 + Math.exp(xukj));
+					double vals = -Math.log(g(xuik)) - Math.log(g(xukj));
+					loss += vals;
+					errs += vals;
+
+					double cik = g(-xuik), ckj = g(-xukj);
 
 					// update bi, bk, bj
 					double bi = itemBiases.get(i);
 					itemBiases.add(i, lRate * (cik / (1 + suk) + regI * bi));
+					loss += regI * bi * bi;
 
 					double bk = itemBiases.get(k);
 					itemBiases.add(k, lRate
 							* (-cik / (1 + suk) + ckj + regI * bk));
+					loss += regI * bk * bk;
 
 					double bj = itemBiases.get(j);
 					itemBiases.add(j, lRate * (-ckj + regI * bj));
+					loss += regI * bj * bj;
 
 					// update P, Q
 					for (int f = 0; f < numFactors; f++) {
@@ -191,11 +180,18 @@ public class SBPR extends SocialRecommender {
 						Q.add(k, f, lRate * (delta_qkf + regI * qkf));
 
 						Q.add(j, f, lRate * (cik * (-puf) + regI * qjf));
+
+						loss += regU * puf * puf + regI * qif * qif;
+						loss += regI * qkf * qkf + regI * qjf * qjf;
 					}
 				} else {
-					// if no social neighbors, the same as BPRMF
+					// if no social neighbors, the same as BPR
 					double xuij = xui - xuj;
-					double cij = 1.0 / (1 + Math.exp(xuij));
+					double vals = -Math.log(g(xuij));
+					errs += vals;
+					loss += vals;
+
+					double cij = g(-xuij);
 
 					for (int f = 0; f < numFactors; f++) {
 						double puf = P.get(u, f);
@@ -205,10 +201,15 @@ public class SBPR extends SocialRecommender {
 						P.add(u, f, lRate * (cij * (qif - qjf) + regU * puf));
 						Q.add(i, f, lRate * (cij * puf + regI * qif));
 						Q.add(j, f, lRate * (cij * (-puf) + regI * qjf));
+
+						loss += regU * puf * puf + regI * qif * qif + regI
+								* qjf * qjf;
 					}
 				}
 			}
 
+			if (isConverged(iter))
+				break;
 		}
 	}
 
