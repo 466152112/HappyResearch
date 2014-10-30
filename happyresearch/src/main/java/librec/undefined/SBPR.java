@@ -49,7 +49,7 @@ import librec.intf.SocialRecommender;
  */
 public class SBPR extends SocialRecommender {
 
-	private Multimap<Integer, Integer> M, SP, N;
+	private Multimap<Integer, Integer> M, SP;
 
 	public SBPR(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -66,10 +66,10 @@ public class SBPR extends SocialRecommender {
 		itemBiases = new DenseVector(numItems);
 		itemBiases.init();
 
-		// split items into positive, social positive, negative categories
+		// split all items into positive, social positive, negative categories
 		M = HashMultimap.create();
 		SP = HashMultimap.create();
-		N = HashMultimap.create();
+		// N = HashMultimap.create();
 
 		for (int u = 0, um = trainMatrix.numRows(); u < um; u++) {
 			// Pu
@@ -98,12 +98,12 @@ public class SBPR extends SocialRecommender {
 				}
 			}
 
-			// Nu
-			for (int k = 0; k < numItems; k++) {
-				if (Ru.contains(k) || SPu.contains(k))
-					continue;
-				N.put(u, k);
-			}
+			// Nu: it is memory-consuming due to large number of un-rated items
+			// for (int k = 0; k < numItems; k++) {
+			// if (Ru.contains(k) || SPu.contains(k))
+			// continue;
+			// N.put(u, k);
+			// }
 		}
 	}
 
@@ -129,13 +129,25 @@ public class SBPR extends SocialRecommender {
 				int i = Pu.get(Randoms.uniform(Pu.size()));
 				double xui = predict(u, i);
 
-				// Nu
-				List<Integer> Nu = new ArrayList<>(N.get(u));
-				int j = Nu.get(Randoms.uniform(Nu.size()));
-				double xuj = predict(u, j);
-
 				// SPu
 				List<Integer> SPu = new ArrayList<>(SP.get(u));
+
+				// Nu
+				// List<Integer> Nu = new ArrayList<>(N.get(u));
+				// int j = Nu.get(Randoms.uniform(Nu.size()));
+				int cnt_unrated = numItems - Pu.size() - SPu.size();
+				int idx = Randoms.uniform(cnt_unrated);
+				int pointer = 0, j = -1;
+				for (int k = 0; k < numItems; k++) {
+					if (Pu.contains(k) || SPu.contains(k))
+						continue;
+					if (idx == pointer++) {
+						j = k;
+						break;
+					}
+				}
+				double xuj = predict(u, j);
+
 				if (SPu.size() > 0) {
 					// if having social neighbors
 					int k = SPu.get(Randoms.uniform(SPu.size()));
@@ -218,8 +230,8 @@ public class SBPR extends SocialRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { numFactors, initLRate, regU, regI,
-				numIters }, ",");
+		return Strings.toString(new Object[] { numFactors, initLRate, regU,
+				regI, numIters }, ",");
 	}
 
 }

@@ -173,6 +173,73 @@ public class UnitTests {
 		}
 	}
 
+	/**
+	 * Randomly sample 100K ratings
+	 */
+	@Test
+	public void sample100K() throws Exception {
+		String dir = "D:\\Java\\Datasets\\Epinions\\";
+		String ratingDir = dir + "ratings.txt";
+		String trustDir = dir + "trust.txt";
+
+		// probability = 100_000/664_824=0.15
+		double prob = 100_000 / (664_824 + 0.0);
+		String dirPath = dir + "100K\\";
+
+		FileIO.makeDirectory(dirPath);
+		FileIO.deleteFile(dirPath + "ratings.txt");
+		FileIO.deleteFile(dirPath + "trust.txt");
+
+		// rating data
+		BufferedReader fr = FileIO.getReader(ratingDir);
+		String line = null;
+		List<String> lines = new ArrayList<>(1500);
+		List<String> users = new ArrayList<>();
+		while ((line = fr.readLine()) != null) {
+			double rand = Math.random();
+			if (rand < prob) {
+				lines.add(line);
+				String user = line.split("[ \t,]")[0];
+				if (!users.contains(user))
+					users.add(user);
+				if (lines.size() >= 1000) {
+					FileIO.writeList(dirPath + "ratings.txt", lines, true);
+					lines.clear();
+				}
+			}
+		}
+		fr.close();
+
+		if (lines.size() > 0) {
+			FileIO.writeList(dirPath + "ratings.txt", lines, true);
+			lines.clear();
+		}
+		Logs.debug("Finish ratings!");
+
+		// trust data
+		fr = FileIO.getReader(trustDir);
+		line = null;
+		while ((line = fr.readLine()) != null) {
+			String[] data = line.split("[ \t,]");
+			String tor = data[0];
+			String tee = data[1];
+
+			if (users.contains(tor) && users.contains(tee)) {
+				lines.add(line);
+				if (lines.size() >= 1000) {
+					FileIO.writeList(dirPath + "trust.txt", lines, true);
+					lines.clear();
+				}
+			}
+		}
+		fr.close();
+		if (lines.size() > 0) {
+			FileIO.writeList(dirPath + "ratings.txt", lines, true);
+			lines.clear();
+		}
+		Logs.debug("Finish trust and All!");
+	}
+
 	@Test
 	public void testSample() throws Exception {
 		String dir = "D:\\Dropbox\\PhD\\My Work\\Experiments\\Datasets\\Ratings\\Epinions\\Extended Epinions dataset\\";
@@ -232,8 +299,8 @@ public class UnitTests {
 
 		// read ratings
 		DataDAO rateDao = new DataDAO(dir + "rating.txt");
-		SparseMatrix rateMatrix = rateDao
-				.readData(new int[] { 1, 0, 2 }, false, -1);
+		SparseMatrix rateMatrix = rateDao.readData(new int[] { 1, 0, 2 },
+				false, -1);
 		BiMap<String, Integer> ids = rateDao.getUserIds();
 
 		for (MatrixEntry me : rateMatrix) {
@@ -330,7 +397,7 @@ public class UnitTests {
 		// ratings
 		DataDAO rateDao = new DataDAO(dir + "ratings-2.txt");
 		SparseMatrix rateMatrix = rateDao.readData();
-		Logs.debug("Total rate size = {}", rateMatrix.size()); 
+		Logs.debug("Total rate size = {}", rateMatrix.size());
 
 		if (Debug.OFF) {
 			// remove items with less than 20 ratings
