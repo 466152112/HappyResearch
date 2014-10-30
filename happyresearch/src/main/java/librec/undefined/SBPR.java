@@ -135,16 +135,13 @@ public class SBPR extends SocialRecommender {
 				// Nu
 				// List<Integer> Nu = new ArrayList<>(N.get(u));
 				// int j = Nu.get(Randoms.uniform(Nu.size()));
-				int cnt_unrated = numItems - Pu.size() - SPu.size();
-				int idx = Randoms.uniform(cnt_unrated);
-				int pointer = 0, j = -1;
-				for (int k = 0; k < numItems; k++) {
-					if (Pu.contains(k) || SPu.contains(k))
+				int j = -1;
+				while (true) {
+					j = Randoms.uniform(numItems);
+					if (Pu.contains(j) || SPu.contains(j))
 						continue;
-					if (idx == pointer++) {
-						j = k;
+					else
 						break;
-					}
 				}
 				double xuj = predict(u, j);
 
