@@ -334,6 +334,8 @@ public class LibRec {
 			return new TrustPredictor(trainMatrix, testMatrix, fold);
 		case "sbpr":
 			return new SBPR(trainMatrix, testMatrix, fold);
+		case "gbpr":
+			return new GBPR(trainMatrix, testMatrix, fold);
 
 		case "aaai-basemf":
 			return new BaseMF(trainMatrix, testMatrix, fold);
