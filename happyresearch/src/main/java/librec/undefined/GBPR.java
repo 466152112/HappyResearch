@@ -95,9 +95,26 @@ public class GBPR extends SocialRecommender {
 					for (int w : ws)
 						g.add(w);
 				} else {
-					int[] idxes = Randoms.nextIntArray(gLen, ws.length);
-					for (int idx : idxes)
-						g.add(ws[idx]);
+
+					while (gLen > 1) {
+						int[] idxes = Randoms.nextIntArray(gLen - 1, ws.length);
+						boolean flag = false;
+						for (int idx : idxes) {
+							int w = ws[idx];
+							if (w == u) {
+								// make sure u is not added again
+								flag = true;
+								break;
+							}
+
+							g.add(w);
+						}
+						if (!flag)
+							break;
+						g.clear(); // clear last iteration
+					}
+
+					g.add(u); // u in G
 				}
 
 				double pgui = predict(u, i, g);
