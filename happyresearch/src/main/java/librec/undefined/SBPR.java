@@ -26,6 +26,7 @@ import com.google.common.collect.Multimap;
 
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
+import happy.coding.system.Debug;
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
@@ -131,13 +132,20 @@ public class SBPR extends SocialRecommender {
 
 					SparseVector Tu = socialMatrix.row(u);
 					double suk = 0;
-					for (VectorEntry ve : Tu) {
-						int v = ve.index();
-						if (v < trainMatrix.numRows()) {
-							double rvk = trainMatrix.get(v, k);
-							if (rvk > 0)
-								suk += 1;
+					if (Debug.OFF) {
+						for (VectorEntry ve : Tu) {
+							int v = ve.index();
+							if (v < trainMatrix.numRows()) {
+								double rvk = trainMatrix.get(v, k);
+								if (rvk > 0)
+									suk += 1;
+							}
 						}
+
+						if (Debug.ON && Tu.getCount() > 0)
+							suk /= Tu.getCount();
+					} else if (Debug.ON) {
+						suk = 1.0;
 					}
 
 					double xuik = (xui - xuk) / (1 + suk);
