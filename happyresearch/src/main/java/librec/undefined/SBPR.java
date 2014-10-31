@@ -210,6 +210,7 @@ public class SBPR extends SocialRecommender {
 					itemBiases.add(j, lRate * (-cij + regB * bj));
 					loss += regB * bj * bj;
 
+					// update P, Q
 					for (int f = 0; f < numFactors; f++) {
 						double puf = P.get(u, f);
 						double qif = Q.get(i, f);
