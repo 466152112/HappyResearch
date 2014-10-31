@@ -159,17 +159,17 @@ public class SBPR extends SocialRecommender {
 
 					// update bi, bk, bj
 					double bi = itemBiases.get(i);
-					itemBiases.add(i, lRate * (cik / (1 + suk) + regI * bi));
-					loss += regI * bi * bi;
+					itemBiases.add(i, lRate * (cik / (1 + suk) + regB * bi));
+					loss += regB * bi * bi;
 
 					double bk = itemBiases.get(k);
 					itemBiases.add(k, lRate
-							* (-cik / (1 + suk) + ckj + regI * bk));
-					loss += regI * bk * bk;
+							* (-cik / (1 + suk) + ckj + regB * bk));
+					loss += regB * bk * bk;
 
 					double bj = itemBiases.get(j);
-					itemBiases.add(j, lRate * (-ckj + regI * bj));
-					loss += regI * bj * bj;
+					itemBiases.add(j, lRate * (-ckj + regB * bj));
+					loss += regB * bj * bj;
 
 					// update P, Q
 					for (int f = 0; f < numFactors; f++) {
@@ -201,6 +201,15 @@ public class SBPR extends SocialRecommender {
 
 					double cij = g(-xuij);
 
+					// update bi, bj
+					double bi = itemBiases.get(i);
+					itemBiases.add(i, lRate * (cij + regB * bi));
+					loss += regB * bi * bi;
+
+					double bj = itemBiases.get(j);
+					itemBiases.add(j, lRate * (-cij + regB * bj));
+					loss += regB * bj * bj;
+
 					for (int f = 0; f < numFactors; f++) {
 						double puf = P.get(u, f);
 						double qif = Q.get(i, f);
@@ -229,7 +238,7 @@ public class SBPR extends SocialRecommender {
 	@Override
 	public String toString() {
 		return Strings.toString(new Object[] { binThold, numFactors, initLRate,
-				regU, regI, numIters }, ",");
+				regU, regI, regB, numIters }, ",");
 	}
 
 }
