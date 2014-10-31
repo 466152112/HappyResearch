@@ -39,6 +39,7 @@ import librec.intf.SocialRecommender;
 public class GBPR extends SocialRecommender {
 
 	private float rho;
+	private int gLen;
 
 	public GBPR(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -56,6 +57,7 @@ public class GBPR extends SocialRecommender {
 		itemBiases.init();
 
 		rho = cf.getFloat("GBPR.rho");
+		gLen = cf.getInt("GBPR.group.size");
 	}
 
 	@Override
@@ -89,12 +91,11 @@ public class GBPR extends SocialRecommender {
 				SparseVector Ci = trainMatrix.column(i); // column i
 				int[] ws = Ci.getIndex();
 				List<Integer> g = new ArrayList<>();
-				int cnt_g = 3, len = Ci.getCount();
-				if (len <= cnt_g) {
+				if (ws.length <= gLen) {
 					for (int w : ws)
 						g.add(w);
 				} else {
-					int[] idxes = Randoms.nextIntArray(cnt_g, len);
+					int[] idxes = Randoms.nextIntArray(gLen, ws.length);
 					for (int idx : idxes)
 						g.add(ws[idx]);
 				}
@@ -198,7 +199,7 @@ public class GBPR extends SocialRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binThold, rho, numFactors,
+		return Strings.toString(new Object[] { binThold, rho, gLen, numFactors,
 				initLRate, regU, regI, numIters }, ",");
 	}
 
