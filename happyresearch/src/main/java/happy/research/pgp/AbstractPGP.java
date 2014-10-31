@@ -195,20 +195,20 @@ public abstract class AbstractPGP
 		int numNeutralIntros = (int) (numNodes * params.ratNeutralIntros + 0.5);
 
 		// generate random index of the invalid certificates
-		int[] invalidIndexArray = Randoms.nextNoRepeatIntArray(numInvNodes, numNodes);
+		int[] invalidIndexArray = Randoms.nextIntArray(numInvNodes, numNodes);
 		
 		// set introducer type
-		int[] honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestIntros, numNodes, null);
-		int[] neutralIndexArray = Randoms.nextNoRepeatIntArray(numNeutralIntros, numNodes, honestIndexArray);
+		int[] honestIndexArray = Randoms.nextIntArray(numHonestIntros, numNodes, null);
+		int[] neutralIndexArray = Randoms.nextIntArray(numNeutralIntros, numNodes, honestIndexArray);
 
 		int numLittleMistakeSigner = (int) (numNodes
 				* params.ratLittleMistakeSigner + 0.5D);
 		int numNeutralMistakeSigner = (int) (numNodes
 				* params.ratNeutralMistakeSigner + 0.5D);
 
-		int[] littleMistakeIndexArray = Randoms.nextNoRepeatIntArray(
+		int[] littleMistakeIndexArray = Randoms.nextIntArray(
 				numLittleMistakeSigner, numNodes, null);
-		int[] neutralMistakeIndexArray = Randoms.nextNoRepeatIntArray(
+		int[] neutralMistakeIndexArray = Randoms.nextIntArray(
 				numNeutralMistakeSigner, numNodes, littleMistakeIndexArray);
 
 		// generate all the PGP nodes
@@ -243,7 +243,7 @@ public abstract class AbstractPGP
 	private static int[] xpSign(List<PGPNode> nodes, EnvironmentParams params) throws Exception
 	{
 		int numSigners = (int) (numNodes * params.ratExperiencedSigner + 0.5);
-		int[] signerIndexArray = Randoms.nextNoRepeatIntArray(numSigners, numNodes, null);
+		int[] signerIndexArray = Randoms.nextIntArray(numSigners, numNodes, null);
 		
 		for (int i = 0; i < signerIndexArray.length; i++)
 		{
@@ -256,7 +256,7 @@ public abstract class AbstractPGP
 			// targets: for different signer, the number of targets varies
 			int numTargets = (int) (numNodes
 					* Randoms.uniform(params.ratMinManySigning, params.ratMaxManySigning) + 0.5);
-			int[] targetsIndexArray = Randoms.nextNoRepeatIntArray(numTargets, numNodes, new int[] { signerIndex });
+			int[] targetsIndexArray = Randoms.nextIntArray(numTargets, numNodes, new int[] { signerIndex });
 			
 			// specifies which nodes will be signed correctly
 			int numHonestSigning;
@@ -266,17 +266,17 @@ public abstract class AbstractPGP
 				case Honest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinHonestSigning, params.ratMaxHonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Neutral:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinNeutralSigning, params.ratMaxNeutralSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Dishonest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinDishonestSigning, params.ratMaxDishonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				default:
 					break;
@@ -291,7 +291,7 @@ public abstract class AbstractPGP
 									.uniform(
 								params.ratMinLittleMistakeHappen,
 								params.ratMaxLittleMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Neutral:
@@ -299,14 +299,14 @@ public abstract class AbstractPGP
 							* Randoms.uniform(
 								params.ratMinNeutralMistakeHappen,
 								params.ratMaxNeutralMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Many:
 				numMistakeTargets = (int) (numTargets
 							* Randoms.uniform(params.ratMinManyMistakeHappen,
 								params.ratMaxManyMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			}
@@ -338,7 +338,7 @@ public abstract class AbstractPGP
 				}
 			}
 			Arrays.sort(expts);
-			int[] specifiedTargetsIndexArray = Randoms.nextNoRepeatIntArray(
+			int[] specifiedTargetsIndexArray = Randoms.nextIntArray(
 					numSpecifiedTargets, numNodes, expts);
 			for (int k = 0; k < specifiedTargetsIndexArray.length; k++) {
 				PGPNode target = nodes.get(specifiedTargetsIndexArray[k]);
@@ -406,7 +406,7 @@ public abstract class AbstractPGP
 			throws Exception
 	{
 		int numSigners = (int) (numNodes * params.ratMediumSigner + 0.5);
-		int[] signerIndexArray = Randoms.nextNoRepeatIntArray(numSigners, numNodes, exceptions);
+		int[] signerIndexArray = Randoms.nextIntArray(numSigners, numNodes, exceptions);
 		
 		int[] exceptionArray = new int[numNodes];
 		for (int i = 0; i < exceptions.length; i++)
@@ -424,7 +424,7 @@ public abstract class AbstractPGP
 					* Randoms.uniform(params.ratMinNormalSigning, params.ratMaxNormalSigning) + 0.5);
 			
 			exceptionArray[exceptions.length] = signerIndex;
-			int[] targetsIndexArray = Randoms.nextNoRepeatIntArray(numTargets, numNodes, exceptionArray);
+			int[] targetsIndexArray = Randoms.nextIntArray(numTargets, numNodes, exceptionArray);
 			
 			// specifies which nodes will be signed correctly
 			int numHonestSigning;
@@ -434,17 +434,17 @@ public abstract class AbstractPGP
 				case Honest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinHonestSigning, params.ratMaxHonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Neutral:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinNeutralSigning, params.ratMaxNeutralSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Dishonest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinDishonestSigning, params.ratMaxDishonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				default:
 					break;
@@ -459,7 +459,7 @@ public abstract class AbstractPGP
 									.uniform(
 								params.ratMinLittleMistakeHappen,
 								params.ratMaxLittleMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Neutral:
@@ -467,14 +467,14 @@ public abstract class AbstractPGP
 							* Randoms.uniform(
 								params.ratMinNeutralMistakeHappen,
 								params.ratMaxNeutralMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Many:
 				numMistakeTargets = (int) (numTargets
 							* Randoms.uniform(params.ratMinManyMistakeHappen,
 								params.ratMaxManyMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			}
@@ -511,7 +511,7 @@ public abstract class AbstractPGP
 				}
 			}
 			Arrays.sort(expts);
-			int[] specifiedTargetsIndexArray = Randoms.nextNoRepeatIntArray(
+			int[] specifiedTargetsIndexArray = Randoms.nextIntArray(
 					numSpecifiedTargets, numNodes, expts);
 			for (int k = 0; k < specifiedTargetsIndexArray.length; k++)
 			{
@@ -532,7 +532,7 @@ public abstract class AbstractPGP
 			throws Exception
 	{
 		int numSigners = (int) (numNodes * params.ratNewbieSigner + 0.5);
-		int[] signerIndexArray = Randoms.nextNoRepeatIntArray(numSigners, numNodes, exceptions);
+		int[] signerIndexArray = Randoms.nextIntArray(numSigners, numNodes, exceptions);
 		
 		int[] exceptionsArray = new int[exceptions.length + 1];
 		for (int i = 0; i < exceptions.length; i++)
@@ -551,7 +551,7 @@ public abstract class AbstractPGP
 			
 			// avoid signing itself
 			exceptionsArray[exceptions.length] = signerIndex;
-			int[] targetsIndexArray = Randoms.nextNoRepeatIntArray(numTargets, numNodes, exceptionsArray);
+			int[] targetsIndexArray = Randoms.nextIntArray(numTargets, numNodes, exceptionsArray);
 			
 			// specifies which nodes will be signed correctly
 			int numHonestSigning;
@@ -561,17 +561,17 @@ public abstract class AbstractPGP
 				case Honest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinHonestSigning, params.ratMaxHonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Neutral:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinNeutralSigning, params.ratMaxNeutralSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				case Dishonest:
 					numHonestSigning = (int) (numTargets
 							* Randoms.uniform(params.ratMinDishonestSigning, params.ratMaxDishonestSigning) + 0.5);
-					honestIndexArray = Randoms.nextNoRepeatIntArray(numHonestSigning, numTargets, null);
+					honestIndexArray = Randoms.nextIntArray(numHonestSigning, numTargets, null);
 					break;
 				default:
 					break;
@@ -586,7 +586,7 @@ public abstract class AbstractPGP
 									.uniform(
 								params.ratMinLittleMistakeHappen,
 								params.ratMaxLittleMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Neutral:
@@ -594,14 +594,14 @@ public abstract class AbstractPGP
 							* Randoms.uniform(
 								params.ratMinNeutralMistakeHappen,
 								params.ratMaxNeutralMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			case Many:
 				numMistakeTargets = (int) (numTargets
 							* Randoms.uniform(params.ratMinManyMistakeHappen,
 								params.ratMaxManyMistakeHappen) + 0.5);
-					mistakeIndexArray = Randoms.nextNoRepeatIntArray(
+					mistakeIndexArray = Randoms.nextIntArray(
 						numMistakeTargets, numTargets, null);
 				break;
 			}
@@ -633,7 +633,7 @@ public abstract class AbstractPGP
 				}
 				Arrays.sort(expts);
 				int[] specifiedTargetsIndexArray = Randoms
-						.nextNoRepeatIntArray(numSpecifiedTargets, numNodes, expts);
+						.nextIntArray(numSpecifiedTargets, numNodes, expts);
 				for (int k = 0; k < specifiedTargetsIndexArray.length; k++)
 				{
 					PGPNode target = nodes.get(specifiedTargetsIndexArray[k]);

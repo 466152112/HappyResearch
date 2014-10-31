@@ -422,7 +422,7 @@ public class MATrust_mt extends DefaultCF_mt {
 
 				// three components
 				for (int i = 0; i < 4; i++) {
-					indexes = Randoms.nextNoRepeatIntArray(3, 0, 4,
+					indexes = Randoms.nextIntArray(3, 0, 4,
 							new int[] { i });
 					val = combine_features(ws, fs, indexes);
 

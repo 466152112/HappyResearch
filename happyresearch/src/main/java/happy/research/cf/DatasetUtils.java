@@ -299,7 +299,7 @@ public class DatasetUtils
 
 			Logs.debug("len, min, max = {}, {}, {}", new Object[] { len, start, end });
 
-			int[] idsArray = Randoms.nextNoRepeatIntArray(len, start, end);
+			int[] idsArray = Randoms.nextIntArray(len, start, end);
 
 			String lines = FileIO.readAsString(source, idsArray);
 			FileIO.writeString(target, lines, true);
@@ -577,7 +577,7 @@ public class DatasetUtils
 
 		Set<String> userSet = userRatingsMap.keySet();
 
-		int[] indexArray = Randoms.nextNoRepeatIntArray(users, 1, userSet.size(), null);
+		int[] indexArray = Randoms.nextIntArray(users, 1, userSet.size(), null);
 
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(dest)));
 		int count = 0;
@@ -615,7 +615,7 @@ public class DatasetUtils
 		Map<String, Map<String, Rating>> itemRatingsMap = data[1];
 
 		List<String> itemSet = new ArrayList<>(itemRatingsMap.keySet());
-		int[] itemArray = Randoms.nextNoRepeatIntArray(num_items, 1, itemSet.size(), null);
+		int[] itemArray = Randoms.nextIntArray(num_items, 1, itemSet.size(), null);
 		List<String> items = new ArrayList<>();
 		for (int id : itemArray)
 			items.add(itemSet.get(id));
@@ -640,7 +640,7 @@ public class DatasetUtils
 		if (num_users < users.size())
 		{
 			userSet = new ArrayList<>();
-			int[] userArray = Randoms.nextNoRepeatIntArray(num_users, 1, users.size(), null);
+			int[] userArray = Randoms.nextIntArray(num_users, 1, users.size(), null);
 
 			for (int id : userArray)
 				userSet.add(users.get(id));
@@ -718,7 +718,7 @@ public class DatasetUtils
 			}
 		}
 		Set<Integer> userSet = data.keySet();
-		int indexArray[] = Randoms.nextNoRepeatIntArray(users, 0, userSet.size(), null);
+		int indexArray[] = Randoms.nextIntArray(users, 0, userSet.size(), null);
 
 		BufferedWriter bw = new BufferedWriter(new FileWriter(new File(dest)));
 		int count = 0;
@@ -813,7 +813,7 @@ public class DatasetUtils
 			int size = rs.size();
 			int save = (int) (mean * size / average + 0.5);
 
-			int index[] = Randoms.nextNoRepeatIntArray(save, 0, size, null);
+			int index[] = Randoms.nextIntArray(save, 0, size, null);
 
 			for (int item : index)
 			{
@@ -1150,7 +1150,7 @@ public class DatasetUtils
 			int[] indexArray = null;
 			if (k < kfold - 1)
 			{
-				indexArray = Randoms.nextNoRepeatIntArray(size, 1, totalAmount + 1, exceptions);
+				indexArray = Randoms.nextIntArray(size, 1, totalAmount + 1, exceptions);
 				for (int index : indexArray)
 				{
 					exceptions[count++] = index;
