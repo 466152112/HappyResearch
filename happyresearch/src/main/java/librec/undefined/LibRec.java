@@ -51,6 +51,7 @@ import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
 import librec.ranking.BPR;
 import librec.ranking.CLiMF;
+import librec.ranking.GBPR;
 import librec.ranking.RankALS;
 import librec.ranking.RankSGD;
 import librec.ranking.SLIM;
