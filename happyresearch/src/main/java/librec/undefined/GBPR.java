@@ -21,16 +21,12 @@ package librec.undefined;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 import happy.coding.io.Strings;
 import happy.coding.math.Randoms;
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
-import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
@@ -43,8 +39,6 @@ import librec.intf.SocialRecommender;
 public class GBPR extends SocialRecommender {
 
 	private float rho;
-
-	private Multimap<Integer, Integer> Gs;
 
 	public GBPR(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -62,16 +56,6 @@ public class GBPR extends SocialRecommender {
 		itemBiases.init();
 
 		rho = cf.getFloat("GBPR.rho");
-
-		Gs = HashMultimap.create();
-		for (int j = 0, um = trainMatrix.numColumns(); j < um; j++) {
-			SparseVector Cj = trainMatrix.column(j);
-			if (Cj.getCount() == 0)
-				continue; // no users has rated this item
-
-			for (VectorEntry ve : Cj)
-				Gs.put(j, ve.index()); // {item, set of users who rated it}
-		}
 	}
 
 	@Override
@@ -91,27 +75,28 @@ public class GBPR extends SocialRecommender {
 				int u = 0, i = 0, j = 0;
 
 				// u
-				SparseVector pu = null;
+				SparseVector Ru = null; // row u
 				do {
 					u = Randoms.uniform(trainMatrix.numRows());
-					pu = trainMatrix.row(u);
-				} while (pu.getCount() == 0);
+					Ru = trainMatrix.row(u);
+				} while (Ru.getCount() == 0);
 
 				// i
-				int[] is = pu.getIndex();
+				int[] is = Ru.getIndex();
 				i = is[Randoms.uniform(is.length)];
 
 				// g
-				List<Integer> G = new ArrayList<>(Gs.get(i));
-				List<Integer> g = null;
-				int cnt_g = 3;
-				if (G.size() <= cnt_g) {
-					g = G;
+				SparseVector Ci = trainMatrix.column(i); // column i
+				int[] ws = Ci.getIndex();
+				List<Integer> g = new ArrayList<>();
+				int cnt_g = 3, len = Ci.getCount();
+				if (len <= cnt_g) {
+					for (int w : ws)
+						g.add(w);
 				} else {
-					g = new ArrayList<>();
-					int[] idxes = Randoms.nextNoRepeatIntArray(cnt_g, G.size());
+					int[] idxes = Randoms.nextIntArray(cnt_g, len);
 					for (int idx : idxes)
-						g.add(G.get(idx));
+						g.add(ws[idx]);
 				}
 
 				double pgui = predict(u, i, g);
@@ -119,7 +104,7 @@ public class GBPR extends SocialRecommender {
 				// j
 				do {
 					j = Randoms.uniform(numItems);
-				} while (pu.contains(j));
+				} while (Ru.contains(j));
 
 				double puj = predict(u, j);
 

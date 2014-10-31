@@ -247,7 +247,7 @@ public class DatasetUtils {
 		List<String> ts = new ArrayList<>(trust.rowKeySet());
 
 		// randomly sample 1500 users
-		int[] idxes = Randoms.nextNoRepeatIntArray(1500, ts.size());
+		int[] idxes = Randoms.nextIntArray(1500, ts.size());
 		List<String> trustors = new ArrayList<>();
 		for (int idx : idxes)
 			trustors.add(ts.get(idx));
