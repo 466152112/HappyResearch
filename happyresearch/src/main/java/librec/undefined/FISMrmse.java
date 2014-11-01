@@ -34,8 +34,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
- * Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender
- * Systems, KDD 2013.
+ * Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
  * 
  * @author guoguibing
  * 
@@ -44,8 +43,6 @@ public class FISMrmse extends IterativeRecommender {
 
 	private float rho, alpha;
 	private int nnz;
-
-	private float regLambda, regBeta, regGamma;
 
 	public FISMrmse(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -68,14 +65,10 @@ public class FISMrmse extends IterativeRecommender {
 		nnz = trainMatrix.size();
 		rho = cf.getFloat("FISM.rho");
 		alpha = cf.getFloat("FISM.alpha");
-
-		regLambda = cf.getFloat("FISM.reg.lambda");
-		regBeta = cf.getFloat("FISM.reg.beta");
-		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
-	protected void buildModel() {
+	protected void buildModel() throws Exception {
 
 		int sampleSize = (int) (rho * nnz);
 		int totalSize = numUsers * numItems;
@@ -93,12 +86,7 @@ public class FISMrmse extends IterativeRecommender {
 			Table<Integer, Integer, Double> R = trainMatrix.getDataTable();
 
 			// make a random sample of negative feedback (total - nnz)
-			List<Integer> indices = null;
-			try {
-				indices = Randoms.randInts(sampleSize, 0, totalSize - nnz);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			List<Integer> indices = Randoms.randInts(sampleSize, 0, totalSize - nnz);
 			int index = 0, count = 0;
 			boolean isDone = false;
 			for (int u = 0; u < numUsers; u++) {
@@ -126,8 +114,7 @@ public class FISMrmse extends IterativeRecommender {
 				int j = cell.getColumnKey();
 				double ruj = cell.getValue();
 
-				// for efficiency, use the below code to predict ruj instead of
-				// simply using "predict(u,j)"
+				// for efficiency, use the below code to predict ruj instead of simply using "predict(u,j)"
 				SparseVector Ru = trainMatrix.row(u);
 				double bu = userBiases.get(u), bj = itemBiases.get(j);
 
@@ -135,8 +122,7 @@ public class FISMrmse extends IterativeRecommender {
 				int cnt = 0;
 				for (VectorEntry ve : Ru) {
 					int i = ve.index();
-					// for training, i and j should be equal as j may be rated
-					// or unrated
+					// for training, i and j should be equal as j may be rated or unrated
 					if (i != j) {
 						sum_ij += DenseMatrix.rowMult(P, i, Q, j);
 						cnt++;
@@ -152,12 +138,12 @@ public class FISMrmse extends IterativeRecommender {
 				loss += euj * euj;
 
 				// update bu
-				userBiases.add(u, -lRate * (euj + regLambda * bu));
+				userBiases.add(u, -lRate * (euj + regB * bu));
 
 				// update bj
-				itemBiases.add(j, -lRate * (euj + regGamma * bj));
+				itemBiases.add(j, -lRate * (euj + regB * bj));
 
-				loss += regLambda * bu * bu + regGamma * bj * bj;
+				loss += regB * bu * bu + regB * bj * bj;
 
 				// update qjf
 				for (int f = 0; f < numFactors; f++) {
@@ -171,10 +157,10 @@ public class FISMrmse extends IterativeRecommender {
 						}
 					}
 
-					double delta = euj * wu * sum_i + regBeta * qjf;
+					double delta = euj * wu * sum_i + regI * qjf;
 					QS.add(j, f, -lRate * delta);
 
-					loss += regBeta * qjf * qjf;
+					loss += regI * qjf * qjf;
 				}
 
 				// update pif
@@ -183,11 +169,10 @@ public class FISMrmse extends IterativeRecommender {
 					if (i != j) {
 						for (int f = 0; f < numFactors; f++) {
 							double pif = P.get(i, f);
-							double delta = euj * wu * Q.get(j, f) + regBeta
-									* pif;
+							double delta = euj * wu * Q.get(j, f) + regI * pif;
 							PS.add(i, f, -lRate * delta);
 
-							loss += regBeta * pif * pif;
+							loss += regI * pif * pif;
 						}
 					}
 				}
@@ -228,9 +213,6 @@ public class FISMrmse extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString()
-				+ ","
-				+ Strings.toString(new Object[] { binThold, rho, alpha,
-						regLambda, regBeta, regGamma }, ",");
+		return super.toString() + "," + Strings.toString(new Object[] { binThold, rho, alpha, regI, regB }, ",");
 	}
 }

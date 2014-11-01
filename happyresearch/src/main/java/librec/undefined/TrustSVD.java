@@ -124,8 +124,7 @@ public class TrustSVD extends SocialRecommender {
 				// To speed up, directly access the prediction
 				double bu = userBiases.get(u);
 				double bj = itemBiases.get(j);
-				double pred = globalMean + bu + bj
-						+ DenseMatrix.rowMult(P, u, Q, j);
+				double pred = globalMean + bu + bj + DenseMatrix.rowMult(P, u, Q, j);
 
 				// Y
 				SparseVector uv = trainMatrix.row(u);
@@ -193,8 +192,7 @@ public class TrustSVD extends SocialRecommender {
 					double qjf = Q.get(j, f);
 
 					double delta_u = euj * qjf + regU * reg_u * puf;
-					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) + regI
-							* reg_j * qjf;
+					double delta_j = euj * (puf + sum_ys[f] + sum_ts[f]) + regI * reg_j * qjf;
 
 					PS.add(u, f, delta_u);
 					Q.add(j, f, -lRate * delta_j);
@@ -264,8 +262,7 @@ public class TrustSVD extends SocialRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		double pred = globalMean + userBiases.get(u) + itemBiases.get(j)
-				+ DenseMatrix.rowMult(P, u, Q, j);
+		double pred = globalMean + userBiases.get(u) + itemBiases.get(j) + DenseMatrix.rowMult(P, u, Q, j);
 
 		// Y
 		SparseVector uv = trainMatrix.row(u);

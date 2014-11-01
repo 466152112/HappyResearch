@@ -37,8 +37,8 @@ import librec.intf.SocialRecommender;
  * Social Bayesian Personalized Ranking (SBPR)
  * 
  * <p>
- * Zhao et al., <strong>Leveraing Social Connections to Improve Personalized
- * Ranking for Collaborative Filtering</strong>, CIKM 2014.
+ * Zhao et al., <strong>Leveraing Social Connections to Improve Personalized Ranking for Collaborative
+ * Filtering</strong>, CIKM 2014.
  * </p>
  * 
  * @author guibing
@@ -130,7 +130,7 @@ public class SBPR extends SocialRecommender {
 					double xuk = predict(u, k);
 
 					SparseVector Tu = socialMatrix.row(u);
-					double suk = 0; 
+					double suk = 0;
 					for (VectorEntry ve : Tu) {
 						int v = ve.index();
 						if (v < trainMatrix.numRows()) {
@@ -155,8 +155,7 @@ public class SBPR extends SocialRecommender {
 					loss += regB * bi * bi;
 
 					double bk = itemBiases.get(k);
-					itemBiases.add(k, lRate
-							* (-cik / (1 + suk) + ckj + regB * bk));
+					itemBiases.add(k, lRate * (-cik / (1 + suk) + ckj + regB * bk));
 					loss += regB * bk * bk;
 
 					double bj = itemBiases.get(j);
@@ -169,12 +168,10 @@ public class SBPR extends SocialRecommender {
 						double qif = Q.get(i, f), qkf = Q.get(k, f);
 						double qjf = Q.get(j, f);
 
-						double delta_puf = cik * (qif - qkf) / (1 + suk) + ckj
-								* (qkf - qjf);
+						double delta_puf = cik * (qif - qkf) / (1 + suk) + ckj * (qkf - qjf);
 						P.add(u, f, lRate * (delta_puf + regU * puf));
 
-						Q.add(i, f, lRate
-								* (cik * puf / (1 + suk) + regI * qif));
+						Q.add(i, f, lRate * (cik * puf / (1 + suk) + regI * qif));
 
 						double delta_qkf = cik * (-puf / (1 + suk)) + ckj * puf;
 						Q.add(k, f, lRate * (delta_qkf + regI * qkf));
@@ -212,8 +209,7 @@ public class SBPR extends SocialRecommender {
 						Q.add(i, f, lRate * (cij * puf + regI * qif));
 						Q.add(j, f, lRate * (cij * (-puf) + regI * qjf));
 
-						loss += regU * puf * puf + regI * qif * qif + regI
-								* qjf * qjf;
+						loss += regU * puf * puf + regI * qif * qif + regI * qjf * qjf;
 					}
 				}
 			}
@@ -230,8 +226,7 @@ public class SBPR extends SocialRecommender {
 
 	@Override
 	public String toString() {
-		return Strings.toString(new Object[] { binThold, numFactors, initLRate,
-				regU, regI, regB, numIters }, ",");
+		return Strings.toString(new Object[] { binThold, numFactors, initLRate, regU, regI, regB, numIters }, ",");
 	}
 
 }
