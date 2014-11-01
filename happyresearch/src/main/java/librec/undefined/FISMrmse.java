@@ -213,6 +213,6 @@ public class FISMrmse extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString() + "," + Strings.toString(new Object[] { binThold, rho, alpha, regI, regB }, ",");
+		return Strings.toString(new Object[] { binThold, rho, alpha, regI, regB }, ",");
 	}
 }
