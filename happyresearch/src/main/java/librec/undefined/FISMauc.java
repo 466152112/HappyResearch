@@ -70,7 +70,7 @@ public class FISMauc extends IterativeRecommender {
 			errs = 0;
 			loss = 0;
 
-			// update throughout each user-item-rating (u, j, ruj) cell
+			// update throughout each (u, i, j) cell
 			for (int u : trainMatrix.rows()) {
 				SparseVector Ru = trainMatrix.row(u);
 				int[] ratedItems = Ru.getIndex();
@@ -79,26 +79,23 @@ public class FISMauc extends IterativeRecommender {
 					int i = ve.index();
 					double rui = ve.get();
 
-					// make a random sample of negative feedback (total - nnz)
-					List<Integer> unratedItems = new ArrayList<>();
-					List<Integer> indices = Randoms.randInts(rho, 0, numItems - Ru.getCount());
-					int index = 0, count = 0;
-					for (int j = 0; j < numItems; j++) {
-						if (!Ru.contains(j)) {
-							if (count++ == indices.get(index)) {
-								unratedItems.add(j);
-								index++;
-								if (index >= indices.size())
-									break;
-							}
-						}
+					// sample a set of items unrated by user u
+					List<Integer> js = new ArrayList<>();
+					int len = 0;
+					while (len < rho) {
+						int j = Randoms.uniform(numItems);
+						if (Ru.contains(j) || js.contains(j))
+							continue;
+
+						js.add(j);
+						len++;
 					}
 
 					double wu = Ru.getCount() - 1 > 0 ? Math.pow(Ru.getCount() - 1, -alpha) : 0;
 					double[] x = new double[numFactors];
 
 					// update for each unrated item
-					for (int j : unratedItems) {
+					for (int j : js) {
 
 						double sum_i = 0, sum_j = 0;
 						for (int k : ratedItems) {
@@ -115,7 +112,6 @@ public class FISMauc extends IterativeRecommender {
 						double puj = bj + Math.pow(Ru.getCount(), -alpha) * sum_j;
 						double ruj = 0;
 
-						// double pui = predict(u, i), puj = predict(u, j), ruj = 0;
 						double eij = (rui - ruj) - (pui - puj);
 
 						errs += eij * eij;
@@ -127,7 +123,7 @@ public class FISMauc extends IterativeRecommender {
 						// update bj
 						itemBiases.add(j, -lRate * (eij - regB * bj));
 
-						loss += regB * bi * bi + regB * bj * bj;
+						loss += regB * bi * bi - regB * bj * bj;
 
 						// update qif, qjf
 						for (int f = 0; f < numFactors; f++) {

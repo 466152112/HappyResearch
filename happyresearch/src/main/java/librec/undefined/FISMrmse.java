@@ -34,7 +34,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
- * Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
+ * Kabbur et al., <strong>FISM: Factored Item Similarity Models for Top-N Recommender Systems</strong>, KDD 2013.
  * 
  * @author guoguibing
  * 
