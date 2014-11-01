@@ -316,8 +316,9 @@ public class LibRec {
 				return new TrustSVD_DT(trainMatrix, testMatrix, fold);
 			case "rbmf":
 				return new RBMF(trainMatrix, testMatrix, fold);
-			case "fusm":
+			case "fusmrmse":
 				return new FUSMrmse(trainMatrix, testMatrix, fold);
+			case "fusm":
 			case "fusmauc":
 				return new FUSMauc(trainMatrix, testMatrix, fold);
 			case "fust":
@@ -355,8 +356,9 @@ public class LibRec {
 				return new WRMF(trainMatrix, testMatrix, fold);
 			case "slim":
 				return new SLIM(trainMatrix, testMatrix, fold);
-			case "fism":
+			case "fismrmse":
 				return new FISMrmse(trainMatrix, testMatrix, fold);
+			case "fism":
 			case "fismauc":
 				return new FISMauc(trainMatrix, testMatrix, fold);
 
