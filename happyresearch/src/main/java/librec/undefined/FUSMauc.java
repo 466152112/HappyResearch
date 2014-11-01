@@ -40,7 +40,7 @@ import librec.intf.IterativeRecommender;
 public class FUSMauc extends IterativeRecommender {
 
 	private int rho;
-	private float alpha, regBeta, regGamma;
+	private float alpha;
 
 	public FUSMauc(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);
@@ -60,9 +60,6 @@ public class FUSMauc extends IterativeRecommender {
 
 		rho = cf.getInt("FISM.rho");
 		alpha = cf.getFloat("FISM.alpha");
-
-		regBeta = cf.getFloat("FISM.reg.beta");
-		regGamma = cf.getFloat("FISM.reg.gamma");
 	}
 
 	@Override
@@ -87,31 +84,21 @@ public class FUSMauc extends IterativeRecommender {
 					SparseVector Ci = trainMatrix.column(i);
 
 					// make a random sample of negative feedback (total - nnz)
-					List<Integer> indices = null, unratedItems = new ArrayList<>();
-					try {
-						indices = Randoms.randInts(rho, 0,
-								numItems - Ru.getCount());
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					int index = 0, count = 0;
-					for (int j = 0; j < numItems; j++) {
-						if (!Ru.contains(j)) {
-							if (count++ == indices.get(index)) {
-								unratedItems.add(j);
-								index++;
-								if (index >= indices.size())
-									break;
-							}
-						}
+					List<Integer> js = new ArrayList<>();
+					int len = 0;
+					while (len < rho) {
+						int j = Randoms.uniform(numItems);
+						if (Ru.contains(j) || js.contains(j))
+							continue;
+
+						js.add(j);
+						len++;
 					}
 
-					double wi = Ci.getCount() - 1 > 0 ? Math.pow(
-							Ci.getCount() - 1, -alpha) : 0;
+					double wi = Ci.getCount() - 1 > 0 ? Math.pow(Ci.getCount() - 1, -alpha) : 0;
 					double sum_i = 0;
 					for (VectorEntry vk : Ci) {
-						// for test, i and j will be always unequal as j is
-						// unrated
+						// for test, i and j will be always unequal as j is unrated
 						int v = vk.index();
 						if (u != v)
 							sum_i += DenseMatrix.rowMult(P, v, Q, u);
@@ -127,7 +114,7 @@ public class FUSMauc extends IterativeRecommender {
 					}
 
 					// update for each unrated item
-					for (int j : unratedItems) {
+					for (int j : js) {
 
 						SparseVector Cj = trainMatrix.column(j);
 						double sum_j = 0;
@@ -135,8 +122,7 @@ public class FUSMauc extends IterativeRecommender {
 							int v = vk.index();
 							sum_j += DenseMatrix.rowMult(P, v, Q, u);
 						}
-						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(),
-								-alpha) : 0;
+						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(), -alpha) : 0;
 
 						double bi = itemBiases.get(i), bj = itemBiases.get(j);
 						double pui = bi + wi * sum_i;
@@ -148,12 +134,12 @@ public class FUSMauc extends IterativeRecommender {
 						loss += eij * eij;
 
 						// update bi
-						itemBiases.add(i, lRate * (eij - regGamma * bi));
+						itemBiases.add(i, lRate * (eij - regB * bi));
 
 						// update bj
-						itemBiases.add(j, -lRate * (eij - regGamma * bj));
+						itemBiases.add(j, -lRate * (eij - regB * bj));
 
-						loss += regGamma * bi * bi + regGamma * bj * bj;
+						loss += regB * bi * bi + regB * bj * bj;
 
 						// update quf
 						for (int f = 0; f < numFactors; f++) {
@@ -165,11 +151,10 @@ public class FUSMauc extends IterativeRecommender {
 								sum_jf += P.get(v, f);
 							}
 
-							double delta = eij * (wj * sum_jf - wi * sum_if[f])
-									+ regBeta * quf;
+							double delta = eij * (wj * sum_jf - wi * sum_if[f]) + regU * quf;
 							QS.add(u, f, -lRate * delta);
 
-							loss += regBeta * quf * quf;
+							loss += regU * quf * quf;
 						}
 
 						// update pvf for v in Ci, and v in Cj
@@ -178,11 +163,10 @@ public class FUSMauc extends IterativeRecommender {
 							if (v != u) {
 								for (int f = 0; f < numFactors; f++) {
 									double pvf = P.get(v, f);
-									double delta = eij * wi * Q.get(u, f)
-											- regBeta * pvf;
+									double delta = eij * wi * Q.get(u, f) - regU * pvf;
 									PS.add(v, f, lRate * delta);
 
-									loss -= regBeta * pvf * pvf;
+									loss -= regU * pvf * pvf;
 								}
 							}
 						}
@@ -191,11 +175,10 @@ public class FUSMauc extends IterativeRecommender {
 							int v = vk.index();
 							for (int f = 0; f < numFactors; f++) {
 								double pvf = P.get(v, f);
-								double delta = eij * wj * Q.get(u, f) - regBeta
-										* pvf;
+								double delta = eij * wj * Q.get(u, f) - regU * pvf;
 								PS.add(v, f, -lRate * delta);
 
-								loss += regBeta * pvf * pvf;
+								loss += regU * pvf * pvf;
 							}
 						}
 					}
@@ -237,9 +220,7 @@ public class FUSMauc extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return super.toString()
-				+ ","
-				+ Strings.toString(
-						new Object[] { rho, alpha, regBeta, regGamma }, ",");
+		return Strings
+				.toString(new Object[] { binThold, rho, alpha, numFactors, initLRate, regU, regB, numIters }, ",");
 	}
 }
