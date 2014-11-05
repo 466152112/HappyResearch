@@ -117,11 +117,12 @@ public class TrustAnalysis {
 		}
 
 		if (Debug.ON) {
+			// trusters
 			List<Double> sims = new ArrayList<>();
 			for (int u = 0, um = uids.size(); u < um; u++) {
 				if (u < numUsers) {
 					SparseVector ru = rateMatrix.row(u);
-					SparseVector su = socialMatrix.row(u);
+					SparseVector su = socialMatrix.column(u);
 
 					List<Double> is = new ArrayList<>();
 					List<Double> js = new ArrayList<>();
@@ -130,7 +131,7 @@ public class TrustAnalysis {
 						int i = ve.index();
 						double rui = ve.get();
 
-						// avg rating from trusted users
+						// avg rating from trusting users
 						double sum = 0;
 						int count = 0;
 
@@ -187,6 +188,81 @@ public class TrustAnalysis {
 					}
 			}
 
+			Logs.debug("\n{}", Strings.toString(map));
+		}
+		
+		if (Debug.ON) {
+			// trustees
+			List<Double> sims = new ArrayList<>();
+			for (int u = 0, um = uids.size(); u < um; u++) {
+				if (u < numUsers) {
+					SparseVector ru = rateMatrix.row(u);
+					SparseVector su = socialMatrix.row(u);
+					
+					List<Double> is = new ArrayList<>();
+					List<Double> js = new ArrayList<>();
+					
+					for (VectorEntry ve : ru) {
+						int i = ve.index();
+						double rui = ve.get();
+						
+						// avg rating from trusted users
+						double sum = 0;
+						int count = 0;
+						
+						for (VectorEntry se : su) {
+							int v = se.index();
+							
+							if (v < numUsers) {
+								double rvi = rateMatrix.get(v, i);
+								if (rvi > 0) {
+									sum += rvi;
+									count++;
+								}
+							}
+						}
+						
+						if (count > 0) {
+							is.add(rui);
+							js.add(sum / count);
+						}
+					}
+					
+					if (is.size() >= 2) {
+						double sim = Sims.pcc(is, js);
+						if (!Double.isNaN(sim))
+							sims.add(sim);
+					}
+				}
+			}
+			
+			//FileIO.writeList(FileIO.desktop + "sims.txt", sims);
+			Logs.debug("mean = {}, std = {}", Stats.mean(sims), Stats.sd(sims));
+			
+			// 0: <=0; 1: (0.0, 0.1], 2: 0.1-0.2, ..., 9: 0.9-1.0
+			Map<Integer, Integer> map = new HashMap<>();
+			map.put(0, 0);
+			map.put(1, 0);
+			map.put(2, 0);
+			map.put(3, 0);
+			map.put(4, 0);
+			map.put(5, 0);
+			map.put(6, 0);
+			map.put(7, 0);
+			map.put(8, 0);
+			map.put(9, 0);
+			
+			for (double sim : sims) {
+				if (sim <= 0)
+					map.put(0, map.get(0) + 1);
+				
+				for (int i = 9; i > 0; i--)
+					if (sim > i * 0.1) {
+						map.put(i, map.get(i) + 1);
+						break;
+					}
+			}
+			
 			Logs.debug("\n{}", Strings.toString(map));
 		}
 
