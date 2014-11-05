@@ -51,6 +51,8 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 			regS = (float) RecUtils.getMKey(params, "val.reg.social");
 		} else if (params.containsKey("TrustSVD++.alpha")) {
 			alpha = (float) RecUtils.getMKey(params, "TrustSVD++.alpha");
+		} else {
+			alpha = cf.getFloat("TrustSVD++.alpha");
 		}
 
 		algoName = "TrustSVD++";
