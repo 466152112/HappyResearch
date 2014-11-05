@@ -56,9 +56,9 @@ public class TrustSVD extends SocialRecommender {
 
 			regU = (float) reg;
 			regI = (float) reg;
-			regS = reg;
+			regS = (float)reg;
 		} else {
-			regS = RecUtils.getMKey(params, "val.reg.social");
+			regS = (float)RecUtils.getMKey(params, "val.reg.social");
 		}
 
 	}

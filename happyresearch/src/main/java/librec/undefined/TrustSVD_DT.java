@@ -67,11 +67,11 @@ public class TrustSVD_DT extends SocialRecommender {
 
 			regU = (float) reg;
 			regI = (float) reg;
-			regS = reg;
+			regS = (float)reg;
 		} else {
 			neg = RecUtils.getMKey(params, "val.reg.neg");
 			reg_dt = cf.getDouble("val.reg.distrust");
-			regS = cf.getDouble("val.reg.social");
+			regS = cf.getFloat("val.reg.social");
 		}
 	}
 
