@@ -47,11 +47,11 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 			regU = (float) reg;
 			regI = (float) reg;
 			regS = (float) reg;
-		} else {
+		} else if (params.containsKey("val.reg.social")) {
 			regS = (float) RecUtils.getMKey(params, "val.reg.social");
+		} else if (params.containsKey("TrustSVD++.alpha")) {
+			alpha = (float) RecUtils.getMKey(params, "TrustSVD++.alpha");
 		}
-
-		alpha = cf.getFloat("TrustSVD++.alpha");
 
 		algoName = "TrustSVD++";
 	}
@@ -156,7 +156,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 
 				errs += euj * euj;
 				loss += euj * euj;
-				
+
 				// update factors
 				double reg_u = Iu.length > 0 ? 1.0 / Math.sqrt(Iu.length) : 1.0;
 				double reg_ur = wlr_tr.get(u);
