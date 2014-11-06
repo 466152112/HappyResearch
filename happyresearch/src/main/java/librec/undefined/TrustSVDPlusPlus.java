@@ -157,7 +157,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 				if (tc.getCount() > 0) {
 					double sum = 0.0;
 					for (int k : tuc)
-						sum += DenseMatrix.rowMult(W, k, Q, j);
+						sum += DenseMatrix.rowMult(P, k, Q, j);
 
 					pred += (1 - alpha) * (sum / Math.sqrt(tc.getCount()));
 				}
