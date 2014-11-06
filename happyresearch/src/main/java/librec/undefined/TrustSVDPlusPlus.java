@@ -23,6 +23,7 @@ import librec.data.DenseVector;
 import librec.data.MatrixEntry;
 import librec.data.SparseMatrix;
 import librec.data.SparseVector;
+import librec.data.VectorEntry;
 import librec.intf.SocialRecommender;
 
 /**
@@ -35,7 +36,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 
 	private DenseMatrix W, Y;
 	private DenseVector wlr_j, wlr_tc, wlr_tr;
-	private float alpha;
+	private float alpha = -1;
 
 	double delta_a, delta_1_a;
 
@@ -53,9 +54,10 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 			regS = (float) RecUtils.getMKey(params, "val.reg.social");
 		} else if (params.containsKey("TrustSVD++.alpha")) {
 			alpha = (float) RecUtils.getMKey(params, "TrustSVD++.alpha");
-		} else {
-			alpha = cf.getFloat("TrustSVD++.alpha");
 		}
+
+		if (alpha < 0)
+			alpha = cf.getFloat("TrustSVD++.alpha");
 
 		algoName = "TrustSVD++";
 	}
@@ -111,8 +113,10 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 			errs = 0;
 
 			DenseMatrix PS = new DenseMatrix(numUsers, numFactors);
+			DenseMatrix QS = new DenseMatrix(numItems, numFactors);
 			DenseMatrix WS = new DenseMatrix(numUsers, numFactors);
 
+			// ratings
 			for (MatrixEntry me : trainMatrix) {
 				int u = me.row(); // user
 				int j = me.column(); // item
@@ -215,62 +219,84 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 							* reg_j * qjf;
 
 					PS.add(u, f, delta_u);
-					Q.add(j, f, -lRate * delta_j);
+					QS.add(j, f, delta_j);
 
 					loss += sgd_u * puf * puf + regI * reg_j * qjf * qjf;
 
 					// update Y
 					for (int i : Iu) {
 						double yif = Y.get(i, f);
-						double reg_i = wlr_j.get(i);
+						double reg_yi = wlr_j.get(i);
 
-						double delta_y = euj * reg_u * qjf + regI * reg_i * yif;
+						double delta_y = euj * reg_u * qjf + regI * reg_yi * yif;
 						Y.add(i, f, -lRate * delta_y);
 
-						loss += regI * reg_i * yif * yif;
+						loss += regI * reg_yi * yif * yif;
 					}
 
-					// update tur
+					// update W
 					for (int v : tur) {
 						double wvf = W.get(v, f);
-						double reg_vc = wlr_tc.get(v);
+						double reg_vc = wlr_tr.get(v);
 
-						double tuv = socialMatrix.get(u, v);
+						double sgd_v = regU * delta_a * reg_vc;
+						double delta_v = euj * alpha * reg_ur * qjf + sgd_v * wvf;
+						WS.add(v, f, delta_v);
+
+						loss += sgd_v * wvf * wvf;
+					}
+
+					// update Pkf
+					for (int k : tuc) {
+						double pkf = P.get(k, f);
+						double reg_kr = wlr_tc.get(k);
+
+						double sgd_k = regU * delta_1_a * reg_kr;
+						double delta_k = euj * (1 - alpha) * reg_uc * qjf + sgd_k * pkf;
+						PS.add(k, f, delta_k);
+
+						loss += sgd_k * pkf * pkf;
+					}
+				}
+			}
+
+			// trust
+			for (int u = 0; u < numUsers; u++) {
+				SparseVector tr = socialMatrix.row(u);
+				SparseVector tc = socialMatrix.column(u);
+
+				for (int f = 0; f < numFactors; f++) {
+					// wvf
+					for (VectorEntry ve : tr) {
+						int v = ve.index();
+						double tuv = ve.get();
 						double puv = DenseMatrix.rowMult(P, u, W, v);
 						double euv = puv - tuv;
 
-						double sgd_v = regU * delta_a * reg_vc;
-						double delta_t = euj * alpha * reg_ur * qjf + regS * alpha * euv * puf + sgd_v * wvf;
+						double cmg = regS * alpha;
+						PS.add(u, f, cmg * euv * W.get(v, f));
+						WS.add(v, f, cmg * euv * P.get(u, f));
 
-						WS.add(v, f, delta_t);
-						loss += sgd_v * wvf * wvf;
-
-						double sgd_p = regS * alpha * euv;
-						PS.add(u, f, sgd_p * wvf);
-						loss += sgd_p * euv * euv;
+						loss += cmg * euv * euv;
 					}
 
-					// update tuc
-					for (int k : tuc) {
-						double wuf = W.get(u, f);
-						double pkf = P.get(k, f);
-						double reg_kr = wlr_tr.get(k);
-
-						double tku = socialMatrix.get(k, u);
+					// pkf
+					for (VectorEntry ve : tc) {
+						int k = ve.index();
+						double tku = ve.get();
 						double pku = DenseMatrix.rowMult(P, k, W, u);
 						double eku = pku - tku;
 
-						double sgd_k = regU * delta_1_a * reg_kr;
-						double delta_t = euj * (1 - alpha) * reg_uc * qjf + regS * (1 - alpha) * eku * wuf + sgd_k
-								* pkf;
+						double cmg = regS * (1 - alpha);
+						PS.add(k, f, cmg * eku * W.get(u, f));
 
-						PS.add(k, f, delta_t);
-						loss += regS * (1 - alpha) * eku * eku + sgd_k * pkf * pkf;
+						loss += cmg * eku * eku;
 					}
 				}
 			}
 
 			P = P.add(PS.scale(-lRate));
+			Q = Q.add(QS.scale(-lRate));
 			W = W.add(WS.scale(-lRate));
 
 			errs *= 0.5;
