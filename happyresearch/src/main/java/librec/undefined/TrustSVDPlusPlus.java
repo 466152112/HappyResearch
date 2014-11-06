@@ -213,7 +213,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 					double puf = P.get(u, f);
 					double qjf = Q.get(j, f);
 
-					double sgd_u = regU * reg_u + regS * (alpha * reg_ur + (1 - alpha) * reg_uc);
+					double sgd_u = regU * reg_u + regS * (delta_a * reg_ur + delta_1_a * reg_uc);
 					double delta_u = euj * qjf + sgd_u * puf;
 					double delta_j = euj * (puf + sum_ys[f] + alpha * sum_trs[f] + (1 - alpha) * sum_tcs[f]) + regI
 							* reg_j * qjf;
