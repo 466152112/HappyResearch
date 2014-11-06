@@ -237,9 +237,9 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 					// update W
 					for (int v : tur) {
 						double wvf = W.get(v, f);
-						double reg_vc = wlr_tr.get(v);
+						double reg_vr = wlr_tr.get(v);
 
-						double sgd_v = regU * delta_a * reg_vc;
+						double sgd_v = regU * delta_a * reg_vr;
 						double delta_v = euj * alpha * reg_ur * qjf + sgd_v * wvf;
 						WS.add(v, f, delta_v);
 
@@ -249,9 +249,9 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 					// update Pkf
 					for (int k : tuc) {
 						double pkf = P.get(k, f);
-						double reg_kr = wlr_tc.get(k);
+						double reg_kc = wlr_tc.get(k);
 
-						double sgd_k = regU * delta_1_a * reg_kr;
+						double sgd_k = regU * delta_1_a * reg_kc;
 						double delta_k = euj * (1 - alpha) * reg_uc * qjf + sgd_k * pkf;
 						PS.add(k, f, delta_k);
 
