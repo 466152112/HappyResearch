@@ -29,7 +29,7 @@ import librec.data.SparseVector;
 public class DMF extends BaseMF {
 
 	// diversity parameter
-	private double alpha;
+	private float alpha;
 
 	public DMF(SparseMatrix trainMatrix, SparseMatrix testMatrix, int fold) {
 		super(trainMatrix, testMatrix, fold);

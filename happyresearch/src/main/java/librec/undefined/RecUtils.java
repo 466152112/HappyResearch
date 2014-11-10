@@ -34,8 +34,8 @@ import librec.intf.Recommender;
  */
 public class RecUtils {
 
-	public static Map<String, List<Double>> buildParams(Configer cf) {
-		Map<String, List<Double>> params = new HashMap<>();
+	public static Map<String, List<Float>> buildParams(Configer cf) {
+		Map<String, List<Float>> params = new HashMap<>();
 
 		// regularization
 		addMKey(cf, params, "val.reg");
@@ -47,8 +47,8 @@ public class RecUtils {
 		return params;
 	}
 
-	private static void addMKey(Configer cf, Map<String, List<Double>> params, String key) {
-		List<Double> values = cf.getRange(key);
+	private static void addMKey(Configer cf, Map<String, List<Float>> params, String key) {
+		List<Float> values = cf.getRange(key);
 		if (values.size() > 1)
 			params.put(key, values);
 	}
@@ -62,18 +62,18 @@ public class RecUtils {
 	 *            parameter key
 	 * @return current value for a parameter
 	 */
-	public static double getMKey(Map<String, List<Double>> params, String key) {
-		double alpha = 0;
+	public static float getMKey(Map<String, List<Float>> params, String key) {
+		float alpha = 0;
 		if (params != null && params.containsKey(key)) {
 
-			List<Double> vals = params.get(key);
+			List<Float> vals = params.get(key);
 			int maxIdx = vals.size() - 1;
 			int idx = LibRec.paramIdx > maxIdx ? maxIdx : LibRec.paramIdx;
 
 			alpha = vals.get(idx);
 			LibRec.isMultRun = true;
 		} else {
-			alpha = Recommender.cf.getDouble(key);
+			alpha = Recommender.cf.getFloat(key);
 			// LibRec.isMultRun = false;
 		}
 

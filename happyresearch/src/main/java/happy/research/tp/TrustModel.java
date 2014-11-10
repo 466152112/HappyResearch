@@ -507,17 +507,17 @@ public abstract class TrustModel {
 		switch (conf.getString("method")) {
 		case "ETAF":
 			ETAF tm = new ETAF();
-			for (Double alpha : conf.getRange("val.ETAF.alpha")) {
+			for (Float alpha : conf.getRange("val.ETAF.alpha")) {
 				// alpha for trust combination
 				tm.alpha = alpha.floatValue();
 
-				for (Double gamma : conf.getRange("val.ETAF.gamma")) {
+				for (Float gamma : conf.getRange("val.ETAF.gamma")) {
 					// gamma for ability combination
 					tm.gamma = gamma.floatValue();
 
 					tm.isIn = conf.isOn("is.ETAF.in");
 					if (tm.isIn) {
-						for (Double eta : conf.getRange("val.ETAF.eta")) {
+						for (Float eta : conf.getRange("val.ETAF.eta")) {
 							// eta for integrity combination
 							tm.eta = eta.floatValue();
 
@@ -545,8 +545,8 @@ public abstract class TrustModel {
 			break;
 		case "EPT":
 			EPT ept = new EPT();
-			List<Double> Nmins = conf.getRange("num.EPT.Nmin");
-			for (Double n : Nmins) {
+			List<Float> Nmins = conf.getRange("num.EPT.Nmin");
+			for (Float n : Nmins) {
 				ept.Nmin = n.intValue();
 
 				Logs.debug("Settings: Nmin = {}", ept.Nmin);

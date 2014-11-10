@@ -118,7 +118,7 @@ public class LibRec {
 		// run algorithms
 		if (Recommender.params.size() > 0) {
 			// multiple run
-			for (Entry<String, List<Double>> en : Recommender.params.entrySet()) {
+			for (Entry<String, List<Float>> en : Recommender.params.entrySet()) {
 				for (int i = 0, im = en.getValue().size(); i < im; i++) {
 					LibRec.paramIdx = i;
 					runAlgorithm();

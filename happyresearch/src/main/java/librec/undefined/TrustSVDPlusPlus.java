@@ -44,16 +44,16 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 		super(trainMatrix, testMatrix, fold);
 
 		if (params.containsKey("val.reg")) {
-			double reg = RecUtils.getMKey(params, "val.reg");
+			float reg = RecUtils.getMKey(params, "val.reg");
 
-			regB = (float) reg;
-			regU = (float) reg;
-			regI = (float) reg;
-			regS = (float) reg;
+			regB = reg;
+			regU = reg;
+			regI = reg;
+			regS = reg;
 		} else if (params.containsKey("val.reg.social")) {
-			regS = (float) RecUtils.getMKey(params, "val.reg.social");
+			regS = RecUtils.getMKey(params, "val.reg.social");
 		} else if (params.containsKey("TrustSVD++.alpha")) {
-			alpha = (float) RecUtils.getMKey(params, "TrustSVD++.alpha");
+			alpha = RecUtils.getMKey(params, "TrustSVD++.alpha");
 		}
 
 		if (alpha < 0)
