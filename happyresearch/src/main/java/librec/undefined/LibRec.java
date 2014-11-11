@@ -67,6 +67,7 @@ import librec.rating.SoRec;
 import librec.rating.SoReg;
 import librec.rating.SocialMF;
 import librec.rating.TrustMF;
+import librec.rating.TrustSVD;
 import librec.rating.UserKNN;
 
 /**
