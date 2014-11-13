@@ -31,6 +31,9 @@ import com.google.common.collect.Table.Cell;
 /**
  * Data structure for rating matrix with richer side information
  * 
+ * Note: another way is to re-use user-item-rating matrix, but now each entry refers to rating inner id rather than
+ * rating value.
+ * 
  * @author guoguibing
  * 
  */
