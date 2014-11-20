@@ -51,9 +51,12 @@ import librec.intf.Recommender;
 import librec.intf.Recommender.Measure;
 import librec.ranking.BPR;
 import librec.ranking.CLiMF;
+import librec.ranking.FISMauc;
+import librec.ranking.FISMrmse;
 import librec.ranking.GBPR;
 import librec.ranking.RankALS;
 import librec.ranking.RankSGD;
+import librec.ranking.SBPR;
 import librec.ranking.SLIM;
 import librec.ranking.WRMF;
 import librec.rating.BPMF;
@@ -330,10 +333,7 @@ public class LibRec {
 				return new FUSTauc(trainMatrix, testMatrix, fold);
 			case "tp":
 				return new TrustPredictor(trainMatrix, testMatrix, fold);
-			case "sbpr":
-				return new SBPR(trainMatrix, testMatrix, fold);
-			case "gbpr":
-				return new GBPR(trainMatrix, testMatrix, fold);
+			
 
 			case "aaai-basemf":
 				return new BaseMF(trainMatrix, testMatrix, fold);
@@ -364,6 +364,10 @@ public class LibRec {
 			case "fism":
 			case "fismauc":
 				return new FISMauc(trainMatrix, testMatrix, fold);
+			case "sbpr":
+				return new SBPR(trainMatrix, testMatrix, fold);
+			case "gbpr":
+				return new GBPR(trainMatrix, testMatrix, fold);
 
 				/* user ratings */
 			case "userknn":
