@@ -232,7 +232,7 @@ public class DatasetUtils {
 			dirPath = "D:\\Java\\Workspace\\CF-RS\\Datasets\\UMAP2014\\";
 			break;
 		case Linux:
-		case Unix:
+		case Mac:
 			dirPath = "/home/gguo1/Java/Workspace/CF-RS/Datasets/UMAP2014/";
 			break;
 		}
