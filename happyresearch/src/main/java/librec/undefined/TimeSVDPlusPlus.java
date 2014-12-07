@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 import happy.coding.io.FileIO;
 import happy.coding.io.Logs;
 import happy.coding.io.Strings;
+import happy.coding.math.Randoms;
 import librec.data.DenseMatrix;
 import librec.data.DenseVector;
 import librec.data.MatrixEntry;
@@ -65,22 +67,22 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 	// {item, bin(t)} bias matrix
 	private DenseMatrix Bit;
 
-	// {user, t} bias matrix
-	private DenseMatrix But;
+	// {user, day, bias} table
+	private Table<Integer, Integer, Double> But;
 
 	// user bias parameters
 	private DenseVector userAlpha;
 
-	// {user, day feature} matrix
-	private DenseMatrix Cut;
+	// {user, day, bias} table
+	private Table<Integer, Integer, Double> Cut;
 	// user scaling
 	private DenseVector userScaling;
 
 	// {user, feature} alpha matrix
 	private DenseMatrix Auf;
 
-	// {puk, t} matrix
-	private DenseMatrix Pt;
+	// {user, {feature, day, value} } map
+	private Map<Integer, Table<Integer, Integer, Double>> Puft;
 
 	// read context information
 	static {
@@ -113,17 +115,11 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 		userAlpha = new DenseVector(numUsers);
 		userAlpha.init();
 
-		But = new DenseMatrix(numUsers, numDays);
-		But.init();
-
 		Bit = new DenseMatrix(numItems, numBins);
 		Bit.init();
 
 		userScaling = new DenseVector(numUsers); // cu
 		userScaling.init();
-
-		Cut = new DenseMatrix(numUsers, numDays);//
-		Cut.init();
 
 		Y = new DenseMatrix(numItems, numFactors);
 		Y.init();
@@ -131,8 +127,9 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 		Auf = new DenseMatrix(numUsers, numFactors);
 		Auf.init();
 
-		Pt = new DenseMatrix(numUsers, numDays);
-		Pt.init();
+		But = HashBasedTable.create();
+		Cut = HashBasedTable.create();
+		Puft = new HashMap<>();
 	}
 
 	@Override
@@ -151,6 +148,7 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 				long t = ratingContexts.get(u, i).getTimestamp();
 				int bin = bin(t);
 				int day = day(t);
+				double dev = dev(u, t);
 
 				double bi = itemBias.get(i);
 				double bit = Bit.get(i, bin);
@@ -163,15 +161,43 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 				double pui = globalMean + (bi + bit) * (cu + cut); // mu + bi(t)
 				pui += bu + au * dev(u, t) + but; // bu(t)
 
+				// qi*yi
+				SparseVector Ru = trainMatrix.row(u);
+				double sum_y = 0;
+				for (VectorEntry ve : Ru) {
+					int k = ve.index();
+					sum_y += DenseMatrix.rowMult(Y, k, Q, i);
+				}
+				if (Ru.getCount() > 0)
+					pui += sum_y / Math.pow(Ru.getCount(), -0.5);
+
+				// qi*pu(t)
+				if (!Puft.containsKey(u)) {
+					Table<Integer, Integer, Double> data = HashBasedTable.create();
+					Puft.put(u, data);
+				}
+
+				Table<Integer, Integer, Double> data = Puft.get(u);
+				for (int f = 0; f < numFactors; f++) {
+					double qif = Q.get(i, f);
+					if (!data.contains(f, day)) {
+						// late initialization
+						data.put(f, day, Randoms.random());
+					}
+					double puf = P.get(u, f) + Auf.get(u, f) * dev + data.get(f, day);
+
+					pui += puf * qif;
+				}
+
 				double eui = pui - rui;
 				errs += eui * eui;
 				loss += eui * eui;
 
-				double sgd = 0;
-
 				// update bu
-				sgd = eui + regB * bu;
+				double sgd = eui + regB * bu;
 				userBias.add(u, -lRate * sgd);
+				
+				// TODO: add codes here to update other variables
 			}
 
 			if (isConverged(iter))
@@ -206,9 +232,15 @@ public class TimeSVDPlusPlus extends ContextRecommender {
 			pred += sum_y / Math.pow(Ru.getCount(), -0.5);
 
 		// qi*pu(t)
+		if (!Puft.containsKey(u)) {
+			Table<Integer, Integer, Double> data = HashBasedTable.create();
+			Puft.put(u, data);
+		}
+
+		Table<Integer, Integer, Double> data = Puft.get(u);
 		for (int f = 0; f < numFactors; f++) {
 			double qjf = Q.get(j, f);
-			double puf = P.get(u, f) + Auf.get(u, f) * dev + Pt.get(u, day);// TODO:
+			double puf = P.get(u, f) + Auf.get(u, f) * dev + (data.contains(f, day) ? data.get(f, day) : 0);
 
 			pred += puf * qjf;
 		}
