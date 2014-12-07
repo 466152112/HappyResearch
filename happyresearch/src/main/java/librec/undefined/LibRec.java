@@ -333,7 +333,8 @@ public class LibRec {
 				return new FUSTauc(trainMatrix, testMatrix, fold);
 			case "tp":
 				return new TrustPredictor(trainMatrix, testMatrix, fold);
-			
+			case "timesvd++":
+				return new TimeSVDPlusPlus(trainMatrix, testMatrix, fold);
 
 			case "aaai-basemf":
 				return new BaseMF(trainMatrix, testMatrix, fold);

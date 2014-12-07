@@ -55,8 +55,8 @@ public class FUSMauc extends IterativeRecommender {
 		P.init(0.01);
 		Q.init(0.01);
 
-		itemBiases = new DenseVector(numItems);
-		itemBiases.init(0.01);
+		itemBias = new DenseVector(numItems);
+		itemBias.init(0.01);
 
 		rho = cf.getInt("FISM.rho");
 		alpha = cf.getFloat("FISM.alpha");
@@ -124,7 +124,7 @@ public class FUSMauc extends IterativeRecommender {
 						}
 						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(), -alpha) : 0;
 
-						double bi = itemBiases.get(i), bj = itemBiases.get(j);
+						double bi = itemBias.get(i), bj = itemBias.get(j);
 						double pui = bi + wi * sum_i;
 						double puj = bj + wj * sum_j;
 						double ruj = 0;
@@ -134,10 +134,10 @@ public class FUSMauc extends IterativeRecommender {
 						loss += eij * eij;
 
 						// update bi
-						itemBiases.add(i, lRate * (eij - regB * bi));
+						itemBias.add(i, lRate * (eij - regB * bi));
 
 						// update bj
-						itemBiases.add(j, -lRate * (eij - regB * bj));
+						itemBias.add(j, -lRate * (eij - regB * bj));
 
 						loss += regB * bi * bi + regB * bj * bj;
 
@@ -215,7 +215,7 @@ public class FUSMauc extends IterativeRecommender {
 		}
 		double wi = count > 0 ? Math.pow(count, -alpha) : 0;
 
-		return itemBiases.get(i) + wi * sum;
+		return itemBias.get(i) + wi * sum;
 	}
 
 	@Override

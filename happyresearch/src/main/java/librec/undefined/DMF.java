@@ -60,15 +60,15 @@ public class DMF extends BaseMF {
 				loss += euj * euj;
 
 				// update bias factors
-				double bu = userBiases.get(u);
+				double bu = userBias.get(u);
 				double sgd = euj - regU * bu;
-				userBiases.add(u, lRate * sgd);
+				userBias.add(u, lRate * sgd);
 
 				loss += regU * bu * bu;
 
-				double bj = itemBiases.get(j);
+				double bj = itemBias.get(j);
 				sgd = euj - regI * bj;
-				itemBiases.add(j, lRate * sgd);
+				itemBias.add(j, lRate * sgd);
 
 				loss += regI * bj * bj;
 

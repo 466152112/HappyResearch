@@ -65,11 +65,11 @@ public class BaseNM extends IterativeRecommender {
 	protected void initModel() {
 
 		// user, item biases
-		userBiases = new DenseVector(numUsers);
-		itemBiases = new DenseVector(numItems);
+		userBias = new DenseVector(numUsers);
+		itemBias = new DenseVector(numItems);
 
-		userBiases.init(initMean, initStd);
-		itemBiases.init(initMean, initStd);
+		userBias.init(initMean, initStd);
+		itemBias.init(initMean, initStd);
 
 		// item correlation matrix
 		itemCorrs = new SymmMatrix(numItems);
@@ -120,14 +120,14 @@ public class BaseNM extends IterativeRecommender {
 				double w = Math.sqrt(items.size());
 
 				// obtain the prediction
-				double bu = userBiases.get(u), bj = itemBiases.get(j);
+				double bu = userBias.get(u), bj = itemBias.get(j);
 				double pred = globalMean + bu + bj;
 
 				double sum_sji = 0;
 				for (int i : items) {
 					double sji = itemCorrs.get(j, i);
 					double rui = uv.get(i);
-					double bui = globalMean + bu + itemBiases.get(i);
+					double bui = globalMean + bu + itemBias.get(i);
 
 					pred += sji * (rui - bui) / w;
 					sum_sji += sji / w;
@@ -141,7 +141,7 @@ public class BaseNM extends IterativeRecommender {
 				for (int i : items) {
 					double sji = itemCorrs.get(j, i);
 					double rui = uv.get(i);
-					double bui = globalMean + bu + itemBiases.get(i);
+					double bui = globalMean + bu + itemBias.get(i);
 
 					double delta = lRate * (euj * (rui - bui) / w - regU * sji);
 					itemCorrs.add(j, i, delta);
@@ -151,11 +151,11 @@ public class BaseNM extends IterativeRecommender {
 
 				// update factors
 				double sgd = euj * (1 - sum_sji) - regU * bu;
-				userBiases.add(u, lRate * sgd);
+				userBias.add(u, lRate * sgd);
 				loss += regU * bu * bu;
 
 				sgd = euj * (1 - sum_sji) - regI * bj;
-				itemBiases.add(j, lRate * sgd);
+				itemBias.add(j, lRate * sgd);
 				loss += regI * bj * bj;
 
 			}
@@ -171,8 +171,8 @@ public class BaseNM extends IterativeRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		double bu = userBiases.get(u);
-		double pred = globalMean + bu + itemBiases.get(j);
+		double bu = userBias.get(u);
+		double pred = globalMean + bu + itemBias.get(j);
 
 		// get a number of similar items except item j
 		SparseVector uv = trainMatrix.row(u, j);
@@ -185,7 +185,7 @@ public class BaseNM extends IterativeRecommender {
 
 			if (sji != 0 && sji > minSim) {
 				double rui = trainMatrix.get(u, i);
-				double bui = globalMean + bu + itemBiases.get(i);
+				double bui = globalMean + bu + itemBias.get(i);
 
 				sum += sji * (rui - bui);
 				k++;

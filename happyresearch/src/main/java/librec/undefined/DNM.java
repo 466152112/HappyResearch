@@ -63,14 +63,14 @@ public class DNM extends BaseNM {
 				double w = Math.sqrt(items.size());
 
 				// obtain the prediction
-				double bu = userBiases.get(u), bj = itemBiases.get(j);
+				double bu = userBias.get(u), bj = itemBias.get(j);
 				double pred = globalMean + bu + bj;
 
 				double sum_sji = 0;
 				for (int i : items) {
 					double sji = itemCorrs.get(j, i);
 					double rui = uv.get(i);
-					double bi = itemBiases.get(i);
+					double bi = itemBias.get(i);
 					double bui = globalMean + bu + bi;
 
 					pred += sji * (rui - bui) / w;
@@ -87,7 +87,7 @@ public class DNM extends BaseNM {
 				for (int i : items) {
 					double sji = itemCorrs.get(j, i);
 					double rui = uv.get(i);
-					double bi = itemBiases.get(i);
+					double bi = itemBias.get(i);
 					double bui = globalMean + bu + bi;
 
 					double delta = lRate * (euj * (rui - bui) / w - 0.5 * alpha * Math.pow(bj - bi, 2) - regU * sji);
@@ -98,11 +98,11 @@ public class DNM extends BaseNM {
 
 				// update factors
 				double sgd = euj * (1 - sum_sji) - regU * bu;
-				userBiases.add(u, lRate * sgd);
+				userBias.add(u, lRate * sgd);
 				loss += regU * bu * bu;
 
 				sgd = euj * (1 - sum_sji) - regI * bj;
-				itemBiases.add(j, lRate * sgd);
+				itemBias.add(j, lRate * sgd);
 				loss += regI * bj * bj;
 
 			}

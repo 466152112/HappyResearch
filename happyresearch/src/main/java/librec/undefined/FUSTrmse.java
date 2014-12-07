@@ -60,10 +60,10 @@ public class FUSTrmse extends SocialRecommender {
 		P.init(0.01);
 		Q.init(0.01);
 
-		userBiases = new DenseVector(numUsers);
-		itemBiases = new DenseVector(numItems);
-		userBiases.init(0.01);
-		itemBiases.init(0.01);
+		userBias = new DenseVector(numUsers);
+		itemBias = new DenseVector(numItems);
+		userBias.init(0.01);
+		itemBias.init(0.01);
 
 		nnz = trainMatrix.size();
 		rho = cf.getFloat("FISM.rho");
@@ -130,7 +130,7 @@ public class FUSTrmse extends SocialRecommender {
 				// for efficiency, use the below code to predict ruj instead of
 				// simply using "predict(u,j)"
 				SparseVector Cj = trainMatrix.column(j);
-				double bu = userBiases.get(u), bj = itemBiases.get(j);
+				double bu = userBias.get(u), bj = itemBias.get(j);
 
 				double sum_vu = 0, sum_t = 0;
 				for (VectorEntry ve : Cj) {
@@ -154,10 +154,10 @@ public class FUSTrmse extends SocialRecommender {
 				loss += euj * euj;
 
 				// update bu
-				userBiases.add(u, -lRate * (euj + regLambda * bu));
+				userBias.add(u, -lRate * (euj + regLambda * bu));
 
 				// update bj
-				itemBiases.add(j, -lRate * (euj + regGamma * bj));
+				itemBias.add(j, -lRate * (euj + regGamma * bj));
 
 				loss += regLambda * bu * bu + regGamma * bj * bj;
 
@@ -226,7 +226,7 @@ public class FUSTrmse extends SocialRecommender {
 
 		double kappa = sum_t > 0 ? Math.pow(sum_t, -alpha) : 0;
 
-		return userBiases.get(u) + itemBiases.get(j) + kappa * sum;
+		return userBias.get(u) + itemBias.get(j) + kappa * sum;
 	}
 
 	@Override

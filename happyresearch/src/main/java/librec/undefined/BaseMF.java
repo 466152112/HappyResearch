@@ -66,12 +66,12 @@ public class BaseMF extends IterativeRecommender {
 			}
 		}
 
-		userBiases = new DenseVector(numUsers);
-		itemBiases = new DenseVector(numItems);
+		userBias = new DenseVector(numUsers);
+		itemBias = new DenseVector(numItems);
 
 		// initialize user bias
-		userBiases.init(initMean, initStd);
-		itemBiases.init(initMean, initStd);
+		userBias.init(initMean, initStd);
+		itemBias.init(initMean, initStd);
 	}
 
 	@Override
@@ -96,15 +96,15 @@ public class BaseMF extends IterativeRecommender {
 				loss += euj * euj;
 
 				// update bias factors
-				double bu = userBiases.get(u);
+				double bu = userBias.get(u);
 				double sgd = euj - regU * bu;
-				userBiases.add(u, lRate * sgd);
+				userBias.add(u, lRate * sgd);
 
 				loss += regU * bu * bu;
 
-				double bj = itemBiases.get(j);
+				double bj = itemBias.get(j);
 				sgd = euj - regI * bj;
-				itemBiases.add(j, lRate * sgd);
+				itemBias.add(j, lRate * sgd);
 
 				loss += regI * bj * bj;
 
@@ -166,7 +166,7 @@ public class BaseMF extends IterativeRecommender {
 	@Override
 	protected double predict(int u, int j) {
 
-		double pred = userBiases.get(u) + itemBiases.get(j);
+		double pred = userBias.get(u) + itemBias.get(j);
 
 		int k = 0;
 		double sum = 0.0f;

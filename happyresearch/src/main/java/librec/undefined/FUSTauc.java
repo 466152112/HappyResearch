@@ -63,8 +63,8 @@ public class FUSTauc extends SocialRecommender {
 		Y.init(0.01);
 		Q.init(0.01);
 
-		itemBiases = new DenseVector(numItems);
-		itemBiases.init(0.01);
+		itemBias = new DenseVector(numItems);
+		itemBias.init(0.01);
 
 		rho = cf.getInt("FISM.rho");
 		alpha = cf.getFloat("FISM.alpha");
@@ -178,7 +178,7 @@ public class FUSTauc extends SocialRecommender {
 						}
 						double wj = cnt_j > 0 ? Math.pow(cnt_j, -alpha) : 0;
 
-						double bi = itemBiases.get(i), bj = itemBiases.get(j);
+						double bi = itemBias.get(i), bj = itemBias.get(j);
 						double pui = bi + wi * sum_i;
 						double puj = bj + wj * sum_j;
 						double ruj = 0;
@@ -188,10 +188,10 @@ public class FUSTauc extends SocialRecommender {
 						loss += eij * eij;
 
 						// update bi
-						itemBiases.add(i, -lRate * (eij + regGamma * bi));
+						itemBias.add(i, -lRate * (eij + regGamma * bi));
 
 						// update bj
-						itemBiases.add(j, -lRate * (-eij - regGamma * bj));
+						itemBias.add(j, -lRate * (-eij - regGamma * bj));
 
 						loss += regGamma * bi * bi + regGamma * bj * bj;
 
@@ -303,7 +303,7 @@ public class FUSTauc extends SocialRecommender {
 		}
 		double wi = count > 0 ? Math.pow(count, -alpha) : 0;
 
-		return itemBiases.get(i) + wi * sum;
+		return itemBias.get(i) + wi * sum;
 	}
 
 	@Override

@@ -66,21 +66,21 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 	protected void initModel() throws Exception {
 		super.initModel();
 
-		userBiases = new DenseVector(numUsers);
-		itemBiases = new DenseVector(numItems);
+		userBias = new DenseVector(numUsers);
+		itemBias = new DenseVector(numItems);
 
 		W = new DenseMatrix(numUsers, numFactors);
 		Y = new DenseMatrix(numItems, numFactors);
 
 		if (initByNorm) {
-			userBiases.init(initMean, initStd);
-			itemBiases.init(initMean, initStd);
+			userBias.init(initMean, initStd);
+			itemBias.init(initMean, initStd);
 			W.init(initMean, initStd);
 			Y.init(initMean, initStd);
 
 		} else {
-			userBiases.init();
-			itemBiases.init();
+			userBias.init();
+			itemBias.init();
 			W.init();
 			Y.init();
 		}
@@ -126,7 +126,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 					continue;
 
 				// To speed up, directly access the prediction
-				double bu = userBiases.get(u), bj = itemBiases.get(j);
+				double bu = userBias.get(u), bj = itemBias.get(j);
 				double pred = globalMean + bu + bj + DenseMatrix.rowMult(P, u, Q, j);
 
 				// Y
@@ -174,10 +174,10 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 				double reg_j = wlr_j.get(j);
 
 				double sgd = euj + regB * reg_u * bu;
-				userBiases.add(u, -lRate * sgd);
+				userBias.add(u, -lRate * sgd);
 
 				sgd = euj + regB * reg_j * bj;
-				itemBiases.add(j, -lRate * sgd);
+				itemBias.add(j, -lRate * sgd);
 
 				loss += regB * reg_u * bu * bu;
 				loss += regB * reg_j * bj * bj;
@@ -310,7 +310,7 @@ public class TrustSVDPlusPlus extends SocialRecommender {
 
 	@Override
 	protected double predict(int u, int j) {
-		double pred = globalMean + userBiases.get(u) + itemBiases.get(j) + DenseMatrix.rowMult(P, u, Q, j);
+		double pred = globalMean + userBias.get(u) + itemBias.get(j) + DenseMatrix.rowMult(P, u, Q, j);
 
 		// Y
 		SparseVector uv = trainMatrix.row(u);
