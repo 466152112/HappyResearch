@@ -97,30 +97,40 @@ public class FUSMauc extends IterativeRecommender {
 
 					double wi = Ci.getCount() - 1 > 0 ? Math.pow(Ci.getCount() - 1, -alpha) : 0;
 					double sum_i = 0;
-					for (VectorEntry vk : Ci) {
-						// for test, i and j will be always unequal as j is unrated
-						int v = vk.index();
-						if (u != v)
-							sum_i += DenseMatrix.rowMult(P, v, Q, u);
-					}
-
 					double[] sum_if = new double[numFactors];
 					for (int f = 0; f < numFactors; f++) {
 						for (VectorEntry vk : Ci) {
+							// for test, i and j will be always unequal as j is unrated
 							int v = vk.index();
-							if (v != u)
-								sum_if[f] += P.get(v, f);
+							if (u != v) {
+								// sum_i += DenseMatrix.rowMult(P, v, Q, u);
+
+								double pvf = P.get(v, f);
+								sum_if[f] += pvf;
+								sum_i += pvf * Q.get(u, f);
+							}
 						}
 					}
 
 					// update for each unrated item
 					for (int j : js) {
 
+						// declare variables first to speed up
+						int v, f;
+						double pvf, quf, delta;
+
 						SparseVector Cj = trainMatrix.column(j);
 						double sum_j = 0;
-						for (VectorEntry vk : Cj) {
-							int v = vk.index();
-							sum_j += DenseMatrix.rowMult(P, v, Q, u);
+						double[] sum_jf = new double[numFactors];
+						for (f = 0; f < numFactors; f++) {
+							for (VectorEntry vk : Cj) {
+								v = vk.index();
+								// sum_j += DenseMatrix.rowMult(P, v, Q, u);
+
+								pvf = P.get(v, f);
+								sum_jf[f] += pvf;
+								sum_j += pvf * Q.get(u, f);
+							}
 						}
 						double wj = Cj.getCount() > 0 ? Math.pow(Cj.getCount(), -alpha) : 0;
 
@@ -142,28 +152,22 @@ public class FUSMauc extends IterativeRecommender {
 						loss += regB * bi * bi + regB * bj * bj;
 
 						// update quf
-						for (int f = 0; f < numFactors; f++) {
-							double quf = Q.get(u, f);
+						for (f = 0; f < numFactors; f++) {
+							quf = Q.get(u, f);
 
-							double sum_jf = 0;
-							for (VectorEntry vk : Cj) {
-								int v = vk.index();
-								sum_jf += P.get(v, f);
-							}
-
-							double delta = eij * (wj * sum_jf - wi * sum_if[f]) + regU * quf;
+							delta = eij * (wj * sum_jf[f] - wi * sum_if[f]) + regU * quf;
 							QS.add(u, f, -lRate * delta);
 
 							loss += regU * quf * quf;
 						}
 
-						// update pvf for v in Ci, and v in Cj
-						for (VectorEntry vk : Ci) {
-							int v = vk.index();
-							if (v != u) {
-								for (int f = 0; f < numFactors; f++) {
-									double pvf = P.get(v, f);
-									double delta = eij * wi * Q.get(u, f) - regU * pvf;
+						// update pvf for v in Ci
+						for (f = 0; f < numFactors; f++) {
+							for (VectorEntry vk : Ci) {
+								v = vk.index();
+								if (v != u) {
+									pvf = P.get(v, f);
+									delta = eij * wi * Q.get(u, f) - regU * pvf;
 									PS.add(v, f, lRate * delta);
 
 									loss -= regU * pvf * pvf;
@@ -171,11 +175,12 @@ public class FUSMauc extends IterativeRecommender {
 							}
 						}
 
-						for (VectorEntry vk : Cj) {
-							int v = vk.index();
-							for (int f = 0; f < numFactors; f++) {
-								double pvf = P.get(v, f);
-								double delta = eij * wj * Q.get(u, f) - regU * pvf;
+						// update pvf for v in Cj
+						for (f = 0; f < numFactors; f++) {
+							for (VectorEntry vk : Cj) {
+								v = vk.index();
+								pvf = P.get(v, f);
+								delta = eij * wj * Q.get(u, f) - regU * pvf;
 								PS.add(v, f, -lRate * delta);
 
 								loss += regU * pvf * pvf;

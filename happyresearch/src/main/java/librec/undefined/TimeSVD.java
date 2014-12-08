@@ -34,11 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-/**
- * 
- * @author Bin Wu
- *
- */
 public class TimeSVD {
 
 	public double LRATE_UF_INITIAL = 0.007;

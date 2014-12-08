@@ -40,7 +40,10 @@ import librec.intf.ContextRecommender;
 /**
  * Koren, <strong>Collaborative Filtering with Temporal Dynamics</strong>, KDD 2009.
  * 
- * @author guoguibing, Bin Wu
+ * 
+ * <p>Thank Bin Wu for sharing a version of timeSVD++ source code.</p> 
+ * 
+ * @author guoguibing
  * 
  */
 public class TimeSVDPlusPlus extends ContextRecommender {
