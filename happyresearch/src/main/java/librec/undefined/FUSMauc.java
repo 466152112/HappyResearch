@@ -52,11 +52,11 @@ public class FUSMauc extends IterativeRecommender {
 	protected void initModel() {
 		P = new DenseMatrix(numUsers, numFactors);
 		Q = new DenseMatrix(numUsers, numFactors);
-		P.init(0.01);
-		Q.init(0.01);
+		P.init(smallValue);
+		Q.init(smallValue);
 
 		itemBias = new DenseVector(numItems);
-		itemBias.init(0.01);
+		itemBias.init(smallValue);
 
 		rho = cf.getInt("FISM.rho");
 		alpha = cf.getFloat("FISM.alpha");
@@ -220,7 +220,6 @@ public class FUSMauc extends IterativeRecommender {
 
 	@Override
 	public String toString() {
-		return Strings
-				.toString(new Object[] { binThold, rho, alpha, numFactors, initLRate, regU, regB, numIters }, ",");
+		return Strings.toString(new Object[] { binThold, rho, alpha, numFactors, initLRate, regU, regB, numIters });
 	}
 }
