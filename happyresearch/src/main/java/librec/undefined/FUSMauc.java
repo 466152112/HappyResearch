@@ -81,8 +81,6 @@ public class FUSMauc extends IterativeRecommender {
 					int i = ve.index();
 					double rui = ve.get();
 
-					SparseVector Ci = trainMatrix.column(i);
-
 					// make a random sample of negative feedback (total - nnz)
 					List<Integer> js = new ArrayList<>();
 					int len = 0;
@@ -95,7 +93,9 @@ public class FUSMauc extends IterativeRecommender {
 						len++;
 					}
 
+					SparseVector Ci = trainMatrix.column(i);
 					double wi = Ci.getCount() - 1 > 0 ? Math.pow(Ci.getCount() - 1, -alpha) : 0;
+
 					double sum_i = 0;
 					double[] sum_if = new double[numFactors];
 					for (int f = 0; f < numFactors; f++) {
@@ -149,7 +149,7 @@ public class FUSMauc extends IterativeRecommender {
 						// update bj
 						itemBias.add(j, -lRate * (eij - regB * bj));
 
-						loss += regB * bi * bi + regB * bj * bj;
+						loss += regB * bi * bi - regB * bj * bj;
 
 						// update quf
 						for (f = 0; f < numFactors; f++) {

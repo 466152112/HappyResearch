@@ -312,8 +312,6 @@ public class LibRec {
 		switch (algorithm.toLowerCase()) {
 
 		/* ongoing */
-			case "trustsvd":
-				return new TrustSVD(trainMatrix, testMatrix, fold);
 			case "trustsvd2":
 				return new TrustSVD2(trainMatrix, testMatrix, fold);
 			case "trustsvd_dt":
@@ -335,7 +333,9 @@ public class LibRec {
 				return new TrustPredictor(trainMatrix, testMatrix, fold);
 			case "timesvd++":
 				return new TimeSVDPlusPlus(trainMatrix, testMatrix, fold);
-
+			case "fsm":
+				return new FSM(trainMatrix, testMatrix, fold);
+				
 			case "aaai-basemf":
 				return new BaseMF(trainMatrix, testMatrix, fold);
 			case "aaai-dmf":
@@ -395,6 +395,8 @@ public class LibRec {
 				return new SoRec(trainMatrix, testMatrix, fold);
 			case "soreg":
 				return new SoReg(trainMatrix, testMatrix, fold);
+			case "trustsvd":
+				return new TrustSVD(trainMatrix, testMatrix, fold);
 
 				/* baselines */
 			case "globalavg":
